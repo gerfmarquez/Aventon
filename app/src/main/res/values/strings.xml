@@ -44,6 +44,4 @@
     <string name="identity_demo_error_dialog_title">Failed Identity Retrieval</string>
     <string name="identity_demo_error_message_failed_get_identity">Could not retrieve the user identity:\u0020</string>
 
-
-    
 </resources>
