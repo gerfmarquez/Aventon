@@ -2,7 +2,7 @@
 
 buildscript {
     repositories {
-        maven { url 'https://nexus.us.dominos.com/content/groups/public' }
+        jcenter()
 
     }
     dependencies {
@@ -15,7 +15,7 @@ buildscript {
 
 allprojects {
     repositories {
-        maven { url 'https://nexus.us.dominos.com/content/groups/public' }
+        jcenter()
     }
 }
 

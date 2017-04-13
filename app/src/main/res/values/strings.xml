@@ -25,12 +25,31 @@
 
     <string name="fragment_demo_instruction_overview_header">Overview</string>
     <string name="fragment_demo_instruction_description_header">Sample App Features</string>
-    <string name="feature_sign_in_title">User Sign-in</string>
-    <string name="feature_sign_in_subtitle">Let your users sign in with public identity providers or your own identity system.</string>
-    <string name="feature_sign_in_overview">Whether your users sign in or not, the User sign-in feature configures Amazon Cognito to uniquely identify the user and provide your app the appropriate credentials to access your AWS resources.</string>
-    <string name="feature_sign_in_description">The Sample App demonstrates assignment of a unique identifier for the user, the Amazon Cognito User ID. If optional or mandatory User Sign-in has been enabled in your project, then the Sample App also includes a sign-in screen, with a button for each configured sign-in provider.</string>
-    <string name="feature_sign_in_powered_by">Powered by Amazon Cognito</string>
-    <string name="feature_sign_in_demo_button">Demo User Identity</string>
+    <!--<string name="feature_sign_in_title">User Sign-in</string>-->
+    <!--<string name="feature_sign_in_subtitle">Let your users sign in with public identity providers or your own identity system.</string>-->
+    <!--<string name="feature_sign_in_overview">Whether your users sign in or not, the User sign-in feature configures Amazon Cognito to uniquely identify the user and provide your app the appropriate credentials to access your AWS resources.</string>-->
+    <!--<string name="feature_sign_in_description">The Sample App demonstrates assignment of a unique identifier for the user, the Amazon Cognito User ID. If optional or mandatory User Sign-in has been enabled in your project, then the Sample App also includes a sign-in screen, with a button for each configured sign-in provider.</string>-->
+    <!--<string name="feature_sign_in_powered_by">Powered by Amazon Cognito</string>-->
+    <!--<string name="feature_sign_in_demo_button">Demo User Identity</string>-->
+
+
+
+    <string name="feature_schedule_pickup_title">Passenger</string>
+    <string name="feature_schedule_pickup_subtitle">Schedule a pickup from the nearby cabs.</string>
+    <string name="feature_schedule_pickup_overview">Select Destination.</string>
+    <string name="feature_schedule_pickup_description">Please use the map below to select a destination.</string>
+    <string name="feature_schedule_pickup_powered_by"></string>
+    <string name="feature_schedule_pickup_demo_button">Schedule Pickup</string>
+
+
+    <string name="feature_look_for_ride_title">Driver</string>
+    <string name="feature_look_for_ride_subtitle">Start your shift and start looking for a ride.</string>
+    <string name="feature_look_for_ride_overview">Look for a Ride</string>
+    <string name="feature_look_for_ride_description">Start your shift and start looking for a ride.</string>
+    <string name="feature_look_for_ride_powered_by"></string>
+    <string name="feature_look_for_ride_demo_button">Look for a Ride</string>
+
+
 
     <string name="main_fragment_title_user_identity">User Identity</string>
     <string name="main_fragment_subtitle_user_identity">Keep track of users</string>

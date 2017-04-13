@@ -24,18 +24,13 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".MainActivity"
-            android:label="@string/app_name"
-            android:theme="@style/AppTheme.NoActionBar">
-        </activity>
-        <activity
             android:name=".SignInActivity"
             android:label="@string/title_activity_sign_in"
             android:configChanges="keyboard|keyboardHidden|orientation|screenSize"
             >
         </activity>
         <activity
-            android:name=".AwsMainActivity"
+            android:name=".MainActivity"
             android:launchMode="singleInstance"
             android:label="@string/title_activity_main">
         </activity>

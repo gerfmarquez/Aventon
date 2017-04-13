@@ -2,6 +2,7 @@ package com.smidur.aventon.demo;
 
 import android.app.AlertDialog;
 import android.content.Context;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -13,6 +14,7 @@ import android.widget.TextView;
 import com.amazonaws.mobile.AWSMobileClient;
 import com.amazonaws.mobile.user.IdentityManager;
 import com.smidur.aventon.R;
+
 
 public class IdentityDemoFragment extends DemoFragmentBase implements IdentityManager.SignInStateChangeListener {
     /** Logging tag for this class. */

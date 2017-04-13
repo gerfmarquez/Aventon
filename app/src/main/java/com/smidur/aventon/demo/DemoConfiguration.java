@@ -15,12 +15,23 @@ public class DemoConfiguration {
     private static final List<DemoFeature> demoFeatures = new ArrayList<DemoFeature>();
 
     static {
-        addDemoFeature("user_identity", R.mipmap.user_identity, R.string.feature_sign_in_title,
-                R.string.feature_sign_in_subtitle, R.string.feature_sign_in_overview,
-                R.string.feature_sign_in_description, R.string.feature_sign_in_powered_by,
-                new DemoItem(R.string.main_fragment_title_user_identity, R.mipmap.user_identity,
-                        R.string.feature_sign_in_demo_button, IdentityDemoFragment.class));
+//        addDemoFeature("user_identity", R.mipmap.user_identity, R.string.feature_sign_in_title,
+//                R.string.feature_sign_in_subtitle, R.string.feature_sign_in_overview,
+//                R.string.feature_sign_in_description, R.string.feature_sign_in_powered_by,
+//                new DemoItem(R.string.main_fragment_title_user_identity, R.mipmap.user_identity,
+//                        R.string.feature_sign_in_demo_button, IdentityDemoFragment.class));
 
+        addDemoFeature("passenger", R.mipmap.user_identity, R.string.feature_schedule_pickup_title,
+                R.string.feature_schedule_pickup_subtitle, R.string.feature_schedule_pickup_overview,
+                R.string.feature_schedule_pickup_description, R.string.feature_schedule_pickup_powered_by,
+                new DemoItem(R.string.main_fragment_title_user_identity, R.mipmap.user_identity,
+                        R.string.feature_schedule_pickup_demo_button, SchedulePickupFragment.class));
+
+        addDemoFeature("driver", R.mipmap.user_identity, R.string.feature_look_for_ride_title,
+                R.string.feature_look_for_ride_subtitle, R.string.feature_look_for_ride_overview,
+                R.string.feature_look_for_ride_description, R.string.feature_look_for_ride_powered_by,
+                new DemoItem[]{new DemoItem(R.string.main_fragment_title_user_identity, R.mipmap.user_identity,
+                        R.string.feature_look_for_ride_demo_button, LookForRideFragment.class)});
     }
 
     public static List<DemoFeature> getDemoFeatureList() {

@@ -4,15 +4,17 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
+
 import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
 import com.amazonaws.mobile.AWSMobileClient;
+import com.amazonaws.mobile.user.signin.SignInManager;
 import com.amazonaws.mobile.user.IdentityManager;
 import com.amazonaws.mobile.user.IdentityProvider;
+
 import com.amazonaws.mobile.user.signin.FacebookSignInProvider;
-import com.amazonaws.mobile.user.signin.SignInManager;
 
 public class SignInActivity extends Activity {
     private static final String LOG_TAG = SignInActivity.class.getSimpleName();
@@ -36,22 +38,22 @@ public class SignInActivity extends Activity {
         @Override
         public void onSuccess(final IdentityProvider provider) {
             Log.d(LOG_TAG, String.format("User sign-in with %s succeeded",
-                provider.getDisplayName()));
+                    provider.getDisplayName()));
 
             // The sign-in manager is no longer needed once signed in.
             SignInManager.dispose();
 
             Toast.makeText(SignInActivity.this, String.format("Sign-in with %s succeeded.",
-                provider.getDisplayName()), Toast.LENGTH_LONG).show();
+                    provider.getDisplayName()), Toast.LENGTH_LONG).show();
 
             // Load user name and image.
             AWSMobileClient.defaultMobileClient()
-                .getIdentityManager().loadUserInfoAndImage(provider, new Runnable() {
+                    .getIdentityManager().loadUserInfoAndImage(provider, new Runnable() {
                 @Override
                 public void run() {
                     Log.d(LOG_TAG, "Launching Main Activity...");
-                    startActivity(new Intent(SignInActivity.this, AwsMainActivity.class)
-                        .setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
+                    startActivity(new Intent(SignInActivity.this, MainActivity.class)
+                            .setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
                     // finish should always be called on the main thread.
                     finish();
                 }
@@ -65,10 +67,10 @@ public class SignInActivity extends Activity {
         @Override
         public void onCancel(final IdentityProvider provider) {
             Log.d(LOG_TAG, String.format("User sign-in with %s canceled.",
-                provider.getDisplayName()));
+                    provider.getDisplayName()));
 
             Toast.makeText(SignInActivity.this, String.format("Sign-in with %s canceled.",
-                provider.getDisplayName()), Toast.LENGTH_LONG).show();
+                    provider.getDisplayName()), Toast.LENGTH_LONG).show();
         }
 
         /**
@@ -79,12 +81,12 @@ public class SignInActivity extends Activity {
         @Override
         public void onError(final IdentityProvider provider, final Exception ex) {
             Log.e(LOG_TAG, String.format("User Sign-in failed for %s : %s",
-                provider.getDisplayName(), ex.getMessage()), ex);
+                    provider.getDisplayName(), ex.getMessage()), ex);
 
             final AlertDialog.Builder errorDialogBuilder = new AlertDialog.Builder(SignInActivity.this);
             errorDialogBuilder.setTitle("Sign-In Error");
             errorDialogBuilder.setMessage(
-                String.format("Sign-in with %s failed.\n%s", provider.getDisplayName(), ex.getMessage()));
+                    String.format("Sign-in with %s failed.\n%s", provider.getDisplayName(), ex.getMessage()));
             errorDialogBuilder.setNeutralButton("Ok", null);
             errorDialogBuilder.show();
         }
@@ -101,7 +103,7 @@ public class SignInActivity extends Activity {
 
         // Initialize sign-in buttons.
         signInManager.initializeSignInButton(FacebookSignInProvider.class,
-            this.findViewById(R.id.fb_login_button));
+                this.findViewById(R.id.fb_login_button));
 
     }
 

@@ -29,6 +29,7 @@ dependencies {
 
     //amazon aws
     compile('com.amazonaws:aws-android-sdk-core:2.3.8')
+
     //dynamo
     compile('com.amazonaws:aws-android-sdk-ddb:2.3.8')
     compile('com.amazonaws:aws-android-sdk-ddb-mapper:2.3.8')
