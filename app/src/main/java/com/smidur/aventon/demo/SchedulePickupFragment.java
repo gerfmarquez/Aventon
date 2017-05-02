@@ -7,14 +7,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.ImageView;
-import android.widget.TextView;
 
-import com.amazonaws.mobile.AWSMobileClient;
-import com.smidur.aventon.HttpWrapper;
 import com.smidur.aventon.R;
-
-import java.io.IOException;
+import com.smidur.aventon.managers.RideManager;
 
 /**
  * Created by marqueg on 3/15/17.
@@ -38,7 +33,7 @@ public class SchedulePickupFragment extends DemoFragmentBase {
         schedulePickupButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                schedulePickupNetworkCall();
+                RideManager.i(activity).startPassengerSchedulePickup();
             }
         });
 
@@ -47,49 +42,48 @@ public class SchedulePickupFragment extends DemoFragmentBase {
         return mFragmentView;
     }
 
-    public void schedulePickupNetworkCall() {
-        new Thread() {
-            public void run() {
-//                while(true) {
-                    try {
-
-                        HttpWrapper wrapper = new HttpWrapper();
-
-                        wrapper.httpGET("shcedule_pickup/passenger1", new HttpWrapper.UpdateCallback() {
-                            @Override
-                            public void onUpdate(String message) {
-
-                                activity.runOnUiThread(new Runnable() {
-                                    @Override
-                                    public void run() {
-
-                                        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(
-                                                activity);
-
-                                        builder.setTitle("Pickup Confirmed").setMessage("Driver will pick you up soon")
-                                                .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-                                                    @Override
-                                                    public void onClick(DialogInterface dialog, int which) {
-
-                                                    }
-                                                })
-                                                .create().show();
-                                    }
-                                });
-
-
-                            }
-                        },activity);
-
-                    } catch(IOException ioe) {
-                        ioe.printStackTrace();
-
-                    }
-//                }
-
-
-            }
-        }.start();
+    @Override
+    public void onResume() {
+        super.onResume();
+        RideManager.i(activity).register(passengerEventsListener);
     }
+    @Override
+    public void onPause() {
+        super.onPause();
+        RideManager.i(activity).unregister(passengerEventsListener);
+    }
+
+    RideManager.PassengerEventsListener passengerEventsListener = new RideManager.PassengerEventsListener() {
+        @Override
+        public void onPickupScheduled(final String driver) {
+
+            activity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+
+                    android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(
+                            activity);
+
+                    builder.setTitle("Pickup Confirmed").setMessage("Driver will pick you up soon")
+                            .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    RideManager.i(activity).endSchedulePickup();
+                                }
+                            })
+                            .setOnCancelListener(new DialogInterface.OnCancelListener() {
+                                @Override
+                                public void onCancel(DialogInterface dialog) {
+                                    RideManager.i(activity).endSchedulePickup();
+                                }
+                            })
+                            .create().show();
+                }
+            });
+
+
+        }
+
+    };
 
 }

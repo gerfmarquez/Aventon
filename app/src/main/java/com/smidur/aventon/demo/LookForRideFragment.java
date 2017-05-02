@@ -8,8 +8,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 
-import com.smidur.aventon.HttpWrapper;
+import com.smidur.aventon.http.HttpController;
+import com.smidur.aventon.http.HttpWrapper;
 import com.smidur.aventon.R;
+import com.smidur.aventon.managers.RideManager;
 
 import java.io.IOException;
 
@@ -27,9 +29,9 @@ public class LookForRideFragment extends DemoFragmentBase {
     Activity activity;
 
 //    boolean keepLookingForRides = false;
-    Button endShiftButton;
     Button startShiftButton;
-    Thread lookForRideThread;
+    Button endShiftButton;
+
 
     @Override
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
@@ -42,7 +44,10 @@ public class LookForRideFragment extends DemoFragmentBase {
         startShiftButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                lookForARideNetworkCall();
+                startShiftButton.setEnabled(false);
+                endShiftButton.setEnabled(true);
+                RideManager.i(activity).startDriverShift();
+
             }
         });
 
@@ -60,84 +65,60 @@ public class LookForRideFragment extends DemoFragmentBase {
     }
     public void endShift() {
         endShiftButton.setEnabled(false);
-        lookForRideThread.interrupt();
-        if(wrapper!=null && wrapper.getStreamReader()!=null) {
-            try {
-                wrapper.getStreamReader().close();
+        startShiftButton.setEnabled(true);
+        RideManager.i(activity).endDriverShift();
 
-            } catch(IOException ioe) {
-                ioe.printStackTrace();
-            }
+
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        RideManager.i(activity).register(driverEventsListener);
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        RideManager.i(activity).unregister(driverEventsListener);
+    }
+
+    RideManager.DriverEventsListener driverEventsListener = new RideManager.DriverEventsListener() {
+        @Override
+        public void onRideAvailable(final String passenger) {
+
+            activity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+
+                    android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(
+                            activity);
+
+                    builder.setTitle("=").setMessage("Confirm ride for passenger:"+passenger+" ?")
+                            .setPositiveButton("Confirm", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+
+                                   RideManager.i(activity).confirmRide();
+
+                                }
+                            }).setNegativeButton("Reject",null)
+                            .create().show();
+                }
+            });
+
+            activity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    startShiftButton.setEnabled(true);
+                }
+            });
         }
 
-    }
-    HttpWrapper wrapper;
+        @Override
+        public void ongoingRide() {
 
-
-    public void lookForARideNetworkCall() {
-        startShiftButton.setEnabled(false);
-        endShiftButton.setEnabled(true);
-        lookForRideThread = new Thread() {
-            public void run() {
-                while(endShiftButton.isEnabled()) {
-                    try {
-
-                        wrapper = new HttpWrapper();
-
-                        wrapper.httpGET("available_rides/driver1", new HttpWrapper.UpdateCallback() {
-                            @Override
-                            public void onUpdate(String message) {
-
-                                activity.runOnUiThread(new Runnable() {
-                                    @Override
-                                    public void run() {
-
-                                        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(
-                                                activity);
-
-                                        builder.setTitle("Confirm").setMessage("Confirm?")
-                                                .setPositiveButton("Confirm", new DialogInterface.OnClickListener() {
-                                                    @Override
-                                                    public void onClick(DialogInterface dialog, int which) {
-                                                        new Thread() {
-                                                            public void run() {
-                                                                try {
-                                                                    HttpWrapper wrapper = new HttpWrapper();
-
-                                                                    wrapper.httpGET("accept_ride/driver1/passenger1"
-                                                                            ,activity);
-                                                                } catch(IOException ioe) {
-                                                                    ioe.printStackTrace();
-                                                                }
-
-                                                            }
-                                                        }.start();
-                                                    }
-                                                }).setNegativeButton("Reject",null)
-                                                .create().show();
-                                    }
-                                });
-
-
-                            }
-                        },activity);
-
-                    } catch(IOException ioe) {
-                        ioe.printStackTrace();
-                        try { Thread.sleep(15000); }catch(InterruptedException ie){}
-                        continue;
-                    }
-                }
-                getActivity().runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        startShiftButton.setEnabled(true);
-                    }
-                });
-
-            }
-        };
-        lookForRideThread.start();
-    }
+        }
+    };
 
 }

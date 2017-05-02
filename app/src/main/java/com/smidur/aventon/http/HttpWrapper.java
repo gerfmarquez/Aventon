@@ -1,15 +1,12 @@
-package com.smidur.aventon;
+package com.smidur.aventon.http;
 
 ;
 import android.content.Context;
-import android.os.Build;
-import android.provider.ContactsContract;
 import android.support.annotation.Nullable;
 import android.util.Log;
 import android.util.Pair;
 
 
-import com.amazonaws.auth.CognitoCachingCredentialsProvider;
 import com.amazonaws.mobile.AWSMobileClient;
 import com.amazonaws.mobile.user.IdentityManager;
 
@@ -17,10 +14,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -254,7 +249,6 @@ public class HttpWrapper {
 
         con.setConnectTimeout(240000);
         con.setReadTimeout(240000);
-
 
 
         return con;

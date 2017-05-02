@@ -1,4 +1,4 @@
-package com.smidur.aventon;
+package com.smidur.aventon.http;
 
 public class HttpResponse {
     int code;
