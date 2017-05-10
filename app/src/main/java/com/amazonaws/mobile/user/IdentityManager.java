@@ -205,6 +205,9 @@ public class IdentityManager {
         return this.credentialsProviderHolder.getUnderlyingProvider();
     }
     public String getAccessToken() {
+        if(areCredentialsExpired()) {
+            refresh();
+        }
         return this.credentialsProviderHolder.getUnderlyingProvider().getToken();
     }
     public void refresh() {

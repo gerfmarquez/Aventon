@@ -8,12 +8,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 
-import com.smidur.aventon.http.HttpController;
-import com.smidur.aventon.http.HttpWrapper;
 import com.smidur.aventon.R;
 import com.smidur.aventon.managers.RideManager;
-
-import java.io.IOException;
 
 /**
  * Created by marqueg on 3/15/17.
@@ -99,7 +95,7 @@ public class LookForRideFragment extends DemoFragmentBase {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
 
-                                   RideManager.i(activity).confirmRide();
+                                   RideManager.i(activity).confirmPassengerPickup();
 
                                 }
                             }).setNegativeButton("Reject",null)

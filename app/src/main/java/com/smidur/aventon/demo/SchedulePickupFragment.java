@@ -57,6 +57,8 @@ public class SchedulePickupFragment extends DemoFragmentBase {
         @Override
         public void onPickupScheduled(final String driver) {
 
+            RideManager.i(activity).endSchedulePickup();
+
             activity.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
@@ -68,13 +70,13 @@ public class SchedulePickupFragment extends DemoFragmentBase {
                             .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
-                                    RideManager.i(activity).endSchedulePickup();
+
                                 }
                             })
                             .setOnCancelListener(new DialogInterface.OnCancelListener() {
                                 @Override
                                 public void onCancel(DialogInterface dialog) {
-                                    RideManager.i(activity).endSchedulePickup();
+
                                 }
                             })
                             .create().show();

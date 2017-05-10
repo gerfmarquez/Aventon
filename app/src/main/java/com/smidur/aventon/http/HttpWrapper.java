@@ -49,7 +49,8 @@ public class HttpWrapper {
         TAG = TAG+" "+unique_timestamp;
     }
 
-    private String rootUrl = "http://custom-env.ewpmtrqu8z.us-east-1.elasticbeanstalk.com/";
+//    private String rootUrl = "http://custom-env.ewpmtrqu8z.us-east-1.elasticbeanstalk.com/";
+    private String rootUrl = "http://10.0.0.200:5000/";
 
     //avoid loading ssl certificates every http call
     private static SSLContext sslContext = null;

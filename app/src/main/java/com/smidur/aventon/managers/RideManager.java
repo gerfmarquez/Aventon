@@ -40,6 +40,7 @@ public class RideManager {
             instance = new RideManager(context);
             instance.handler = new Handler(context.getMainLooper());
             instance.driverEventsListeners = new HashSet<>();
+            instance.passengerEventsListeners = new HashSet<>();
         }
         return instance;
     }
@@ -92,6 +93,11 @@ public class RideManager {
 
         Sync.i(context).startSyncSchedulePickup();
     }
+    //todo
+    public void cancelSchedulePickup() {
+
+    }
+
     public void endSchedulePickup() {
 
         if(isPassengerScheduling) {
@@ -151,7 +157,7 @@ public class RideManager {
 
 
 
-    public void confirmRide() {
+    public void confirmPassengerPickup() {
         new Thread() {
             public void run() {
                 try {
@@ -168,14 +174,16 @@ public class RideManager {
 
 
     public void processMessage(String message) {
+        String value = (message.split(":"))[1].trim();
+
         if(message.contains("Passenger")) {
-            String passenger = (message.split(":"))[1].trim();
+            String passenger = value;
 
             postRideAvailableCallback(passenger);
 
         }
         if(message.contains("Driver")) {
-            String driver = (message.split(":"))[1].trim();
+            String driver = value;
 
             postRideAvailableCallback(driver);
 

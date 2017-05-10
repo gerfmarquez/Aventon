@@ -4,6 +4,9 @@ import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Handler;
 
+import com.amazonaws.mobile.AWSMobileClient;
+import com.amazonaws.mobile.user.IdentityManager;
+import com.smidur.aventon.exceptions.TokenInvalidException;
 import com.smidur.aventon.http.HttpController;
 import com.smidur.aventon.http.HttpWrapper;
 import com.smidur.aventon.managers.RideManager;
@@ -75,10 +78,10 @@ public class Sync {
     private void closeConnectionIfOpen() {
         syncAvailableDriversController.closeStream();
         //todo interrupt might not be necessary
-        syncAvailableRidesThread.interrupt();
+//        syncAvailableRidesThread.interrupt();
         syncAvailableDriversController.closeStream();
         //todo interrupt might not be necessary
-        syncSchedulePickupThread.interrupt();
+//        syncSchedulePickupThread.interrupt();
     }
 
     /**
@@ -106,6 +109,12 @@ public class Sync {
 
                                 }
                             });
+                        } catch(TokenInvalidException tie) {
+                            IdentityManager identityManager = AWSMobileClient.defaultMobileClient()
+                                    .getIdentityManager();
+
+                            identityManager.refresh();
+
                         } catch(IOException ioe) {
 
                             ioe.printStackTrace();
@@ -148,6 +157,12 @@ public class Sync {
 
                                 }
                             });
+                        } catch(TokenInvalidException tie) {
+                            IdentityManager identityManager = AWSMobileClient.defaultMobileClient()
+                                    .getIdentityManager();
+
+                            identityManager.refresh();
+
                         } catch(IOException ioe) {
 
                             ioe.printStackTrace();

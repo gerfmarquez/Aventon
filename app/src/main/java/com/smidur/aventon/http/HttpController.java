@@ -4,6 +4,8 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.support.annotation.NonNull;
 
+import com.smidur.aventon.exceptions.TokenInvalidException;
+
 import java.io.IOException;
 
 /**
@@ -29,11 +31,11 @@ public class HttpController {
         void onConfirmedPickupScheduled(String message);
     }
 
-    public void availableRidesCall(@NonNull  final RidesAvailableCallback callback) throws IOException {
+    public void availableRidesCall(@NonNull  final RidesAvailableCallback callback) throws IOException, TokenInvalidException {
 
         wrapper = new HttpWrapper();
 
-        wrapper.httpGET("available_rides", new HttpWrapper.UpdateCallback() {
+        HttpResponse response = wrapper.httpGET("available_rides", new HttpWrapper.UpdateCallback() {
             @Override
             public void onUpdate(String message) {
 
@@ -41,15 +43,18 @@ public class HttpController {
 
             }
         },context);
+        if(response.code==401) {
+            throw new TokenInvalidException();
+        }
 
 
     }
 
-    public void schedulePickupCall(@NonNull  final SchedulePickupCallback callback) throws IOException {
+    public void schedulePickupCall(@NonNull  final SchedulePickupCallback callback) throws IOException, TokenInvalidException {
 
         wrapper = new HttpWrapper();
 
-        wrapper.httpGET("shcedule_pickup", new HttpWrapper.UpdateCallback() {
+        HttpResponse response = wrapper.httpGET("shcedule_pickup", new HttpWrapper.UpdateCallback() {
             @Override
             public void onUpdate(String message) {
 
@@ -57,7 +62,9 @@ public class HttpController {
 
             }
         },context);
-
+        if(response.code==401) {
+            throw new TokenInvalidException();
+        }
 
     }
 
