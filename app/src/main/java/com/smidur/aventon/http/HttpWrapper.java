@@ -220,19 +220,19 @@ public class HttpWrapper {
      /**
      * This method handles the whole http call.
      *
-     *  @param url path under order.dominos.com domain
+     *  @param url path under order.aventons.com domain
      *  @param context
      *  @return HttpURLConnection
      **/
     private HttpURLConnection connectionInitialization(String url,Context context) throws IOException {
-        URL dominosUrl = new URL(url);
+        URL aventonsUrl = new URL(url);
         HttpURLConnection con = null;
         if(url.contains("https")) {
-            con = (HttpsURLConnection)dominosUrl.openConnection();
+            con = (HttpsURLConnection)aventonsUrl.openConnection();
 //            if(server == Constants.URL.API || server == Constants.URL.NOLO)
-//                onlyAcceptValidDominosCertificates((HttpsURLConnection)con,context);
+//                onlyAcceptValidaventonsCertificates((HttpsURLConnection)con,context);
         } else {
-            con = (HttpURLConnection)dominosUrl.openConnection();
+            con = (HttpURLConnection)aventonsUrl.openConnection();
 
         }
 
@@ -316,7 +316,7 @@ public class HttpWrapper {
         Log.d("Output","String Http POST : "+result.toString());
         return result.toString();
     }
-//    private void onlyAcceptValidDominosCertificates(HttpsURLConnection httpsUrlConnection,Context context)  {
+//    private void onlyAcceptValidCertificates(HttpsURLConnection httpsUrlConnection,Context context)  {
 //        try {
 //
 //            if(sslContext ==null) {
@@ -353,7 +353,7 @@ public class HttpWrapper {
 //
 //
 //        } catch(NoSuchAlgorithmException| KeyManagementException| IOException|CertificateException|KeyStoreException e) {
-//            Log.e("HttpWrapper","",new IOException("Could not load domino's certificates ",e));
+//            Log.e("HttpWrapper","",new IOException("Could not load s certificates ",e));
 //            sslContext = null;
 //
 //        }
@@ -361,7 +361,7 @@ public class HttpWrapper {
 
     private static String getUserAgent(){
         StringBuilder builder = new StringBuilder();
-//        builder.append("Dominos API");
+//        builder.append(" API");
 //        builder.append("/" + BuildConfigUtil.getAppVersion());
 //        builder.append(" (Android " + Build.VERSION.RELEASE);
 //        builder.append("; " + Build.MANUFACTURER);
