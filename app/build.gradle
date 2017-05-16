@@ -39,5 +39,9 @@ dependencies {
     // gateway
     compile('com.amazonaws:aws-android-sdk-apigateway-core:2.3.8')
 
+    compile 'com.google.android.gms:play-services-maps:8.4.0'
+    compile 'com.google.android.gms:play-services-places:10.2.4'
+
+
     testCompile 'junit:junit:4.12'
 }

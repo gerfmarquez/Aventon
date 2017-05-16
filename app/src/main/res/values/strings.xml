@@ -62,5 +62,8 @@
     <string name="identity_demo_dialog_dismiss_text">DISMISS</string>
     <string name="identity_demo_error_dialog_title">Failed Identity Retrieval</string>
     <string name="identity_demo_error_message_failed_get_identity">Could not retrieve the user identity:\u0020</string>
+    <string name="choose_valid_address">Please select a valid place.</string>
+    <string name="ok">OK</string>
+    <string name="destination_too_far">Destination is too far!</string>
 
 </resources>

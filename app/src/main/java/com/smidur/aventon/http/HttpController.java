@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.support.annotation.NonNull;
 
+import com.google.android.gms.location.places.Place;
 import com.smidur.aventon.exceptions.TokenInvalidException;
 
 import java.io.IOException;
@@ -31,7 +32,7 @@ public class HttpController {
         void onConfirmedPickupScheduled(String message);
     }
 
-    public void availableRidesCall(@NonNull  final RidesAvailableCallback callback) throws IOException, TokenInvalidException {
+    public void availableRidesCall(Place place, @NonNull  final RidesAvailableCallback callback) throws IOException, TokenInvalidException {
 
         wrapper = new HttpWrapper();
 

@@ -4,6 +4,7 @@ import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Handler;
 
+import com.google.android.gms.location.places.Place;
 import com.smidur.aventon.http.HttpWrapper;
 import com.smidur.aventon.sync.Sync;
 
@@ -79,26 +80,26 @@ public class RideManager {
     /**
      * Register for  events
      */
-    public void startPassengerSchedulePickup() {
+    public void startSchedulePassengerPickup(Place place) {
 
         isPassengerScheduling = true;
         Sync.i(context).startSyncSchedulePickup();
     }
-    public void pausePassengerSchedulePickup(String passenger) {
+    public void pauseSchedulePassengerPickup(String passenger) {
 
         //we might wanna keep connection open
         if(isPassengerScheduling)   Sync.i(context).stopSyncSchedulePickup();
     }
-    public void resumeSchedulePickup() {
+    public void resumeSchedulePassengerPickup() {
 
         Sync.i(context).startSyncSchedulePickup();
     }
     //todo
-    public void cancelSchedulePickup() {
+    public void cancelSchedulePassengerPickup() {
 
     }
 
-    public void endSchedulePickup() {
+    public void endSchedulePassengerPickup() {
 
         if(isPassengerScheduling) {
             Sync.i(context).stopSyncSchedulePickup();
@@ -185,7 +186,7 @@ public class RideManager {
         if(message.contains("Driver")) {
             String driver = value;
 
-            postRideAvailableCallback(driver);
+            postPickupScheduledCallback(driver);
 
         }
     }
@@ -197,6 +198,22 @@ public class RideManager {
                         @Override
                         public void run() {
                             listener.onRideAvailable(passenger);
+                        }
+                    });
+
+                }
+            }
+
+        }
+    }
+    private void postPickupScheduledCallback(final String driver) {
+        synchronized (passengerEventsListeners) {
+            for(final PassengerEventsListener listener: passengerEventsListeners) {
+                if(listener!=null) {
+                    AsyncTask.execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            listener.onPickupScheduled(driver);
                         }
                     });
 
