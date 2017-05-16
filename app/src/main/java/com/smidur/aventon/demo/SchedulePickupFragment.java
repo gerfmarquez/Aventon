@@ -9,8 +9,8 @@ import android.content.DialogInterface;
 import android.graphics.drawable.ColorDrawable;
 import android.location.Location;
 import android.location.LocationManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.v7.widget.AppCompatEditText;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,6 +20,7 @@ import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.ui.PlaceAutocompleteFragment;
 import com.google.android.gms.location.places.ui.PlaceSelectionListener;
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -27,6 +28,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.smidur.aventon.R;
 import com.smidur.aventon.managers.RideManager;
+import com.smidur.aventon.utilities.Constants;
 
 /**
  * Created by marqueg on 3/15/17.
@@ -50,7 +52,7 @@ public class SchedulePickupFragment extends DemoFragmentBase implements PlaceSel
 
     GoogleMap mGoogleMap;
 
-    Place mSelectedPlace;
+    Place mSelectedDestination;
 
     Activity activity;
 
@@ -85,6 +87,7 @@ public class SchedulePickupFragment extends DemoFragmentBase implements PlaceSel
 
         } catch(SecurityException se) {
             //todo analytics
+            //todo retry or check before attempting so that we know permission is there.
             requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION},1);
         }
 
@@ -93,17 +96,38 @@ public class SchedulePickupFragment extends DemoFragmentBase implements PlaceSel
             @Override
             public void onMapReady(GoogleMap googleMap) {
                 mGoogleMap = googleMap;
+                mGoogleMap.animateCamera(
+                        CameraUpdateFactory.newLatLngZoom(
+                                getLatLng(getLastKnownLocation()), Constants.PICKUP_MAP_ZOOM));
+                mGoogleMap.getUiSettings().setMyLocationButtonEnabled(true);
+                mGoogleMap.getUiSettings().setCompassEnabled(true);
+                mGoogleMap.getUiSettings().setMapToolbarEnabled(true);
+
+
+
 
             }
         });
         mSchedulePickupButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(mSelectedPlace == null) {
+                if(mSelectedDestination == null) {
                     mSchedulePickupButton.setEnabled(false);
                     return;
                 }
-                RideManager.i(activity).startSchedulePassengerPickup();
+                AsyncTask.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            RideManager.i(activity).startSchedulePassengerPickup(mSelectedDestination);
+                        } catch(SecurityException se) {
+                            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION},1);
+                            //todo retry or check before attempting so that we know permission is there.
+                            //todo analytics
+                        }
+                    }
+                });
+
             }
         });
 
@@ -172,7 +196,7 @@ public class SchedulePickupFragment extends DemoFragmentBase implements PlaceSel
 
             if(distanceToAddress <  MAXIMUM_RIDE_DISTANCE) {
                 mSchedulePickupButton.setEnabled(true);
-                mSelectedPlace = place;
+                mSelectedDestination = place;
 
             } else {
                 new AlertDialog.Builder(activity).setTitle(R.string.destination_too_far)
@@ -183,6 +207,7 @@ public class SchedulePickupFragment extends DemoFragmentBase implements PlaceSel
 
         } catch(SecurityException se) {
             //todo analytics
+            //todo retry or check before attempting so that we know permission is there.
             requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION},1);
         }
 

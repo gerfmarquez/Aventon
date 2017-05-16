@@ -6,10 +6,14 @@ import android.os.Handler;
 
 import com.amazonaws.mobile.AWSMobileClient;
 import com.amazonaws.mobile.user.IdentityManager;
+import com.google.android.gms.maps.model.LatLng;
 import com.smidur.aventon.exceptions.TokenInvalidException;
 import com.smidur.aventon.http.HttpController;
 import com.smidur.aventon.http.HttpWrapper;
 import com.smidur.aventon.managers.RideManager;
+import com.smidur.aventon.model.SyncDestination;
+import com.smidur.aventon.model.SyncLocation;
+import com.smidur.aventon.model.SyncPassenger;
 
 import java.io.IOException;
 
@@ -30,6 +34,8 @@ public class Sync {
     Thread syncSchedulePickupThread;
     HttpController syncAvailableDriversController;
     HttpController syncSchedulePickupController;
+
+    SyncPassenger syncPassenger;
 
 
     private static Sync instance;
@@ -61,12 +67,14 @@ public class Sync {
 
     }
 
-    public void startSyncSchedulePickup() {
+    public void startSyncSchedulePickup(SyncPassenger syncPassenger) {
+        this.syncPassenger = syncPassenger;
 
         handler.post(syncSchedulePickup);
 
     }
     public void stopSyncSchedulePickup() {
+        this.syncPassenger = null;
 
         closeConnectionIfOpen();
 
@@ -144,12 +152,14 @@ public class Sync {
                     syncSchedulePickupThread = Thread.currentThread();
                     Thread.currentThread().setName("SyncSchedulePickup");
 
+                    if(syncPassenger==null)return;
+
                     //this label is to make sure we always schedule this task in a cycle
                     scheduleNextIteration:
                     do {
                         try {
                             syncSchedulePickupController = new HttpController(context);
-                            syncSchedulePickupController.schedulePickupCall(new HttpController.SchedulePickupCallback() {
+                            syncSchedulePickupController.schedulePickupCall(syncPassenger,new HttpController.SchedulePickupCallback() {
                                 @Override
                                 public void onConfirmedPickupScheduled(String message) {
 

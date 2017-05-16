@@ -5,7 +5,10 @@ import android.content.DialogInterface;
 import android.support.annotation.NonNull;
 
 import com.google.android.gms.location.places.Place;
+import com.google.gson.Gson;
 import com.smidur.aventon.exceptions.TokenInvalidException;
+import com.smidur.aventon.model.SyncDestination;
+import com.smidur.aventon.model.SyncPassenger;
 
 import java.io.IOException;
 
@@ -32,7 +35,7 @@ public class HttpController {
         void onConfirmedPickupScheduled(String message);
     }
 
-    public void availableRidesCall(Place place, @NonNull  final RidesAvailableCallback callback) throws IOException, TokenInvalidException {
+    public void availableRidesCall(@NonNull  final RidesAvailableCallback callback) throws IOException, TokenInvalidException {
 
         wrapper = new HttpWrapper();
 
@@ -51,18 +54,20 @@ public class HttpController {
 
     }
 
-    public void schedulePickupCall(@NonNull  final SchedulePickupCallback callback) throws IOException, TokenInvalidException {
+    public void schedulePickupCall(SyncPassenger syncPassenger, @NonNull final SchedulePickupCallback callback) throws IOException, TokenInvalidException {
 
         wrapper = new HttpWrapper();
 
-        HttpResponse response = wrapper.httpGET("shcedule_pickup", new HttpWrapper.UpdateCallback() {
+        String syncDestinationJson = new Gson().toJson(syncPassenger);
+
+        HttpResponse response = wrapper.httpPOST("shcedule_pickup",new HttpWrapper.UpdateCallback() {
             @Override
             public void onUpdate(String message) {
 
                 callback.onConfirmedPickupScheduled(message);
 
             }
-        },context);
+        }, syncDestinationJson ,context);
         if(response.code==401) {
             throw new TokenInvalidException();
         }
