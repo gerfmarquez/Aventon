@@ -2,12 +2,14 @@ package com.smidur.aventon.http;
 
 import android.content.Context;
 import android.content.DialogInterface;
+import android.location.Location;
 import android.support.annotation.NonNull;
 
 import com.google.android.gms.location.places.Place;
 import com.google.gson.Gson;
 import com.smidur.aventon.exceptions.TokenInvalidException;
 import com.smidur.aventon.model.SyncDestination;
+import com.smidur.aventon.model.SyncLocation;
 import com.smidur.aventon.model.SyncPassenger;
 
 import java.io.IOException;
@@ -47,6 +49,20 @@ public class HttpController {
 
             }
         },context);
+        if(response.code==401) {
+            throw new TokenInvalidException();
+        }
+
+
+    }
+
+    public void updateDriverLocation(SyncLocation driverLocation) throws IOException, TokenInvalidException {
+
+        wrapper = new HttpWrapper();
+
+        String driverLocationJson = new Gson().toJson(driverLocation);
+
+        HttpResponse response = wrapper.httpPUT("update_location",driverLocationJson,context);
         if(response.code==401) {
             throw new TokenInvalidException();
         }

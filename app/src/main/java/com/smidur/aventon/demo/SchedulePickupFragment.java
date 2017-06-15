@@ -6,6 +6,9 @@ import android.app.AlertDialog;
 import android.app.FragmentManager;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.pm.PackageManager;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.ColorDrawable;
 import android.location.Location;
 import android.location.LocationManager;
@@ -24,11 +27,19 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.CameraPosition;
+import com.google.android.gms.maps.model.GroundOverlay;
+import com.google.android.gms.maps.model.GroundOverlayOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.smidur.aventon.R;
 import com.smidur.aventon.managers.RideManager;
+import com.smidur.aventon.model.SyncLocation;
 import com.smidur.aventon.utilities.Constants;
+import com.smidur.aventon.utilities.GpsUtil;
 
 /**
  * Created by marqueg on 3/15/17.
@@ -37,6 +48,9 @@ import com.smidur.aventon.utilities.Constants;
 public class SchedulePickupFragment extends DemoFragmentBase implements PlaceSelectionListener {
 
     private int MAXIMUM_RIDE_DISTANCE = 100 * 1000;//km
+
+    private static final int MY_PERMISSIONS_REQUEST_LOCATION = 89103571;//km
+
 
     /** This fragment's view. */
     private View mFragmentView;
@@ -47,8 +61,9 @@ public class SchedulePickupFragment extends DemoFragmentBase implements PlaceSel
     FragmentManager fragmentManager;
     LocationManager locationManager;
 
-    Button mSchedulePickupButton;
 
+    Button mSchedulePickupButton;
+    Marker driverMarker;
 
     GoogleMap mGoogleMap;
 
@@ -60,9 +75,12 @@ public class SchedulePickupFragment extends DemoFragmentBase implements PlaceSel
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
                              final Bundle savedInstanceState) {
 
+
         activity = this.getActivity();
         fragmentManager = activity.getFragmentManager();
         locationManager = (LocationManager) activity.getSystemService(Context.LOCATION_SERVICE);
+
+
 
         // Inflate the layout for this fragment
         mFragmentView = inflater.inflate(R.layout.schedule_pickup, container, false);
@@ -82,7 +100,7 @@ public class SchedulePickupFragment extends DemoFragmentBase implements PlaceSel
         try {
             autocompleteFragment.setBoundsBias(
                     LatLngBounds.builder()
-                            .include(getLatLng(getLastKnownLocation()))
+                            .include(GpsUtil.getLatLng(GpsUtil.getLastKnownLocation(getContext())))
                             .build());
 
         } catch(SecurityException se) {
@@ -98,16 +116,25 @@ public class SchedulePickupFragment extends DemoFragmentBase implements PlaceSel
                 mGoogleMap = googleMap;
                 mGoogleMap.animateCamera(
                         CameraUpdateFactory.newLatLngZoom(
-                                getLatLng(getLastKnownLocation()), Constants.PICKUP_MAP_ZOOM));
+                                GpsUtil.getLatLng(GpsUtil.getLastKnownLocation(getContext())), Constants.PICKUP_MAP_ZOOM));
                 mGoogleMap.getUiSettings().setMyLocationButtonEnabled(true);
                 mGoogleMap.getUiSettings().setCompassEnabled(true);
                 mGoogleMap.getUiSettings().setMapToolbarEnabled(true);
+//                mGoogleMap.setOnCameraMoveListener(new GoogleMap.OnCameraMoveListener() {
+//                    @Override
+//                    public void onCameraMove() {
+//                        updatemarker();
+//                    }
+//                });
 
 
-
+                Location passengerLocation = GpsUtil.getLastKnownLocation(getContext());
+                moveMarker(passengerLocation.getLatitude(),passengerLocation.getLongitude());
 
             }
+
         });
+
         mSchedulePickupButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -115,13 +142,15 @@ public class SchedulePickupFragment extends DemoFragmentBase implements PlaceSel
                     mSchedulePickupButton.setEnabled(false);
                     return;
                 }
+                //show progress loader
                 AsyncTask.execute(new Runnable() {
                     @Override
                     public void run() {
                         try {
                             RideManager.i(activity).startSchedulePassengerPickup(mSelectedDestination);
                         } catch(SecurityException se) {
-                            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION},1);
+                            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}
+                                    ,MY_PERMISSIONS_REQUEST_LOCATION);
                             //todo retry or check before attempting so that we know permission is there.
                             //todo analytics
                         }
@@ -138,6 +167,8 @@ public class SchedulePickupFragment extends DemoFragmentBase implements PlaceSel
     public void onResume() {
         super.onResume();
         RideManager.i(activity).register(passengerEventsListener);
+
+
     }
     @Override
     public void onPause() {
@@ -149,7 +180,7 @@ public class SchedulePickupFragment extends DemoFragmentBase implements PlaceSel
         @Override
         public void onPickupScheduled(final String driver) {
 
-            RideManager.i(activity).endSchedulePassengerPickup();
+            //hide progress loader
 
             activity.runOnUiThread(new Runnable() {
                 @Override
@@ -176,6 +207,17 @@ public class SchedulePickupFragment extends DemoFragmentBase implements PlaceSel
             });
 
 
+
+        }
+        @Override
+        public void onDriverApproaching(SyncLocation driverNewLocation) {
+
+            moveMarker(driverNewLocation.getSyncLocationLatitude(),driverNewLocation.getSyncLocationLongitude());
+
+        }
+        @Override
+        public void onDriverArrived() {
+            RideManager.i(activity).endSchedulePassengerPickup();
         }
 
     };
@@ -192,7 +234,7 @@ public class SchedulePickupFragment extends DemoFragmentBase implements PlaceSel
 
         try {
 
-            float distanceToAddress = placeLocation.distanceTo(getLastKnownLocation());
+            float distanceToAddress = placeLocation.distanceTo(GpsUtil.getLastKnownLocation(getContext()));
 
             if(distanceToAddress <  MAXIMUM_RIDE_DISTANCE) {
                 mSchedulePickupButton.setEnabled(true);
@@ -208,7 +250,8 @@ public class SchedulePickupFragment extends DemoFragmentBase implements PlaceSel
         } catch(SecurityException se) {
             //todo analytics
             //todo retry or check before attempting so that we know permission is there.
-            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION},1);
+            //todo this shouldn't happen only for few users that disable on purpose,
+            // restarting app will request permission again
         }
 
 
@@ -223,11 +266,46 @@ public class SchedulePickupFragment extends DemoFragmentBase implements PlaceSel
                 .setPositiveButton(R.string.ok,null).create().show();
     }
 
-    private Location getLastKnownLocation() throws SecurityException {
-        Location lastKnownLocation = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-        return lastKnownLocation;
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case MY_PERMISSIONS_REQUEST_LOCATION: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+
+                } else {
+                    activity.finish();
+                }
+                return;
+            }
+
+            // other 'case' lines to check for other
+            // permissions this app might request
+        }
     }
-    private LatLng getLatLng(Location location) {
-        return new LatLng(location.getLatitude(),location.getLongitude());
+
+    private void moveMarker(double latitude, double longitude) {
+        LatLng driverLatLng = new LatLng(
+                latitude
+                ,longitude);
+
+        MarkerOptions options = new MarkerOptions();
+        options.icon(BitmapDescriptorFactory.fromResource(R.drawable.bluedot))
+                .position(driverLatLng);
+
+
+
+
+//        mGoogleMap.addGroundOverlay(options);
+        if(driverMarker==null) {
+            driverMarker = mGoogleMap.addMarker(options);
+        }
+        driverMarker.setPosition(driverLatLng);
     }
+
+
 }

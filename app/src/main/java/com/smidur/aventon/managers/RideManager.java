@@ -18,6 +18,8 @@ import com.smidur.aventon.model.SyncLocation;
 import com.smidur.aventon.model.SyncPassenger;
 import com.smidur.aventon.sync.Sync;
 import com.smidur.aventon.utilities.Constants;
+import com.smidur.aventon.utilities.GoogleApiWrapper;
+import com.smidur.aventon.utilities.GpsUtil;
 
 import java.io.IOException;
 import java.util.HashSet;
@@ -38,7 +40,6 @@ public class RideManager {
     private boolean isDriverOnRide = false;
     private boolean isPassengerScheduling = false;
 
-    Location requestedPassengerLocation;
 
     /**
      *  Start - Singleton
@@ -70,7 +71,13 @@ public class RideManager {
     public void startDriverShift() {
 
         isDriverAvailable = true;
+
+        GoogleApiWrapper.getInstance(context).requestAndroidLocationUpdates(driverLocationListener);
+
         Sync.i(context).startSyncAvailableRides();
+        Sync.i(context).startDriverShift();
+
+
     }
     public void pauseDriverShiftAndStartRide(String passenger) {
         isDriverOnRide = true;
@@ -97,50 +104,14 @@ public class RideManager {
     @WorkerThread
     public void startSchedulePassengerPickup(Place placeDestination) throws SecurityException {
 
-        isPassengerScheduling = true;
-
-
-        LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
-
-        Criteria minimumCriteria = new Criteria();
-        minimumCriteria.setAccuracy(Constants.MINIMUM_ACCURACY_FOR_PASSENGER_PICKUP_LOCATION);
-
-        final CountDownLatch latch = new CountDownLatch(1);
-
-        locationManager.requestSingleUpdate(minimumCriteria, new LocationListener() {
-            @Override
-            public void onLocationChanged(Location location) {
-                requestedPassengerLocation = location;
-                latch.countDown();
-            }
-
-            @Override
-            public void onStatusChanged(String provider, int status, Bundle extras) {
-
-            }
-
-            @Override
-            public void onProviderEnabled(String provider) {
-
-            }
-
-            @Override
-            public void onProviderDisabled(String provider) {
-
-            }
-        },context.getMainLooper());
-        try {
-            latch.await();
-
-        } catch(InterruptedException ie){}
-
-        if(requestedPassengerLocation == null) {
+        Location passengerLocation = GpsUtil.getUserLocation(context);
+        if(passengerLocation == null) {
             //todo anaylytics error
             return;
         }
 
         SyncLocation syncPassengerLocation = new SyncLocation(
-                requestedPassengerLocation.getLatitude(),requestedPassengerLocation.getLongitude());
+                passengerLocation.getLatitude(),passengerLocation.getLongitude());
 
         LatLng latLng = placeDestination.getLatLng();
         SyncLocation syncDestLocation = new SyncLocation(latLng.latitude,latLng.longitude);
@@ -153,6 +124,8 @@ public class RideManager {
 
 
         Sync.i(context).startSyncSchedulePickup(syncPassenger);
+
+        isPassengerScheduling = true;
     }
     public void pauseSchedulePassengerPickup(String passenger) {
 
@@ -258,6 +231,19 @@ public class RideManager {
             postPickupScheduledCallback(driver);
 
         }
+        if(message.contains("NewDriverLocation")) {
+
+            String latitude = value.split(",")[0];
+            String longitude = value.split(",")[1];
+
+            postDriverLocationUpdateCallback(
+                    new SyncLocation(
+                            Double.valueOf(latitude),
+                            Double.valueOf(longitude)
+                    )
+            );
+
+        }
     }
     private void postRideAvailableCallback(final String passenger) {
         synchronized (driverEventsListeners) {
@@ -291,20 +277,61 @@ public class RideManager {
 
         }
     }
+    private void postDriverLocationUpdateCallback(final SyncLocation syncLocation) {
+        synchronized (passengerEventsListeners) {
+            for(final PassengerEventsListener listener: passengerEventsListeners) {
+                if(listener!=null) {
+                    AsyncTask.execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            listener.onDriverApproaching(syncLocation);
+                        }
+                    });
+
+                }
+            }
+
+        }
+    }
+
+    //todo move this to another class
+    LocationListener driverLocationListener = new LocationListener() {
+        @Override
+        public void onLocationChanged(Location location) {
+            Sync.i(context).pushDriverLocationToSync(location);
+        }
+
+        @Override
+        public void onStatusChanged(String provider, int status, Bundle extras) {
+
+        }
+
+        @Override
+        public void onProviderEnabled(String provider) {
+
+        }
+
+        @Override
+        public void onProviderDisabled(String provider) {
+
+        }
+    };
 
 
 
     public interface DriverEventsListener {
-        public void onRideAvailable(String passenger);
-        public void ongoingRide();
+        void onRideAvailable(String passenger);
+        void ongoingRide();
     }
     public interface PassengerEventsListener {
-        public void onPickupScheduled(String driver);
+        void onPickupScheduled(String driver);
+        void onDriverApproaching(SyncLocation driverNewLocation);
+        void onDriverArrived();
     }
     public interface RideEventsListener {
-        public void onRideStart();
-        public void onRideEnd();
-        public void onRideCanceled();
+        void onRideStart();
+        void onRideEnd();
+        void onRideCanceled();
 
     }
 }

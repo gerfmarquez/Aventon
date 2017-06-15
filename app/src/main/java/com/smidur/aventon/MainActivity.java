@@ -8,6 +8,7 @@
 //
 package com.smidur.aventon;
 
+import android.*;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
@@ -29,6 +30,7 @@ import com.amazonaws.mobile.user.IdentityManager;
 import com.smidur.aventon.demo.DemoConfiguration;
 import com.smidur.aventon.demo.HomeDemoFragment;
 import com.smidur.aventon.navigation.NavigationDrawer;
+import com.smidur.aventon.utilities.GpsUtil;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
     /** Class name for log messages. */
@@ -115,6 +117,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        try {
+            GpsUtil.getLatLng(GpsUtil.getLastKnownLocation(this));
+
+        } catch(SecurityException se) {
+            //todo analytics
+            //todo retry or check before attempting so that we know permission is there.
+            requestPermissions(new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},1);
+
+
+
+        }
+
 
         // Obtain a reference to the mobile client. It is created in the Application class,
         // but in case a custom Application class is not used, we initialize it here if necessary.

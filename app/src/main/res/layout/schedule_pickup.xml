@@ -23,7 +23,13 @@
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
         />
-
+    <ProgressBar
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        style="@android:style/Widget.Material.ProgressBar.Large"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true"
+        />
     <!--<AutoCompleteTextView-->
         <!--android:id="@+id/search_address"-->
         <!--android:layout_width="match_parent"-->
