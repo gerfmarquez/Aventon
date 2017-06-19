@@ -7,9 +7,10 @@ package com.smidur.aventon.model;
 public class SyncPassenger {
 
     //todo IMPORTANT REMOVE THIS
-    String passengerId;
+    String syncPassengerId;
     SyncLocation syncPassengerLocation;
     SyncDestination syncDestination;
+    SyncOrigin syncOrigin;
 
     public SyncDestination getSyncDestination() {
         return syncDestination;
@@ -28,10 +29,26 @@ public class SyncPassenger {
     }
 
     public String getPassengerId() {
-        return passengerId;
+        return syncPassengerId;
     }
 
-    public void setPassengerId(String passengerId) {
-        this.passengerId = passengerId;
+    public void setPassengerId(String syncPassengerId) {
+        this.syncPassengerId = syncPassengerId;
+    }
+
+    public String getSyncPassengerId() {
+        return syncPassengerId;
+    }
+
+    public void setSyncPassengerId(String syncPassengerId) {
+        this.syncPassengerId = syncPassengerId;
+    }
+
+    public SyncOrigin getSyncOrigin() {
+        return syncOrigin;
+    }
+
+    public void setSyncOrigin(SyncOrigin syncOrigin) {
+        this.syncOrigin = syncOrigin;
     }
 }

@@ -2,6 +2,8 @@ package com.smidur.aventon.demo;
 
 import android.app.Activity;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,6 +12,8 @@ import android.widget.Button;
 
 import com.smidur.aventon.R;
 import com.smidur.aventon.managers.RideManager;
+import com.smidur.aventon.model.SyncDestination;
+import com.smidur.aventon.model.SyncLocation;
 import com.smidur.aventon.model.SyncPassenger;
 
 /**
@@ -109,7 +113,7 @@ public class LookForRideFragment extends DemoFragmentBase {
         }
 
         @Override
-        public void onRideStarted() {
+        public void onRideStarted(final SyncPassenger passenger) {
 
             activity.runOnUiThread(new Runnable() {
                 @Override
@@ -119,10 +123,24 @@ public class LookForRideFragment extends DemoFragmentBase {
 
                     builder.setTitle("Ride Confirmed").setMessage("You can now go pickup")
                             .setPositiveButton("Great", new DialogInterface.OnClickListener() {
+
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
 
-                                //todo show map or directions to pickup location
+                                    SyncLocation destinationLocation = passenger
+                                            .getSyncDestination()
+                                            .getDestinationLocation();
+
+                                    String format = String.format(
+                                            "google.navigation:q=%f,%f&mode=d"
+                                            ,destinationLocation.getSyncLocationLatitude()
+                                            ,destinationLocation.getSyncLocationLongitude());
+
+                                    Uri directionsUri = Uri.parse(format);
+
+                                    Intent directionsIntent = new Intent(Intent.ACTION_VIEW, directionsUri);
+                                    directionsIntent.setPackage("com.google.android.apps.maps");
+                                    startActivity(directionsIntent);
                                 }
                             })
                             .create().show();

@@ -16,6 +16,7 @@ import com.smidur.aventon.exceptions.TokenInvalidException;
 import com.smidur.aventon.http.HttpController;
 import com.smidur.aventon.model.SyncDestination;
 import com.smidur.aventon.model.SyncLocation;
+import com.smidur.aventon.model.SyncOrigin;
 import com.smidur.aventon.model.SyncPassenger;
 import com.smidur.aventon.sync.Sync;
 import com.smidur.aventon.utilities.GoogleApiWrapper;
@@ -73,11 +74,16 @@ public class RideManager {
         isDriverAvailable = true;
 
 
+        new Thread() {
+            public void run() {
+
+                Sync.i(context).startSyncAvailableRides();
+                Sync.i(context).startDriverShift();
+            }
+        }.start();
+
+
         GoogleApiWrapper.getInstance(context).requestAndroidLocationUpdates(driverLocationListener);
-
-        Sync.i(context).startSyncAvailableRides();
-        Sync.i(context).startDriverShift();
-
 
     }
     public void pauseDriverShiftAndStartRide(String passenger) {
@@ -113,15 +119,17 @@ public class RideManager {
 
         SyncLocation syncPassengerLocation = new SyncLocation(
                 passengerLocation.getLatitude(),passengerLocation.getLongitude());
+        //todo use geocoding to get address
 
         LatLng latLng = placeDestination.getLatLng();
         SyncLocation syncDestLocation = new SyncLocation(latLng.latitude,latLng.longitude);
 
         SyncDestination syncDestination = new SyncDestination(placeDestination.getAddress().toString(),syncDestLocation);
+        SyncOrigin syncOrigin = new SyncOrigin(syncPassengerLocation,"#Address#");//todo address
 
         SyncPassenger syncPassenger = new SyncPassenger();
         syncPassenger.setSyncDestination(syncDestination);
-        syncPassenger.setSyncPassengerLocation(syncPassengerLocation);
+        syncPassenger.setSyncOrigin(syncOrigin);
 
 
         Sync.i(context).startSyncSchedulePickup(syncPassenger);
@@ -202,32 +210,34 @@ public class RideManager {
 
 
     public void confirmPassengerPickup(final SyncPassenger passenger) {
-        new Thread(){public void run() {
-            try {
-                HttpController controller = new HttpController(context);
-                controller.confirmRide(passenger);
+        new Thread(){
+            public void run() {
+                try {
+                    HttpController controller = new HttpController(context);
+                    controller.confirmRide(passenger);
 
-                handler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        postRideStartedCallback(passenger);
-                    }
-                });
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            postRideStartedCallback(passenger);
+                        }
+                    });
 
-            } catch(TokenInvalidException tokenInvalid) {
+                } catch(TokenInvalidException tokenInvalid) {
 
-                tokenInvalid.printStackTrace();
+                    tokenInvalid.printStackTrace();
+                }
+                catch(IOException ioe) {
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            postRideAcceptFailedCallback();
+                        }
+                    });
+
+                }
             }
-            catch(IOException ioe) {
-                handler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        postRideAcceptFailedCallback();
-                    }
-                });
-
-            }
-        }}.start();
+        }.start();
 
     }
 
@@ -273,12 +283,12 @@ public class RideManager {
         synchronized (driverEventsListeners) {
             for(final DriverEventsListener listener: driverEventsListeners) {
                 if(listener!=null) {
-                    AsyncTask.execute(new Runnable() {
+                    new Thread(new Runnable() {
                         @Override
                         public void run() {
                             listener.onRideAvailable(passenger);
                         }
-                    });
+                    }).start();
 
                 }
             }
@@ -289,12 +299,12 @@ public class RideManager {
         synchronized (passengerEventsListeners) {
             for(final PassengerEventsListener listener: passengerEventsListeners) {
                 if(listener!=null) {
-                    AsyncTask.execute(new Runnable() {
+                    new Thread(new Runnable() {
                         @Override
                         public void run() {
                             listener.onPickupScheduled(driver);
                         }
-                    });
+                    }).start();
 
                 }
             }
@@ -305,12 +315,12 @@ public class RideManager {
         synchronized (passengerEventsListeners) {
             for(final PassengerEventsListener listener: passengerEventsListeners) {
                 if(listener!=null) {
-                    AsyncTask.execute(new Runnable() {
+                    new Thread(new Runnable() {
                         @Override
                         public void run() {
                             listener.onDriverApproaching(syncLocation);
                         }
-                    });
+                    }).start();
 
                 }
             }
@@ -321,12 +331,12 @@ public class RideManager {
         synchronized (passengerEventsListeners) {
             for(final PassengerEventsListener listener: passengerEventsListeners) {
                 if(listener!=null) {
-                    AsyncTask.execute(new Runnable() {
+                    new Thread(new Runnable() {
                         @Override
                         public void run() {
                             listener.onNoDriverFoundNearby();
                         }
-                    });
+                    }).start();
 
                 }
             }
@@ -339,12 +349,12 @@ public class RideManager {
         synchronized (driverEventsListeners) {
             for(final DriverEventsListener listener: driverEventsListeners) {
                 if(listener!=null) {
-                    AsyncTask.execute(new Runnable() {
+                    new Thread(new Runnable() {
                         @Override
                         public void run() {
                             listener.onRideStarted(passenger);
                         }
-                    });
+                    }).start();
 
                 }
             }
@@ -355,12 +365,12 @@ public class RideManager {
         synchronized (driverEventsListeners) {
             for(final DriverEventsListener listener: driverEventsListeners) {
                 if(listener!=null) {
-                    AsyncTask.execute(new Runnable() {
+                    new Thread(new Runnable() {
                         @Override
                         public void run() {
                             listener.onRideAcceptFailed();
                         }
-                    });
+                    }).start();
 
                 }
             }

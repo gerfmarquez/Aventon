@@ -154,7 +154,7 @@ public class SchedulePickupFragment extends DemoFragmentBase implements PlaceSel
                 //show progress loader
                 scheduleRideProgressBar.setVisibility(View.VISIBLE);
 
-                AsyncTask.execute(new Runnable() {
+                new Thread(new Runnable() {
                     @Override
                     public void run() {
                         try {
@@ -166,7 +166,7 @@ public class SchedulePickupFragment extends DemoFragmentBase implements PlaceSel
                             //todo analytics
                         }
                     }
-                });
+                }).start();
 
             }
         });
@@ -192,11 +192,7 @@ public class SchedulePickupFragment extends DemoFragmentBase implements PlaceSel
     RideManager.PassengerEventsListener passengerEventsListener = new RideManager.PassengerEventsListener() {
         @Override
         public void onPickupScheduled(final String driver) {
-
-            RideManager.i(activity).endSchedulePassengerPickup();
-
-
-
+            //dont end updates from scheduling pickup until driver arrives
             activity.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
@@ -229,13 +225,19 @@ public class SchedulePickupFragment extends DemoFragmentBase implements PlaceSel
         }
 
         @Override
-        public void onDriverApproaching(SyncLocation driverNewLocation) {
+        public void onDriverApproaching(final SyncLocation driverNewLocation) {
+            activity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    moveMarker(driverNewLocation.getSyncLocationLatitude(),driverNewLocation.getSyncLocationLongitude());
+                }
+            });
 
-            moveMarker(driverNewLocation.getSyncLocationLatitude(),driverNewLocation.getSyncLocationLongitude());
 
         }
         @Override
         public void onDriverArrived() {
+            //stop receving updates from driver once they arrive
             RideManager.i(activity).endSchedulePassengerPickup();
         }
 

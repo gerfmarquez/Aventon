@@ -15,6 +15,7 @@ import com.smidur.aventon.managers.RideManager;
 import com.smidur.aventon.model.SyncDestination;
 import com.smidur.aventon.model.SyncLocation;
 import com.smidur.aventon.model.SyncPassenger;
+import com.smidur.aventon.utilities.GpsUtil;
 
 import java.io.IOException;
 import java.util.PriorityQueue;
@@ -31,7 +32,8 @@ public class Sync {
 
 
     private static final int RETRY_SYNC_AVAILABLE_RIDES = 3000;//3 sec
-    private static final int SYNC_DRIVER_LOCATION_RATE = 15 * 1000;//40 sec
+    //todo update faster when driver is picking up somebody
+    private static final int SYNC_DRIVER_LOCATION_RATE = 5 * 1000;//40 sec
 
 
     Thread syncAvailableRidesThread;
@@ -62,6 +64,8 @@ public class Sync {
     }
 
     public void startDriverShift() {
+        Location location = GpsUtil.getUserLocation(context);
+        pushDriverLocationToSync(location);
         handler.post(syncDriverLocation);
     }
 
@@ -118,7 +122,7 @@ public class Sync {
     private Runnable syncAvailableRides = new Runnable() {
         @Override
         public void run() {
-            AsyncTask.execute(new Runnable() {
+            new Thread(new Runnable() {
                 @Override
                 public void run() {
                     syncAvailableRidesThread = Thread.currentThread();
@@ -154,7 +158,7 @@ public class Sync {
                     handler.removeCallbacks(syncAvailableRides);
                     handler.postDelayed(syncAvailableRides,RETRY_SYNC_AVAILABLE_RIDES);
                 }
-            });
+            }).start();
 
         }
     };
@@ -206,7 +210,7 @@ public class Sync {
     private Runnable syncSchedulePickup = new Runnable() {
         @Override
         public void run() {
-            AsyncTask.execute(new Runnable() {
+            new Thread(new Runnable() {
                 @Override
                 public void run() {
                     syncSchedulePickupThread = Thread.currentThread();
@@ -244,7 +248,7 @@ public class Sync {
                     handler.removeCallbacks(syncSchedulePickup);
                     handler.postDelayed(syncSchedulePickup,RETRY_SYNC_AVAILABLE_RIDES);
                 }
-            });
+            }).start();
 
         }
     };
