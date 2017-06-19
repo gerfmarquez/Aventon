@@ -10,6 +10,7 @@ import android.widget.Button;
 
 import com.smidur.aventon.R;
 import com.smidur.aventon.managers.RideManager;
+import com.smidur.aventon.model.SyncPassenger;
 
 /**
  * Created by marqueg on 3/15/17.
@@ -81,7 +82,7 @@ public class LookForRideFragment extends DemoFragmentBase {
 
     RideManager.DriverEventsListener driverEventsListener = new RideManager.DriverEventsListener() {
         @Override
-        public void onRideAvailable(final String passenger) {
+        public void onRideAvailable(final SyncPassenger passenger) {
 
             activity.runOnUiThread(new Runnable() {
                 @Override
@@ -90,30 +91,59 @@ public class LookForRideFragment extends DemoFragmentBase {
                     android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(
                             activity);
 
-                    builder.setTitle("=").setMessage("Confirm ride for passenger:"+passenger+" ?")
+                    builder.setTitle("=").setMessage("Confirm ride for passenger: ?")
                             .setPositiveButton("Confirm", new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
 
-                                   RideManager.i(activity).confirmPassengerPickup();
+                                   RideManager.i(activity).confirmPassengerPickup(passenger);
 
                                 }
                             }).setNegativeButton("Reject",null)
                             .create().show();
+                    startShiftButton.setEnabled(true);
                 }
             });
+
+
+        }
+
+        @Override
+        public void onRideStarted() {
 
             activity.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    startShiftButton.setEnabled(true);
+                    android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(
+                            activity);
+
+                    builder.setTitle("Ride Confirmed").setMessage("You can now go pickup")
+                            .setPositiveButton("Great", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+
+                                //todo show map or directions to pickup location
+                                }
+                            })
+                            .create().show();
                 }
             });
         }
 
         @Override
-        public void ongoingRide() {
+        public void onRideAcceptFailed() {
 
+            activity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(
+                            activity);
+
+                    builder.setTitle("=").setMessage("Error:")
+                            .setPositiveButton("Ok",null)
+                            .create().show();
+                }
+            });
         }
     };
 

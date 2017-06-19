@@ -31,7 +31,7 @@ public class Sync {
 
 
     private static final int RETRY_SYNC_AVAILABLE_RIDES = 3000;//3 sec
-    private static final int SYNC_DRIVER_LOCATION_RATE = 40 * 1000;//40 sec
+    private static final int SYNC_DRIVER_LOCATION_RATE = 15 * 1000;//40 sec
 
 
     Thread syncAvailableRidesThread;
@@ -102,7 +102,7 @@ public class Sync {
     }
 
     private void closeConnectionIfOpen() {
-        if(syncSchedulePickup!=null)
+        if(syncSchedulePickupController!=null)
             syncSchedulePickupController.closeStream();
         //todo interrupt might not be necessary
 //        syncAvailableRidesThread.interrupt();
@@ -162,7 +162,7 @@ public class Sync {
     private Runnable syncDriverLocation = new Runnable() {
         @Override
         public void run() {
-            AsyncTask.execute(new Runnable() {
+            new Thread(new Runnable() {
                 @Override
                 public void run() {
                     syncAvailableRidesThread = Thread.currentThread();
@@ -196,7 +196,7 @@ public class Sync {
                     handler.removeCallbacks(syncDriverLocation);
                     handler.postDelayed(syncDriverLocation,SYNC_DRIVER_LOCATION_RATE);
                 }
-            });
+            }).start();
 
         }
     };

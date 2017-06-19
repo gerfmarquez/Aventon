@@ -5,6 +5,8 @@ import android.content.DialogInterface;
 import android.location.Location;
 import android.support.annotation.NonNull;
 
+import com.amazonaws.mobile.AWSMobileClient;
+import com.amazonaws.mobile.user.IdentityManager;
 import com.google.android.gms.location.places.Place;
 import com.google.gson.Gson;
 import com.smidur.aventon.exceptions.TokenInvalidException;
@@ -13,6 +15,7 @@ import com.smidur.aventon.model.SyncLocation;
 import com.smidur.aventon.model.SyncPassenger;
 
 import java.io.IOException;
+import java.util.Hashtable;
 
 /**
  * Created by marqueg on 4/16/17.
@@ -68,6 +71,21 @@ public class HttpController {
         }
 
 
+    }
+    public void confirmRide(SyncPassenger passenger) throws IOException, TokenInvalidException {
+
+        wrapper = new HttpWrapper();
+        //todo add headers for passenger which driver is confirming ride?
+        Hashtable<String,String> parameters = new Hashtable<>();
+        parameters.put("passengerId",passenger.getPassengerId());
+        HttpResponse response = wrapper.httpPOST("accept_ride",parameters,context);
+
+        if(response.code==401) {
+            throw new TokenInvalidException();
+        }
+        if(response.code != 200) {
+            throw new IOException("Http Code not expected:"+response.code);
+        }
     }
 
     public void schedulePickupCall(SyncPassenger syncPassenger, @NonNull final SchedulePickupCallback callback) throws IOException, TokenInvalidException {

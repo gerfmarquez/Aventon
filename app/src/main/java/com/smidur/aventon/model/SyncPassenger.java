@@ -6,6 +6,8 @@ package com.smidur.aventon.model;
 
 public class SyncPassenger {
 
+    //todo IMPORTANT REMOVE THIS
+    String passengerId;
     SyncLocation syncPassengerLocation;
     SyncDestination syncDestination;
 
@@ -23,5 +25,13 @@ public class SyncPassenger {
 
     public void setSyncPassengerLocation(SyncLocation syncPassengerLocation) {
         this.syncPassengerLocation = syncPassengerLocation;
+    }
+
+    public String getPassengerId() {
+        return passengerId;
+    }
+
+    public void setPassengerId(String passengerId) {
+        this.passengerId = passengerId;
     }
 }

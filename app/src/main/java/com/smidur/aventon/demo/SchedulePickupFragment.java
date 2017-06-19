@@ -18,6 +18,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ProgressBar;
 
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.places.Place;
@@ -68,8 +69,10 @@ public class SchedulePickupFragment extends DemoFragmentBase implements PlaceSel
     GoogleMap mGoogleMap;
 
     Place mSelectedDestination;
+    ProgressBar scheduleRideProgressBar;
 
     Activity activity;
+
 
     @Override
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
@@ -86,12 +89,15 @@ public class SchedulePickupFragment extends DemoFragmentBase implements PlaceSel
         mFragmentView = inflater.inflate(R.layout.schedule_pickup, container, false);
 
         mSchedulePickupButton = (Button)mFragmentView.findViewById(R.id.schedule_pickup);
+        scheduleRideProgressBar = (ProgressBar) mFragmentView.findViewById(R.id.schedule_progress);
 
         mapFragment = (MapFragment) fragmentManager.findFragmentById(R.id.map);
 //        searchAddress = (AutoCompleteTextView) activity.findViewById(R.id.search_address);
 
         autocompleteFragment = (PlaceAutocompleteFragment)
                 fragmentManager.findFragmentById(R.id.autocomplete_fragment);
+
+
 
         autocompleteFragment.getView().setBackground(new ColorDrawable(getResources().getColor(android.R.color.white)));
 
@@ -110,9 +116,13 @@ public class SchedulePickupFragment extends DemoFragmentBase implements PlaceSel
         }
 
 
+        scheduleRideProgressBar.setVisibility(View.VISIBLE);
         mapFragment.getMapAsync(new OnMapReadyCallback() {
             @Override
             public void onMapReady(GoogleMap googleMap) {
+
+                scheduleRideProgressBar.setVisibility(View.INVISIBLE);
+
                 mGoogleMap = googleMap;
                 mGoogleMap.animateCamera(
                         CameraUpdateFactory.newLatLngZoom(
@@ -128,9 +138,6 @@ public class SchedulePickupFragment extends DemoFragmentBase implements PlaceSel
 //                });
 
 
-                Location passengerLocation = GpsUtil.getLastKnownLocation(getContext());
-                moveMarker(passengerLocation.getLatitude(),passengerLocation.getLongitude());
-
             }
 
         });
@@ -138,11 +145,15 @@ public class SchedulePickupFragment extends DemoFragmentBase implements PlaceSel
         mSchedulePickupButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
+                //don't process
                 if(mSelectedDestination == null) {
-                    mSchedulePickupButton.setEnabled(false);
                     return;
                 }
+
                 //show progress loader
+                scheduleRideProgressBar.setVisibility(View.VISIBLE);
+
                 AsyncTask.execute(new Runnable() {
                     @Override
                     public void run() {
@@ -169,6 +180,8 @@ public class SchedulePickupFragment extends DemoFragmentBase implements PlaceSel
         RideManager.i(activity).register(passengerEventsListener);
 
 
+
+
     }
     @Override
     public void onPause() {
@@ -180,11 +193,16 @@ public class SchedulePickupFragment extends DemoFragmentBase implements PlaceSel
         @Override
         public void onPickupScheduled(final String driver) {
 
-            //hide progress loader
+            RideManager.i(activity).endSchedulePassengerPickup();
+
+
 
             activity.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
+
+                    //hide progress loader
+                    scheduleRideProgressBar.setVisibility(View.INVISIBLE);
 
                     android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(
                             activity);
@@ -209,6 +227,7 @@ public class SchedulePickupFragment extends DemoFragmentBase implements PlaceSel
 
 
         }
+
         @Override
         public void onDriverApproaching(SyncLocation driverNewLocation) {
 
@@ -220,6 +239,40 @@ public class SchedulePickupFragment extends DemoFragmentBase implements PlaceSel
             RideManager.i(activity).endSchedulePassengerPickup();
         }
 
+        @Override
+        public void onNoDriverFoundNearby() {
+            RideManager.i(activity).endSchedulePassengerPickup();
+
+
+            activity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+
+                    //hide progress loader
+                    scheduleRideProgressBar.setVisibility(View.INVISIBLE);
+
+                    android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(
+                            activity);
+
+                    builder.setTitle("Sorry, Drivers Not Found Nearby").setMessage("Sorry, Drivers Not Found Nearby")
+                            .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+
+                                }
+                            })
+                            .setOnCancelListener(new DialogInterface.OnCancelListener() {
+                                @Override
+                                public void onCancel(DialogInterface dialog) {
+
+                                }
+                            })
+                            .create().show();
+                }
+            });
+
+
+        }
     };
 
     @Override

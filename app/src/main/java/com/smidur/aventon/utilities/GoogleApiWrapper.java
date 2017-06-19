@@ -81,7 +81,7 @@ public class GoogleApiWrapper {
         try {
             LocationManager locationManager = (LocationManager)mContext.getSystemService(Context.LOCATION_SERVICE);
             locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,5000,0,locationListener);
-            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,5000,0,locationListener);
+//            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,5000,0,locationListener);
         } catch(SecurityException se) {
             throw new IllegalStateException("This shouldn't happen");
         }

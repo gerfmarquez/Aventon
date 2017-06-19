@@ -1,30 +1,29 @@
 package com.smidur.aventon.managers;
 
 import android.content.Context;
-import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
-import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.annotation.MainThread;
 import android.support.annotation.WorkerThread;
 
 import com.google.android.gms.location.places.Place;
 import com.google.android.gms.maps.model.LatLng;
-import com.smidur.aventon.http.HttpWrapper;
+import com.google.gson.Gson;
+import com.smidur.aventon.exceptions.TokenInvalidException;
+import com.smidur.aventon.http.HttpController;
 import com.smidur.aventon.model.SyncDestination;
 import com.smidur.aventon.model.SyncLocation;
 import com.smidur.aventon.model.SyncPassenger;
 import com.smidur.aventon.sync.Sync;
-import com.smidur.aventon.utilities.Constants;
 import com.smidur.aventon.utilities.GoogleApiWrapper;
 import com.smidur.aventon.utilities.GpsUtil;
 
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.CountDownLatch;
 
 /**
  * Created by marqueg on 4/17/17.
@@ -68,9 +67,11 @@ public class RideManager {
     /**
      * Register for  events
      */
+    @MainThread
     public void startDriverShift() {
 
         isDriverAvailable = true;
+
 
         GoogleApiWrapper.getInstance(context).requestAndroidLocationUpdates(driverLocationListener);
 
@@ -136,9 +137,9 @@ public class RideManager {
 
 //        Sync.i(context).startSyncSchedulePickup();
     }
-    //todo
-    public void cancelSchedulePassengerPickup() {
 
+    public void cancelSchedulePassengerPickup() {
+        //todo notify server that user stopped scheduling a pickup
     }
 
     public void endSchedulePassengerPickup() {
@@ -200,38 +201,58 @@ public class RideManager {
 
 
 
-    public void confirmPassengerPickup() {
-        new Thread() {
-            public void run() {
-                try {
-                    HttpWrapper wrapper = new HttpWrapper();
-                    //todo add headers for passenger which driver is confirming ride?
-                    wrapper.httpGET("accept_ride",context);
-                } catch(IOException ioe) {
-                    ioe.printStackTrace();
-                }
+    public void confirmPassengerPickup(final SyncPassenger passenger) {
+        new Thread(){public void run() {
+            try {
+                HttpController controller = new HttpController(context);
+                controller.confirmRide(passenger);
+
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        postRideStartedCallback(passenger);
+                    }
+                });
+
+            } catch(TokenInvalidException tokenInvalid) {
+
+                tokenInvalid.printStackTrace();
+            }
+            catch(IOException ioe) {
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        postRideAcceptFailedCallback();
+                    }
+                });
 
             }
-        }.start();
+        }}.start();
+
     }
 
     @WorkerThread
     public void processMessage(String message) {
-        String value = (message.split(":"))[1].trim();
+        String[] pair = message.split(":");
+        String command = (pair)[0].trim();
+        String value = (pair)[1].trim();
 
-        if(message.contains("Passenger")) {
-            String passenger = value;
+        if(command.startsWith("Passenger")) {
+            String passenger = message.replace("Passenger:","").trim();
 
-            postRideAvailableCallback(passenger);
+            SyncPassenger passengerObj = new Gson().fromJson(passenger,SyncPassenger.class);
+
+            postRideAvailableCallback(passengerObj);
+            //todo parse passenger object along with pickup location
 
         }
-        if(message.contains("Driver")) {
+        if(command.startsWith("Driver")) {
             String driver = value;
 
             postPickupScheduledCallback(driver);
 
         }
-        if(message.contains("NewDriverLocation")) {
+        if(command.startsWith("NewDriverLocation")) {
 
             String latitude = value.split(",")[0];
             String longitude = value.split(",")[1];
@@ -244,8 +265,11 @@ public class RideManager {
             );
 
         }
+        if(command.startsWith("NoDriverFound")) {
+            postNoDriverFoundCallback();
+        }
     }
-    private void postRideAvailableCallback(final String passenger) {
+    private void postRideAvailableCallback(final SyncPassenger passenger) {
         synchronized (driverEventsListeners) {
             for(final DriverEventsListener listener: driverEventsListeners) {
                 if(listener!=null) {
@@ -293,7 +317,56 @@ public class RideManager {
 
         }
     }
+    private void postNoDriverFoundCallback() {
+        synchronized (passengerEventsListeners) {
+            for(final PassengerEventsListener listener: passengerEventsListeners) {
+                if(listener!=null) {
+                    AsyncTask.execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            listener.onNoDriverFoundNearby();
+                        }
+                    });
 
+                }
+            }
+
+        }
+    }
+
+
+    private void postRideStartedCallback(final SyncPassenger passenger) {
+        synchronized (driverEventsListeners) {
+            for(final DriverEventsListener listener: driverEventsListeners) {
+                if(listener!=null) {
+                    AsyncTask.execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            listener.onRideStarted(passenger);
+                        }
+                    });
+
+                }
+            }
+
+        }
+    }
+    private void postRideAcceptFailedCallback() {
+        synchronized (driverEventsListeners) {
+            for(final DriverEventsListener listener: driverEventsListeners) {
+                if(listener!=null) {
+                    AsyncTask.execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            listener.onRideAcceptFailed();
+                        }
+                    });
+
+                }
+            }
+
+        }
+    }
     //todo move this to another class
     LocationListener driverLocationListener = new LocationListener() {
         @Override
@@ -320,18 +393,15 @@ public class RideManager {
 
 
     public interface DriverEventsListener {
-        void onRideAvailable(String passenger);
-        void ongoingRide();
+        void onRideAvailable(SyncPassenger passenger);
+        void onRideStarted(SyncPassenger passenger);
+        void onRideAcceptFailed();
     }
     public interface PassengerEventsListener {
         void onPickupScheduled(String driver);
         void onDriverApproaching(SyncLocation driverNewLocation);
         void onDriverArrived();
+        void onNoDriverFoundNearby();//todo
     }
-    public interface RideEventsListener {
-        void onRideStart();
-        void onRideEnd();
-        void onRideCanceled();
 
-    }
 }
