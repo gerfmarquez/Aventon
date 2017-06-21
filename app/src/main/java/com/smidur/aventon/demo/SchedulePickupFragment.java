@@ -7,12 +7,9 @@ import android.app.FragmentManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
-import android.graphics.BitmapFactory;
-import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.ColorDrawable;
 import android.location.Location;
 import android.location.LocationManager;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -29,9 +26,6 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-import com.google.android.gms.maps.model.CameraPosition;
-import com.google.android.gms.maps.model.GroundOverlay;
-import com.google.android.gms.maps.model.GroundOverlayOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
@@ -65,6 +59,7 @@ public class SchedulePickupFragment extends DemoFragmentBase implements PlaceSel
 
     Button mSchedulePickupButton;
     Marker driverMarker;
+    Marker passengerMarker;
 
     GoogleMap mGoogleMap;
 
@@ -179,7 +174,18 @@ public class SchedulePickupFragment extends DemoFragmentBase implements PlaceSel
         super.onResume();
         RideManager.i(activity).register(passengerEventsListener);
 
-
+        new Thread() {
+            public void run() {
+                final LatLng passengerLatLng = GpsUtil.getLatLng(
+                        GpsUtil.getUserLocation(getActivity()));
+                getActivity().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        showPassengerLocationOnMap(passengerLatLng);
+                    }
+                });
+            }
+        }.start();
 
 
     }
@@ -229,7 +235,7 @@ public class SchedulePickupFragment extends DemoFragmentBase implements PlaceSel
             activity.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    moveMarker(driverNewLocation.getSyncLocationLatitude(),driverNewLocation.getSyncLocationLongitude());
+                    updateDriverLocationOnMap(driverNewLocation.getSyncLocationLatitude(),driverNewLocation.getSyncLocationLongitude());
                 }
             });
 
@@ -343,7 +349,7 @@ public class SchedulePickupFragment extends DemoFragmentBase implements PlaceSel
         }
     }
 
-    private void moveMarker(double latitude, double longitude) {
+    private void updateDriverLocationOnMap(double latitude, double longitude) {
         LatLng driverLatLng = new LatLng(
                 latitude
                 ,longitude);
@@ -353,13 +359,34 @@ public class SchedulePickupFragment extends DemoFragmentBase implements PlaceSel
                 .position(driverLatLng);
 
 
-
+        mGoogleMap.animateCamera(
+                CameraUpdateFactory.newLatLngZoom(
+                        driverLatLng, Constants.PICKUP_MAP_ZOOM));
 
 //        mGoogleMap.addGroundOverlay(options);
         if(driverMarker==null) {
             driverMarker = mGoogleMap.addMarker(options);
         }
         driverMarker.setPosition(driverLatLng);
+    }
+
+    private void showPassengerLocationOnMap(LatLng latLng) {
+
+        MarkerOptions options = new MarkerOptions();
+        options.icon(BitmapDescriptorFactory.fromResource(R.drawable.reddot))
+                .position(latLng);
+
+
+        mGoogleMap.animateCamera(
+                CameraUpdateFactory.newLatLngZoom(
+                        latLng, Constants.PICKUP_MAP_ZOOM));
+
+
+//        mGoogleMap.addGroundOverlay(options);
+        if(passengerMarker==null) {
+            passengerMarker = mGoogleMap.addMarker(options);
+        }
+        passengerMarker.setPosition(latLng);
     }
 
 
