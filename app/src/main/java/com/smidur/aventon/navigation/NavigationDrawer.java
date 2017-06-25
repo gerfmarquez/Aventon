@@ -3,7 +3,6 @@ package com.smidur.aventon.navigation;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Build;
-import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
@@ -26,9 +25,6 @@ import com.amazonaws.mobile.AWSMobileClient;
 import com.amazonaws.mobile.user.IdentityManager;
 import com.amazonaws.mobile.user.IdentityProvider;
 import com.smidur.aventon.R;
-import com.smidur.aventon.demo.DemoConfiguration;
-import com.smidur.aventon.demo.DemoInstructionFragment;
-import com.smidur.aventon.demo.HomeDemoFragment;
 import com.smidur.aventon.demo.LookForRideFragment;
 import com.smidur.aventon.demo.SchedulePickupFragment;
 
