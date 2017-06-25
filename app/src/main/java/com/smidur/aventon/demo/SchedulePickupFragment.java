@@ -11,6 +11,7 @@ import android.graphics.drawable.ColorDrawable;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -40,7 +41,7 @@ import com.smidur.aventon.utilities.GpsUtil;
  * Created by marqueg on 3/15/17.
  */
 
-public class SchedulePickupFragment extends DemoFragmentBase implements PlaceSelectionListener {
+public class SchedulePickupFragment extends Fragment implements PlaceSelectionListener {
 
     private int MAXIMUM_RIDE_DISTANCE = 100 * 1000;//km
 
@@ -195,6 +196,14 @@ public class SchedulePickupFragment extends DemoFragmentBase implements PlaceSel
         RideManager.i(activity).unregister(passengerEventsListener);
     }
 
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        getActivity().getFragmentManager().beginTransaction().remove(mapFragment).remove(autocompleteFragment).commit();
+
+
+    }
+
     RideManager.PassengerEventsListener passengerEventsListener = new RideManager.PassengerEventsListener() {
         @Override
         public void onPickupScheduled(final String driver) {
@@ -232,10 +241,16 @@ public class SchedulePickupFragment extends DemoFragmentBase implements PlaceSel
 
         @Override
         public void onDriverApproaching(final SyncLocation driverNewLocation) {
+
+            final LatLng driverLatLng = new LatLng(
+                    driverNewLocation.getSyncLocationLatitude()
+                    ,driverNewLocation.getSyncLocationLongitude());
+            final LatLng userLatLng = GpsUtil.getLatLng(GpsUtil.getUserLocation(getContext()));
+
             activity.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    updateDriverLocationOnMap(driverNewLocation.getSyncLocationLatitude(),driverNewLocation.getSyncLocationLongitude());
+                    updateDriverLocationOnMap(driverLatLng,userLatLng);
                 }
             });
 
@@ -349,19 +364,16 @@ public class SchedulePickupFragment extends DemoFragmentBase implements PlaceSel
         }
     }
 
-    private void updateDriverLocationOnMap(double latitude, double longitude) {
-        LatLng driverLatLng = new LatLng(
-                latitude
-                ,longitude);
+    private void updateDriverLocationOnMap(LatLng driverLatLng, LatLng userLatLng) {
+
 
         MarkerOptions options = new MarkerOptions();
         options.icon(BitmapDescriptorFactory.fromResource(R.drawable.bluedot))
                 .position(driverLatLng);
 
-
+        LatLngBounds bounds = LatLngBounds.builder().include(driverLatLng).include(userLatLng).build();
         mGoogleMap.animateCamera(
-                CameraUpdateFactory.newLatLngZoom(
-                        driverLatLng, Constants.PICKUP_MAP_ZOOM));
+                CameraUpdateFactory.newLatLngBounds(bounds, 5));
 
 //        mGoogleMap.addGroundOverlay(options);
         if(driverMarker==null) {

@@ -66,4 +66,8 @@
     <string name="ok">OK</string>
     <string name="destination_too_far">Destination is too far!</string>
 
+
+    <string name="passenger_schedule">Passenger</string>
+    <string name="driver_look_ride">Driver</string>
+
 </resources>

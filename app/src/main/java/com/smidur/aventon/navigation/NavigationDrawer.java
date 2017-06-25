@@ -3,6 +3,7 @@ package com.smidur.aventon.navigation;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Build;
+import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
@@ -12,6 +13,7 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -27,6 +29,8 @@ import com.smidur.aventon.R;
 import com.smidur.aventon.demo.DemoConfiguration;
 import com.smidur.aventon.demo.DemoInstructionFragment;
 import com.smidur.aventon.demo.HomeDemoFragment;
+import com.smidur.aventon.demo.LookForRideFragment;
+import com.smidur.aventon.demo.SchedulePickupFragment;
 
 import static com.smidur.aventon.R.string.app_name;
 
@@ -41,7 +45,8 @@ public class NavigationDrawer {
 
     /** The view group that will contain the navigation drawer menu items. */
     private ListView drawerItems;
-    private ArrayAdapter<DemoConfiguration.DemoFeature> adapter;
+    private ArrayAdapter<Screen> adapter;
+    public enum Screen {PASSENGER_SCHEDULE_FRAGMENT, DRIVER_LOOK_FOR_RIDE};
 
     /** The id of the fragment container. */
     private int fragmentContainerId;
@@ -61,7 +66,7 @@ public class NavigationDrawer {
         // Keep a reference to the activity containing this navigation drawer.
         this.containingActivity = activity;
         this.drawerItems = drawerItemsContainer;
-        adapter = new ArrayAdapter<DemoConfiguration.DemoFeature>(activity, R.layout.nav_drawer_item) {
+        adapter = new ArrayAdapter<Screen>(activity, R.layout.nav_drawer_item) {
             @Override
             public View getView(final int position, final View convertView,
                                 final ViewGroup parent) {
@@ -69,9 +74,19 @@ public class NavigationDrawer {
                 if (view == null) {
                     view = activity.getLayoutInflater().inflate(R.layout.nav_drawer_item, parent, false);
                 }
-                final DemoConfiguration.DemoFeature item = getItem(position);
-                ((ImageView) view.findViewById(R.id.drawer_item_icon)).setImageResource(item.iconResId);
-                ((TextView) view.findViewById(R.id.drawer_item_text)).setText(item.titleResId);
+                String sectionText = "";
+                switch(getItem(position)) {
+                    case PASSENGER_SCHEDULE_FRAGMENT:
+                        sectionText = activity.getString(R.string.passenger_schedule);
+                        view.setTag(Screen.PASSENGER_SCHEDULE_FRAGMENT.name());
+                        break;
+                    case DRIVER_LOOK_FOR_RIDE:
+                        sectionText = activity.getString(R.string.driver_look_ride);
+                        view.setTag(Screen.DRIVER_LOOK_FOR_RIDE.name());
+                        break;
+                }
+                ((ImageView) view.findViewById(R.id.drawer_item_icon)).setImageResource(R.mipmap.user_identity);
+                ((TextView) view.findViewById(R.id.drawer_item_text)).setText(sectionText);
                 return view;
             }
         };
@@ -81,24 +96,47 @@ public class NavigationDrawer {
             public void onItemClick(final AdapterView<?> parent, final View view,
                                     final int position, final long id) {
                 final FragmentManager fragmentManager = activity.getSupportFragmentManager();
-
+//
                 // Clear back stack when navigating from the Nav Drawer.
                 fragmentManager.popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
 
-                if (position == 0) {
-                    // home
-                    showHome();
-                    return;
+
+                Fragment fragment = null;
+                if(view.getTag().equals(Screen.DRIVER_LOOK_FOR_RIDE.name())) {
+                    fragment = fragmentManager.findFragmentByTag(
+                            Screen.DRIVER_LOOK_FOR_RIDE.name());
+                    if(fragment == null) {
+                        Log.e("###","added a new fragment");
+                        fragment = new LookForRideFragment();
+                        fragmentManager
+                                .beginTransaction()
+                                .replace(fragmentContainerId, fragment,(String)view.getTag())
+                                .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
+                                .commit();
+                    }
+
+                } else if(view.getTag().equals(Screen.PASSENGER_SCHEDULE_FRAGMENT.name())) {
+                    fragment = fragmentManager.findFragmentByTag(
+                            Screen.PASSENGER_SCHEDULE_FRAGMENT.name());
+                    if(fragment == null) {
+                        Log.e("###","added a new fragment");
+                        fragment = new SchedulePickupFragment();
+                        fragmentManager
+                                .beginTransaction()
+                                .replace(fragmentContainerId, fragment,(String)view.getTag())
+                                .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
+                                .commit();
+                    }
+
                 }
 
-                DemoConfiguration.DemoFeature item = adapter.getItem(position);
-                final Fragment fragment = DemoInstructionFragment.newInstance(item.name);
 
-                activity.getSupportFragmentManager()
-                    .beginTransaction()
-                    .replace(fragmentContainerId, fragment, item.name)
-                    .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
-                    .commit();
+
+//                final Fragment fragment = Fragment.instantiate(getActivity(), item.fragmentClassName);
+//                Bundle arguments  = new Bundle();
+//                arguments.putSerializable("tag", (String)view.getTag());
+//                fragment.setArguments(arguments);
+
 
                 closeDrawer();
             }
@@ -191,11 +229,11 @@ public class NavigationDrawer {
     }
 
     public void showHome() {
-        final Fragment fragment = new HomeDemoFragment();
+        final SchedulePickupFragment fragment = new SchedulePickupFragment();
 
         containingActivity.getSupportFragmentManager()
                 .beginTransaction()
-                .replace(fragmentContainerId, fragment, HomeDemoFragment.class.getSimpleName())
+                .add(fragmentContainerId, fragment, "PASSENGER_SCHEDULE_FRAGMENT")
                 .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
                 .commit();
 
@@ -205,8 +243,8 @@ public class NavigationDrawer {
         closeDrawer();
     }
 
-    public void addDemoFeatureToMenu(DemoConfiguration.DemoFeature demoFeature) {
-        adapter.add(demoFeature);
+    public void addDemoFeatureToMenu(Screen screen) {
+        adapter.add(screen);
         adapter.notifyDataSetChanged();
     }
 

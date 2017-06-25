@@ -27,8 +27,8 @@ import android.widget.ListView;
 
 import com.amazonaws.mobile.AWSMobileClient;
 import com.amazonaws.mobile.user.IdentityManager;
-import com.smidur.aventon.demo.DemoConfiguration;
-import com.smidur.aventon.demo.HomeDemoFragment;
+
+
 import com.smidur.aventon.navigation.NavigationDrawer;
 import com.smidur.aventon.utilities.GpsUtil;
 
@@ -97,16 +97,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         navigationDrawer = new NavigationDrawer(this, toolbar, drawerLayout, drawerItems,
                 R.id.main_fragment_container);
 
-        // Add navigation drawer menu items.
-        // Home isn't a demo, but is fake as a demo.
-        DemoConfiguration.DemoFeature home = new DemoConfiguration.DemoFeature();
-        home.iconResId = R.mipmap.icon_home;
-        home.titleResId = R.string.main_nav_menu_item_home;
-        navigationDrawer.addDemoFeatureToMenu(home);
 
-        for (DemoConfiguration.DemoFeature demoFeature : DemoConfiguration.getDemoFeatureList()) {
-            navigationDrawer.addDemoFeatureToMenu(demoFeature);
-        }
+        navigationDrawer.addDemoFeatureToMenu(NavigationDrawer.Screen.PASSENGER_SCHEDULE_FRAGMENT);
+        navigationDrawer.addDemoFeatureToMenu(NavigationDrawer.Screen.DRIVER_LOOK_FOR_RIDE);
 
         if (savedInstanceState == null) {
             // Add the home fragment to be displayed initially.
@@ -210,26 +203,26 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             return;
         }
 
-        if (fragmentManager.getBackStackEntryCount() == 0) {
-            if (fragmentManager.findFragmentByTag(HomeDemoFragment.class.getSimpleName()) == null) {
-                final Class fragmentClass = HomeDemoFragment.class;
-                // if we aren't on the home fragment, navigate home.
-                final Fragment fragment = Fragment.instantiate(this, fragmentClass.getName());
-
-                fragmentManager
-                        .beginTransaction()
-                        .replace(R.id.main_fragment_container, fragment, fragmentClass.getSimpleName())
-                        .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
-                        .commit();
-
-                // Set the title for the fragment.
-                final ActionBar actionBar = this.getSupportActionBar();
-                if (actionBar != null) {
-                    actionBar.setTitle(getString(R.string.app_name));
-                }
-                return;
-            }
-        }
+//        if (fragmentManager.getBackStackEntryCount() == 0) {
+//            if (fragmentManager.findFragmentByTag(HomeDemoFragment.class.getSimpleName()) == null) {
+//                final Class fragmentClass = HomeDemoFragment.class;
+//                // if we aren't on the home fragment, navigate home.
+//                final Fragment fragment = Fragment.instantiate(this, fragmentClass.getName());
+//
+//                fragmentManager
+//                        .beginTransaction()
+//                        .replace(R.id.main_fragment_container, fragment, fragmentClass.getSimpleName())
+//                        .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
+//                        .commit();
+//
+//                // Set the title for the fragment.
+//                final ActionBar actionBar = this.getSupportActionBar();
+//                if (actionBar != null) {
+//                    actionBar.setTitle(getString(R.string.app_name));
+//                }
+//                return;
+//            }
+//        }
         super.onBackPressed();
     }
 
