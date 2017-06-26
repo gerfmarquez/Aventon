@@ -1,6 +1,7 @@
 package com.smidur.aventon.managers;
 
 import android.content.Context;
+import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationListener;
@@ -10,7 +11,6 @@ import android.support.annotation.MainThread;
 import android.support.annotation.WorkerThread;
 import android.util.Log;
 
-import com.google.android.gms.identity.intents.Address;
 import com.google.android.gms.location.places.Place;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.gson.Gson;
@@ -131,20 +131,10 @@ public class RideManager {
         LatLng latLng = placeDestination.getLatLng();
         SyncLocation syncDestLocation = new SyncLocation(latLng.latitude,latLng.longitude);
 
-        List<android.location.Address> geocoderResult;
-        try {
-            Geocoder geocoder = new Geocoder(context);
-            geocoderResult = geocoder.getFromLocation(passengerLocation.getLatitude(),passengerLocation.getLongitude(),1);
-        } catch(IOException ioe) {
-            //todo analytics
-            Log.e("Geocoder","Geocoder Failed to translate passenger location");
-
-            return;
-        }
-
+        String originAddress = geoCodeOriginAddress(passengerLocation);
 
         SyncDestination syncDestination = new SyncDestination(placeDestination.getAddress().toString(),syncDestLocation);
-        SyncOrigin syncOrigin = new SyncOrigin(syncPassengerLocation,geocoderResult.get(0).getAddressLine(0));
+        SyncOrigin syncOrigin = new SyncOrigin(syncPassengerLocation,originAddress);
 
         SyncPassenger syncPassenger = new SyncPassenger();
         syncPassenger.setSyncDestination(syncDestination);
@@ -396,6 +386,28 @@ public class RideManager {
 
         }
     }
+
+
+    private String geoCodeOriginAddress(Location passengerLocation) {
+        List<android.location.Address> geocoderResult;
+        try {
+            Geocoder geocoder = new Geocoder(context);
+            geocoderResult = geocoder.getFromLocation(passengerLocation.getLatitude(),passengerLocation.getLongitude(),1);
+        } catch(IOException ioe) {
+            //todo analytics
+            Log.e("Geocoder","Geocoder Failed to translate passenger location");
+
+            return null;
+        }
+        Address address = geocoderResult.get(0);
+        String originAddress = new String();
+        for(int i = 0; i < address.getMaxAddressLineIndex();i++) {
+            originAddress = originAddress.concat(address.getAddressLine(i)+",");
+        }
+        return originAddress;
+    }
+
+
     //todo move this to another class
     LocationListener driverLocationListener = new LocationListener() {
         @Override

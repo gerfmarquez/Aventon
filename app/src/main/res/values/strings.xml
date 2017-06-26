@@ -69,5 +69,6 @@
 
     <string name="passenger_schedule">Passenger</string>
     <string name="driver_look_ride">Driver</string>
+    <string name="ride_from_to"><![CDATA["<html><big>Ride from </big> <small> ss </small> <br><big> to </big>  <small> ss </small></html>"]]></string>
 
 </resources>

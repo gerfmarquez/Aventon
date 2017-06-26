@@ -8,6 +8,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.Toolbar;
+import android.text.Html;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -137,11 +138,15 @@ public class LookForRideFragment extends Fragment {
                     activity.findViewById(R.id.no_ride).setVisibility(View.GONE);
                     TextView rideInfo = (TextView) activity.findViewById(R.id.ride_info);
                     rideInfo.setVisibility(View.VISIBLE);
-                    rideInfo.setText(
-                            String.format(
-                                    rideInfo.getText().toString(),
-                                    passenger.getSyncOrigin().getOriginAddress(),
-                                    passenger.getSyncDestination().getDestinationAddress()));
+
+                    String destAddress = passenger.getSyncDestination().getDestinationAddress();
+                    String originAddress = passenger.getSyncOrigin().getOriginAddress();
+
+                    rideInfo.setText(Html.fromHtml(String.format(
+                                    rideInfo.getText().toString().replace("ss","%s"),
+                                    originAddress,
+                                    destAddress
+                                    )));
 
                     android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(
                             activity);
