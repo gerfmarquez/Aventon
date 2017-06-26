@@ -179,15 +179,18 @@ public class SchedulePickupFragment extends Fragment implements PlaceSelectionLi
             public void run() {
                 final LatLng passengerLatLng = GpsUtil.getLatLng(
                         GpsUtil.getUserLocation(getActivity()));
-                getActivity().runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        showPassengerLocationOnMap(passengerLatLng);
-                    }
-                });
+                //retrieving location might take a little while and by that time fragment might go away
+                if(activity!=null) {
+                    activity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            showPassengerLocationOnMap(passengerLatLng);
+                        }
+                    });
+                }
+
             }
         }.start();
-
 
     }
     @Override
@@ -199,8 +202,12 @@ public class SchedulePickupFragment extends Fragment implements PlaceSelectionLi
     @Override
     public void onDetach() {
         super.onDetach();
-        getActivity().getFragmentManager().beginTransaction().remove(mapFragment).remove(autocompleteFragment).commit();
 
+        getActivity().getFragmentManager()
+                .beginTransaction()
+                .remove(mapFragment)
+                .remove(autocompleteFragment)
+                .commit();
 
     }
 

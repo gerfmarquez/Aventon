@@ -42,6 +42,7 @@ public class Sync {
     HttpController syncAvailableDriversController;
     HttpController syncSchedulePickupController;
 
+
     SyncPassenger syncPassenger;
 
     Stack<SyncLocation> driverLocations;
@@ -63,24 +64,29 @@ public class Sync {
         return instance;
     }
 
-    public void startDriverShift() {
-        Location location = GpsUtil.getUserLocation(context);
-        pushDriverLocationToSync(location);
-        handler.post(syncDriverLocation);
-    }
-
-    public void startSyncAvailableRides() {
-
+    public void startSyncRideInfo() {
+        //sync rides info
         handler.post(syncAvailableRides);
 
-
     }
-    public void stopSyncAvailableRides() {
-
+    public void stopSyncRideInfo() {
+        //stop sync ride infos
         closeConnectionIfOpen();
 
         if(syncAvailableRides!=null)
             handler.removeCallbacks(syncAvailableRides);
+    }
+    public void startSyncDriverLocation() {
+        //sync location
+        Location location = GpsUtil.getUserLocation(context);
+        pushDriverLocationToSync(location);
+        handler.post(syncDriverLocation);
+    }
+    public void stopSyncDriverLocation() {
+        //stop sync location
+        handler.removeCallbacks(syncDriverLocation);
+        if(syncDriverLocationThread!=null)
+            syncDriverLocationThread.interrupt();
 
     }
 
@@ -108,12 +114,10 @@ public class Sync {
     private void closeConnectionIfOpen() {
         if(syncSchedulePickupController!=null)
             syncSchedulePickupController.closeStream();
-        //todo interrupt might not be necessary
-//        syncAvailableRidesThread.interrupt();
+
         if(syncAvailableDriversController!=null)
             syncAvailableDriversController.closeStream();
-        //todo interrupt might not be necessary
-//        syncSchedulePickupThread.interrupt();
+
     }
 
     /**
@@ -169,7 +173,6 @@ public class Sync {
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    syncAvailableRidesThread = Thread.currentThread();
                     Thread.currentThread().setName("SyncAvailableRides");
 
                     //this label is to make sure we always schedule this task in a cycle
@@ -178,8 +181,9 @@ public class Sync {
                         try {
                             if(driverLocations.size()>0) {
                                 SyncLocation driverLocation = driverLocations.pop();
-                                syncAvailableDriversController = new HttpController(context);
-                                syncAvailableDriversController.updateDriverLocation(driverLocation);
+                                //this controller doesn't keep a connection open so keep it as local variable
+                                HttpController syncDriverLocationController = new HttpController(context);
+                                syncDriverLocationController.updateDriverLocation(driverLocation);
                                 driverLocations.empty();
                             }
 

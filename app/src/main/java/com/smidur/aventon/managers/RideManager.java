@@ -1,14 +1,16 @@
 package com.smidur.aventon.managers;
 
 import android.content.Context;
+import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationListener;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.MainThread;
 import android.support.annotation.WorkerThread;
+import android.util.Log;
 
+import com.google.android.gms.identity.intents.Address;
 import com.google.android.gms.location.places.Place;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.gson.Gson;
@@ -24,6 +26,7 @@ import com.smidur.aventon.utilities.GpsUtil;
 
 import java.io.IOException;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -77,8 +80,8 @@ public class RideManager {
         new Thread() {
             public void run() {
 
-                Sync.i(context).startSyncAvailableRides();
-                Sync.i(context).startDriverShift();
+                Sync.i(context).startSyncDriverLocation();
+                Sync.i(context).startSyncRideInfo();
             }
         }.start();
 
@@ -90,19 +93,23 @@ public class RideManager {
         isDriverOnRide = true;
         isDriverAvailable = false;
         //we might wanna keep connection open
-        if(isDriverAvailable)   Sync.i(context).stopSyncAvailableRides();
+        if(isDriverAvailable)   Sync.i(context).stopSyncRideInfo();
     }
     public void resumeDriverShiftAndEndRide() {
         isDriverOnRide = false;
         isDriverAvailable = true;
-        Sync.i(context).startSyncAvailableRides();
+        Sync.i(context).startSyncRideInfo();
     }
+    @MainThread
     public void endDriverShift() {
 
         if(isDriverAvailable) {
-            Sync.i(context).stopSyncAvailableRides();
+            Sync.i(context).stopSyncDriverLocation();
+            Sync.i(context).stopSyncRideInfo();
         }
         isDriverAvailable = false;
+
+        GoogleApiWrapper.getInstance(context).stopAndroidLocationUpdates(driverLocationListener);
 
     }
     /**
@@ -124,8 +131,20 @@ public class RideManager {
         LatLng latLng = placeDestination.getLatLng();
         SyncLocation syncDestLocation = new SyncLocation(latLng.latitude,latLng.longitude);
 
+        List<android.location.Address> geocoderResult;
+        try {
+            Geocoder geocoder = new Geocoder(context);
+            geocoderResult = geocoder.getFromLocation(passengerLocation.getLatitude(),passengerLocation.getLongitude(),1);
+        } catch(IOException ioe) {
+            //todo analytics
+            Log.e("Geocoder","Geocoder Failed to translate passenger location");
+
+            return;
+        }
+
+
         SyncDestination syncDestination = new SyncDestination(placeDestination.getAddress().toString(),syncDestLocation);
-        SyncOrigin syncOrigin = new SyncOrigin(syncPassengerLocation,"#Address#");//todo address
+        SyncOrigin syncOrigin = new SyncOrigin(syncPassengerLocation,geocoderResult.get(0).getAddressLine(0));
 
         SyncPassenger syncPassenger = new SyncPassenger();
         syncPassenger.setSyncDestination(syncDestination);
@@ -406,6 +425,7 @@ public class RideManager {
         void onRideAvailable(SyncPassenger passenger);
         void onRideStarted(SyncPassenger passenger);
         void onRideAcceptFailed();
+        //TODO onRideEnded
     }
     public interface PassengerEventsListener {
         void onPickupScheduled(String driver);

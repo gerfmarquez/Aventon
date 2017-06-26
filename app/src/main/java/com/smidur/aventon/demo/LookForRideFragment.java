@@ -1,15 +1,21 @@
 package com.smidur.aventon.demo;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.Toolbar;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.CompoundButton;
+import android.widget.Switch;
+import android.widget.TextView;
 
 import com.smidur.aventon.R;
 import com.smidur.aventon.managers.RideManager;
@@ -29,10 +35,10 @@ public class LookForRideFragment extends Fragment {
     private View mFragmentView;
 
     Activity activity;
+    boolean rideGoingOn = false;
 
-//    boolean keepLookingForRides = false;
-    Button startShiftButton;
-    Button endShiftButton;
+
+    Switch driverSwitch;
 
 
     @Override
@@ -42,47 +48,54 @@ public class LookForRideFragment extends Fragment {
         // Inflate the layout for this fragment
         mFragmentView = inflater.inflate(R.layout.lookforride_fragment, container, false);
 
-        startShiftButton = (Button) mFragmentView.findViewById(R.id.start_shift);
-        startShiftButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startShiftButton.setEnabled(false);
-                endShiftButton.setEnabled(true);
-                RideManager.i(activity).startDriverShift();
 
-            }
-        });
-
-        endShiftButton = (Button) mFragmentView.findViewById(R.id.end_shift);
-        endShiftButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                endShift();
-            }
-        });
-
-        activity = this.getActivity();
 
         return mFragmentView;
     }
-    public void endShift() {
-        endShiftButton.setEnabled(false);
-        startShiftButton.setEnabled(true);
-        RideManager.i(activity).endDriverShift();
 
-
-    }
 
     @Override
     public void onResume() {
         super.onResume();
         RideManager.i(activity).register(driverEventsListener);
+
     }
 
     @Override
     public void onPause() {
         super.onPause();
         RideManager.i(activity).unregister(driverEventsListener);
+    }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+
+        activity = this.getActivity();
+
+        if(activity != null) {
+            Toolbar toolbar = (Toolbar) activity.findViewById(R.id.toolbar);
+            driverSwitch = (Switch)getLayoutInflater(null).inflate(R.layout.driver_toolbar,null);
+            driverSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                    if(isChecked) {
+                        RideManager.i(activity).startDriverShift();
+                    } else {
+                        RideManager.i(activity).endDriverShift();
+                    }
+                }
+            });
+            toolbar.addView(driverSwitch,new Toolbar.LayoutParams(Gravity.RIGHT));
+        }
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        if(activity != null) {
+            ((Toolbar)activity.findViewById(R.id.toolbar)).removeView(driverSwitch);
+        }
     }
 
     RideManager.DriverEventsListener driverEventsListener = new RideManager.DriverEventsListener() {
@@ -96,7 +109,8 @@ public class LookForRideFragment extends Fragment {
                     android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(
                             activity);
 
-                    builder.setTitle("=").setMessage("Confirm ride for passenger: ?")
+                    builder.setTitle("Confirm Ride?").setMessage("Pickup Address At: "
+                            +passenger.getSyncOrigin().getOriginAddress())
                             .setPositiveButton("Confirm", new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
@@ -106,7 +120,7 @@ public class LookForRideFragment extends Fragment {
                                 }
                             }).setNegativeButton("Reject",null)
                             .create().show();
-                    startShiftButton.setEnabled(true);
+
                 }
             });
 
@@ -119,6 +133,16 @@ public class LookForRideFragment extends Fragment {
             activity.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
+
+                    activity.findViewById(R.id.no_ride).setVisibility(View.GONE);
+                    TextView rideInfo = (TextView) activity.findViewById(R.id.ride_info);
+                    rideInfo.setVisibility(View.VISIBLE);
+                    rideInfo.setText(
+                            String.format(
+                                    rideInfo.getText().toString(),
+                                    passenger.getSyncOrigin().getOriginAddress(),
+                                    passenger.getSyncDestination().getDestinationAddress()));
+
                     android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(
                             activity);
 
@@ -128,14 +152,13 @@ public class LookForRideFragment extends Fragment {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
 
-                                    SyncLocation destinationLocation = passenger
-                                            .getSyncDestination()
-                                            .getDestinationLocation();
+                                    SyncLocation pickupLocation = passenger
+                                            .getSyncOrigin().getOriginLocation();
 
                                     String format = String.format(
                                             "google.navigation:q=%f,%f&mode=d"
-                                            ,destinationLocation.getSyncLocationLatitude()
-                                            ,destinationLocation.getSyncLocationLongitude());
+                                            ,pickupLocation.getSyncLocationLatitude()
+                                            ,pickupLocation.getSyncLocationLongitude());
 
                                     Uri directionsUri = Uri.parse(format);
 

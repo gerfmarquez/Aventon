@@ -110,8 +110,6 @@ public class HttpController {
 
     public boolean closeStream() {
 
-        wrapper = new HttpWrapper();
-
         if(wrapper!=null && wrapper.getStreamReader()!=null) {
             try {
                 wrapper.getStreamReader().close();

@@ -1,22 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent" android:layout_height="match_parent">
-    <Button
-        android:id="@+id/start_shift"
+    <TextView
+        android:id="@+id/no_ride"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Start Shift"
+        android:text="No Ride Yet"
         android:layout_centerHorizontal="true"
         android:layout_centerVertical="true"
-        />
-    <Button
-        android:id="@+id/end_shift"
+        android:textSize="24sp"
+        android:visibility="gone"/>
+    <TextView
+        android:id="@+id/ride_info"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@id/start_shift"
-        android:text="End Shift"
-        android:enabled="false"
+        android:text="Ride to %s from %s"
         android:layout_centerHorizontal="true"
         android:layout_centerVertical="true"
-        />
+        android:textSize="24sp"
+        android:visibility="invisible"/>
 </RelativeLayout>
