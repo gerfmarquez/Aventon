@@ -61,6 +61,7 @@ public class SchedulePickupFragment extends Fragment implements PlaceSelectionLi
     Button mSchedulePickupButton;
     Marker driverMarker;
     Marker passengerMarker;
+    Marker destinationMarker;
 
     GoogleMap mGoogleMap;
 
@@ -86,6 +87,7 @@ public class SchedulePickupFragment extends Fragment implements PlaceSelectionLi
 
         mSchedulePickupButton = (Button)mFragmentView.findViewById(R.id.schedule_pickup);
         scheduleRideProgressBar = (ProgressBar) mFragmentView.findViewById(R.id.schedule_progress);
+        scheduleRideProgressBar.setVisibility(View.VISIBLE);
 
         mapFragment = (MapFragment) fragmentManager.findFragmentById(R.id.map);
 //        searchAddress = (AutoCompleteTextView) activity.findViewById(R.id.search_address);
@@ -98,6 +100,9 @@ public class SchedulePickupFragment extends Fragment implements PlaceSelectionLi
         autocompleteFragment.getView().setBackground(new ColorDrawable(getResources().getColor(android.R.color.white)));
 
         autocompleteFragment.setOnPlaceSelectedListener(this);
+
+        autocompleteFragment.setHint(getString(R.string.select_destination));
+
 
         try {
             autocompleteFragment.setBoundsBias(
@@ -116,8 +121,7 @@ public class SchedulePickupFragment extends Fragment implements PlaceSelectionLi
         mapFragment.getMapAsync(new OnMapReadyCallback() {
             @Override
             public void onMapReady(GoogleMap googleMap) {
-
-                scheduleRideProgressBar.setVisibility(View.INVISIBLE);
+                scheduleRideProgressBar.setVisibility(View.GONE);
 
                 mGoogleMap = googleMap;
                 mGoogleMap.animateCamera(
@@ -132,6 +136,23 @@ public class SchedulePickupFragment extends Fragment implements PlaceSelectionLi
 //                        updatemarker();
 //                    }
 //                });
+
+                new Thread() {
+                    public void run() {
+                        final LatLng passengerLatLng = GpsUtil.getLatLng(
+                                GpsUtil.getUserLocation(getActivity()));
+                        //retrieving location might take a little while and by that time fragment might go away
+                        if(activity!=null) {
+                            activity.runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    showPassengerLocationOnMap(passengerLatLng);
+                                }
+                            });
+                        }
+
+                    }
+                }.start();
 
 
             }
@@ -175,22 +196,6 @@ public class SchedulePickupFragment extends Fragment implements PlaceSelectionLi
         super.onResume();
         RideManager.i(activity).register(passengerEventsListener);
 
-        new Thread() {
-            public void run() {
-                final LatLng passengerLatLng = GpsUtil.getLatLng(
-                        GpsUtil.getUserLocation(getActivity()));
-                //retrieving location might take a little while and by that time fragment might go away
-                if(activity!=null) {
-                    activity.runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            showPassengerLocationOnMap(passengerLatLng);
-                        }
-                    });
-                }
-
-            }
-        }.start();
 
     }
     @Override
@@ -243,6 +248,31 @@ public class SchedulePickupFragment extends Fragment implements PlaceSelectionLi
             });
 
 
+
+        }
+
+        @Override
+        public void onSchedulePickupConnectionError() {
+
+            activity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    //hide progress loader
+                    scheduleRideProgressBar.setVisibility(View.INVISIBLE);
+
+                    android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(
+                            activity);
+
+                    builder.setTitle("Connection Error").setMessage("Sorry, Connection Error")
+                            .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+
+                                }
+                            })
+                            .create().show();
+                }
+            });
 
         }
 
@@ -308,6 +338,8 @@ public class SchedulePickupFragment extends Fragment implements PlaceSelectionLi
     @Override
     public void onPlaceSelected(Place place) {
 
+        scheduleRideProgressBar.setVisibility(View.VISIBLE);
+
         LatLng latLng = place.getLatLng();
 
         Location placeLocation  = new Location("");
@@ -323,7 +355,24 @@ public class SchedulePickupFragment extends Fragment implements PlaceSelectionLi
                 mSchedulePickupButton.setEnabled(true);
                 mSelectedDestination = place;
 
+                new Thread() {
+                    public void run() {
+                        //zoom in selected place
+                        final LatLng userLatLng = GpsUtil.getLatLng(GpsUtil.getUserLocation(getContext()));
+
+                        activity.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                scheduleRideProgressBar.setVisibility(View.GONE);
+                                updateDestinationLocationOnMap(userLatLng,mSelectedDestination.getLatLng());
+                            }
+                        });
+                    }
+                }.start();
+
+
             } else {
+                scheduleRideProgressBar.setVisibility(View.GONE);
                 new AlertDialog.Builder(activity).setTitle(R.string.destination_too_far)
                         .setMessage(R.string.destination_too_far)
                         .setPositiveButton(R.string.ok,null).create().show();
@@ -408,5 +457,22 @@ public class SchedulePickupFragment extends Fragment implements PlaceSelectionLi
         passengerMarker.setPosition(latLng);
     }
 
+    private void updateDestinationLocationOnMap(LatLng userLatLng, LatLng destLatLng) {
+
+
+        MarkerOptions options = new MarkerOptions();
+        options.icon(BitmapDescriptorFactory.fromResource(R.drawable.bluedot))
+                .position(destLatLng);
+
+        LatLngBounds bounds = LatLngBounds.builder().include(destLatLng).include(userLatLng).build();
+        mGoogleMap.animateCamera(
+                CameraUpdateFactory.newLatLngBounds(bounds, 100));
+
+//        mGoogleMap.addGroundOverlay(options);
+        if(destinationMarker==null) {
+            destinationMarker = mGoogleMap.addMarker(options);
+        }
+        destinationMarker.setPosition(destLatLng);
+    }
 
 }

@@ -352,6 +352,22 @@ public class RideManager {
 
         }
     }
+    public void postScheduleConnectionErrorCallback() {
+        synchronized (passengerEventsListeners) {
+            for(final PassengerEventsListener listener: passengerEventsListeners) {
+                if(listener!=null) {
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            listener.onSchedulePickupConnectionError();
+                        }
+                    }).start();
+
+                }
+            }
+
+        }
+    }
 
 
     private void postRideStartedCallback(final SyncPassenger passenger) {
@@ -386,7 +402,22 @@ public class RideManager {
 
         }
     }
+    public void postLookForRideConnectionErrorCallback() {
+        synchronized (passengerEventsListeners) {
+            for(final DriverEventsListener listener: driverEventsListeners) {
+                if(listener!=null) {
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            listener.onLookForRideConnectionError();
+                        }
+                    }).start();
 
+                }
+            }
+
+        }
+    }
 
     private String geoCodeOriginAddress(Location passengerLocation) {
         List<android.location.Address> geocoderResult;
@@ -437,12 +468,14 @@ public class RideManager {
         void onRideAvailable(SyncPassenger passenger);
         void onRideStarted(SyncPassenger passenger);
         void onRideAcceptFailed();
+        void onLookForRideConnectionError();
         //TODO onRideEnded
     }
     public interface PassengerEventsListener {
         void onPickupScheduled(String driver);
         void onDriverApproaching(SyncLocation driverNewLocation);
         void onDriverArrived();
+        void onSchedulePickupConnectionError();
         void onNoDriverFoundNearby();//todo
     }
 

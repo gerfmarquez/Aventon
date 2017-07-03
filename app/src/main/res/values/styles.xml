@@ -1,7 +1,26 @@
 <resources>
     <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+    <style name="AppTheme" parent="Theme.AppCompat.NoActionBar">
         <!-- Customize your theme here. -->
+
+        <item name="android:colorPrimaryDark">@color/aventon_background_color</item>
+        <item name="android:colorPrimary">@color/aventon_primary_color</item>
+        <item name="android:colorAccent">@color/aventon_primary_color</item>
+        <item name="android:navigationBarColor">@color/aventon_primary_color</item>
+        <item name="android:windowBackground">@color/aventon_primary_color</item>
+        <item name="android:colorForeground">@color/aventon_primary_color</item>
+        <item name="android:colorButtonNormal">@color/aventon_text_color</item>
+        <item name="android:textColorPrimary">@color/aventon_primary_color</item>
+        <item name="android:textColorSecondary">@color/aventon_text_color</item>
+
+        <item name="android:color">@color/aventon_third_color</item>
+
+
+        <item name="android:actionBarTabStyle">@android:style/Widget.Material.ActionBar.TabBar</item>
+
+        <!-- Font style -->
+        <item name="android:textStyle">bold</item>
+
     </style>
     <!--&lt;!&ndash; Base application theme. &ndash;&gt;-->
     <!--<style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">-->

@@ -153,9 +153,14 @@ public class Sync {
 
                         } catch(IOException ioe) {
 
+                            handler.removeCallbacks(syncAvailableRides);
+                            RideManager.i(context).postLookForRideConnectionErrorCallback();
+
                             ioe.printStackTrace();
 
                             closeConnectionIfOpen();
+
+                            return;
 
                         }
                     } while(false);
@@ -195,9 +200,13 @@ public class Sync {
 
                         } catch(IOException ioe) {
 
+                            handler.removeCallbacks(syncDriverLocation);
+
                             ioe.printStackTrace();
 
                             closeConnectionIfOpen();
+
+                            return;
 
                         }
                     } while(false);
@@ -243,9 +252,15 @@ public class Sync {
 
                         } catch(IOException ioe) {
 
+                            RideManager.i(context).postScheduleConnectionErrorCallback();
+
+                            handler.removeCallbacks(syncSchedulePickup);
+
                             ioe.printStackTrace();
 
                             closeConnectionIfOpen();
+
+                            return;
 
                         }
                     } while(false);

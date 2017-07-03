@@ -178,6 +178,16 @@ public class LookForRideFragment extends Fragment {
         }
 
         @Override
+        public void onLookForRideConnectionError() {
+            activity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+
+                }
+            });
+        }
+
+        @Override
         public void onRideAcceptFailed() {
 
             activity.runOnUiThread(new Runnable() {
@@ -186,7 +196,7 @@ public class LookForRideFragment extends Fragment {
                     android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(
                             activity);
 
-                    builder.setTitle("=").setMessage("Error:")
+                    builder.setTitle("=").setMessage("Ride Accept Failed!")
                             .setPositiveButton("Ok",null)
                             .create().show();
                 }

@@ -352,7 +352,7 @@ public class IdentityManager {
 
         public void onError(final IdentityProvider provider, final Exception ex) {
             Log.e(LOG_TAG,
-                    String.format("SignInResultsAdapter.onError(): %s provider error. %s",
+                    String.format("SignInResultsAdapter.onLookForRideConnectionError(): %s provider error. %s",
                             provider.getDisplayName(), ex.getMessage()), ex);
             handler.onError(provider, ex);
         }

@@ -69,6 +69,7 @@
                     android:layout_marginLeft="12dp"
                     android:layout_marginRight="12dp"
                     android:padding="4dp"
+                    android:textColor="@color/aventon_text_color"
                     android:textAppearance="?android:attr/textAppearanceLarge"
                     android:text="@string/main_nav_menu_default_user_text"
                     android:background="@color/nav_drawer_no_user_background"

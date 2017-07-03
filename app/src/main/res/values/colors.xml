@@ -1,17 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#3F51B5</color>
-    <color name="colorPrimaryDark">#303F9F</color>
-    <color name="colorAccent">#FF4081</color>
 
-    <color name="top_bar_background">#F58535</color>
-    <color name="splash_text">#F58535</color>
-    <color name="splash_background">#FFFFFF</color>
+    <color name="top_bar_background">@color/aventon_primary_color</color>
+    <color name="splash_text">#ffffff</color>
+    <color name="splash_background">@color/aventon_primary_color</color>
     <color name="main_background">#FFFFFF</color>
 
     <color name="black_overlay">#66000000</color>
-    <color name="nav_drawer_background">#FFFFFF</color>
-    <color name="nav_drawer_top_background">#CCCCCC</color>
+    <color name="nav_drawer_background">@color/aventon_primary_color</color>
+    <color name="nav_drawer_top_background">@color/aventon_background_color</color>
     <color name="nav_drawer_no_user_background">#AAAAAA</color>
-    <color name="instructions_list_border_color">#FFDDDDDD</color>
+    <color name="instructions_list_border_color">@color/aventon_background_color</color>
+
+    <color name="aventon_primary_color">#c5e25a</color>
+    <color name="aventon_secondary_color">#489fa0</color>
+    <color name="aventon_third_color">#f29c24</color>
+    <color name="aventon_text_color">#eaeaea</color>
+    <color name="aventon_background_color">#202b1e</color>
+
+
+
 </resources>

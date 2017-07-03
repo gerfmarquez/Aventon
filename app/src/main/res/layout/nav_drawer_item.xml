@@ -13,10 +13,10 @@
 
     <TextView
         android:layout_width="wrap_content"
-        android:layout_height="45dp"
+        android:layout_height="wrap_content"
         android:gravity="center_vertical"
         android:paddingLeft="12dp"
-        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:textSize="28sp"
         android:text=""
         android:id="@+id/drawer_item_text" />
 </LinearLayout>
