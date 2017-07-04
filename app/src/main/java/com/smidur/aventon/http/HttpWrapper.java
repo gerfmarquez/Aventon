@@ -48,6 +48,12 @@ public class HttpWrapper {
         byte unique_timestamp = (byte)System.currentTimeMillis();
         TAG = TAG+" "+unique_timestamp;
     }
+    public HttpWrapper(String rootUrl) {
+        this.rootUrl = rootUrl;
+        byte unique_timestamp = (byte)System.currentTimeMillis();
+        TAG = TAG+" "+unique_timestamp;
+    }
+
 
 //    private String rootUrl = "http://custom-env.ewpmtrqu8z.us-east-1.elasticbeanstalk.com/";
     private String rootUrl = "http://10.0.0.200:5000/";
@@ -118,7 +124,7 @@ public class HttpWrapper {
             HttpResponse response = new HttpResponse();
             try {
 
-                getMessageFromInputStream(connection.getInputStream());
+                response.message = getMessageFromInputStream(connection.getInputStream());
 
                 response.code = connection.getResponseCode();
             } catch(IOException ioe ) {
@@ -265,15 +271,23 @@ public class HttpWrapper {
 
 
         String readLine = null;
+        StringBuilder builder = new StringBuilder();
         while ((readLine = inFromServer.readLine())!=null) {
 
             if(updateCallback!=null) {
                 updateCallback.onUpdate(readLine);
                 updateCallback = null;
             }
-            Log.d(TAG,"Read Line: "+readLine.toString());
+            if(updateCallback == null) {
+                builder.append(readLine);
+            }
+            Log.d(TAG,"Read Line: "+readLine);
 
         }
+        if(updateCallback == null) {
+            return builder.toString();
+        }
+
 
         try {
             if(stream!=null)stream.close();

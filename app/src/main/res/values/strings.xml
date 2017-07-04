@@ -51,5 +51,13 @@
     <string name="driver_look_ride">Driver</string>
     <string name="ride_from_to"><![CDATA["<html><big>Ride from </big> <small> ss </small> <br><big> to </big>  <small> ss </small></html>"]]></string>
     <string name="select_destination">Where are you headed?</string>
+    <string name="price_label">Price:</string>
+    <string name="duration_label">Duration:</string>
+    <string name="distance_label">Distance:</string>
+    <string name="connection_error">Connection Error</string>
+    <string name="sorry_connection_error">Sorry, Connection Error</string>
+    <string name="pickup_confirmed">Driver will pick you up soon</string>
+    <string name="pickup_confirmed_title">Pickup Confirmed</string>
+    <string name="drivers_not_found_nearby">Sorry, Drivers Not Found Nearby</string>
 
 </resources>

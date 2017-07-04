@@ -202,6 +202,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             navigationDrawer.closeDrawer();
             return;
         }
+        moveTaskToBack(false);
 
 //        if (fragmentManager.getBackStackEntryCount() == 0) {
 //            if (fragmentManager.findFragmentByTag(HomeDemoFragment.class.getSimpleName()) == null) {

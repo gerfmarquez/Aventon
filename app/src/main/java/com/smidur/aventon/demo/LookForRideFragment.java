@@ -135,6 +135,8 @@ public class LookForRideFragment extends Fragment {
                 @Override
                 public void run() {
 
+                    driverSwitch.setEnabled(false);
+
                     activity.findViewById(R.id.no_ride).setVisibility(View.GONE);
                     TextView rideInfo = (TextView) activity.findViewById(R.id.ride_info);
                     rideInfo.setVisibility(View.VISIBLE);
@@ -178,11 +180,27 @@ public class LookForRideFragment extends Fragment {
         }
 
         @Override
+        public void onRideEnded() {
+            activity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    driverSwitch.setEnabled(true);
+                }
+            });
+        }
+
+        @Override
         public void onLookForRideConnectionError() {
             activity.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
+                    android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(
+                            activity);
 
+                    builder.setTitle(R.string.connection_error).setMessage(R.string.sorry_connection_error)
+                            .setPositiveButton(R.string.ok, null)
+                            .create().show();
+                    driverSwitch.setChecked(false);
                 }
             });
         }

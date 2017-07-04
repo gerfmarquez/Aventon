@@ -9,10 +9,13 @@ import com.amazonaws.mobile.AWSMobileClient;
 import com.amazonaws.mobile.user.IdentityManager;
 import com.google.android.gms.location.places.Place;
 import com.google.gson.Gson;
+import com.smidur.aventon.R;
 import com.smidur.aventon.exceptions.TokenInvalidException;
+import com.smidur.aventon.model.GoogleApiDirections;
 import com.smidur.aventon.model.SyncDestination;
 import com.smidur.aventon.model.SyncLocation;
 import com.smidur.aventon.model.SyncPassenger;
+import com.smidur.aventon.utilities.GoogleMapRouteRequestBuilder;
 
 import java.io.IOException;
 import java.util.Hashtable;
@@ -104,6 +107,21 @@ public class HttpController {
         }, syncDestinationJson ,context);
         if(response.code==401) {
             throw new TokenInvalidException();
+        }
+
+    }
+
+    public GoogleApiDirections requestDirections(@NonNull double[][] startAndEnd, Context context) throws IOException {
+        HttpWrapper wrapper = new HttpWrapper("https://maps.googleapis.com/");
+        HttpResponse response = wrapper.httpGET(
+                String.format("maps/api/directions/json?%s%s",
+                        GoogleMapRouteRequestBuilder.buildRequest(startAndEnd),
+                        "&units=metric&key="+context.getString(R.string.directions_key)), context);
+
+        if (response.code == 200) {
+            return new Gson().fromJson(response.message, GoogleApiDirections.class);
+        } else {
+            throw new IOException("Http Response Code not expected");
         }
 
     }

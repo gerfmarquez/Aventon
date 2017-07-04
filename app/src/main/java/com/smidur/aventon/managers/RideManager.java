@@ -467,6 +467,7 @@ public class RideManager {
     public interface DriverEventsListener {
         void onRideAvailable(SyncPassenger passenger);
         void onRideStarted(SyncPassenger passenger);
+        void onRideEnded();
         void onRideAcceptFailed();
         void onLookForRideConnectionError();
         //TODO onRideEnded

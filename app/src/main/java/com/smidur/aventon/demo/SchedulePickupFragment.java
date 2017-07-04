@@ -7,6 +7,7 @@ import android.app.FragmentManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.location.Location;
 import android.location.LocationManager;
@@ -17,6 +18,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
 
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.places.Place;
@@ -31,11 +34,23 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 import com.smidur.aventon.R;
+import com.smidur.aventon.http.HttpController;
 import com.smidur.aventon.managers.RideManager;
+import com.smidur.aventon.model.GoogleApiDirections;
+import com.smidur.aventon.model.GoogleApiLeg;
+import com.smidur.aventon.model.GoogleApiPolyline;
+import com.smidur.aventon.model.GoogleApiRoute;
 import com.smidur.aventon.model.SyncLocation;
 import com.smidur.aventon.utilities.Constants;
+import com.smidur.aventon.utilities.FareUtil;
 import com.smidur.aventon.utilities.GpsUtil;
+import com.smidur.aventon.utilities.PolyLineUtil;
+
+import java.io.IOException;
+import java.util.ArrayList;
 
 /**
  * Created by marqueg on 3/15/17.
@@ -62,6 +77,14 @@ public class SchedulePickupFragment extends Fragment implements PlaceSelectionLi
     Marker driverMarker;
     Marker passengerMarker;
     Marker destinationMarker;
+
+    TextView priceEstimate;
+    TextView durationEstimate;
+    TextView distanceEstimate;
+
+    RelativeLayout footer;
+
+    Polyline destinationPolyline;
 
     GoogleMap mGoogleMap;
 
@@ -95,6 +118,7 @@ public class SchedulePickupFragment extends Fragment implements PlaceSelectionLi
         autocompleteFragment = (PlaceAutocompleteFragment)
                 fragmentManager.findFragmentById(R.id.autocomplete_fragment);
 
+        footer = (RelativeLayout) mFragmentView.findViewById(R.id.map_footer);
 
 
         autocompleteFragment.getView().setBackground(new ColorDrawable(getResources().getColor(android.R.color.white)));
@@ -102,6 +126,10 @@ public class SchedulePickupFragment extends Fragment implements PlaceSelectionLi
         autocompleteFragment.setOnPlaceSelectedListener(this);
 
         autocompleteFragment.setHint(getString(R.string.select_destination));
+
+        priceEstimate = (TextView) mFragmentView.findViewById(R.id.priceEstimate);
+        durationEstimate = (TextView) mFragmentView.findViewById(R.id.durationEstimate);
+        distanceEstimate = (TextView) mFragmentView.findViewById(R.id.distanceEstimate);
 
 
         try {
@@ -226,12 +254,15 @@ public class SchedulePickupFragment extends Fragment implements PlaceSelectionLi
 
                     //hide progress loader
                     scheduleRideProgressBar.setVisibility(View.INVISIBLE);
+                    mSchedulePickupButton.setEnabled(false);
+                    mSchedulePickupButton.setVisibility(View.INVISIBLE);
+                    footer.setVisibility(View.VISIBLE);
 
                     android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(
                             activity);
 
-                    builder.setTitle("Pickup Confirmed").setMessage("Driver will pick you up soon")
-                            .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                    builder.setTitle(R.string.pickup_confirmed_title).setMessage(R.string.pickup_confirmed)
+                            .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
 
@@ -263,13 +294,8 @@ public class SchedulePickupFragment extends Fragment implements PlaceSelectionLi
                     android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(
                             activity);
 
-                    builder.setTitle("Connection Error").setMessage("Sorry, Connection Error")
-                            .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-
-                                }
-                            })
+                    builder.setTitle(R.string.connection_error).setMessage(R.string.sorry_connection_error)
+                            .setPositiveButton(R.string.ok, null)
                             .create().show();
                 }
             });
@@ -314,8 +340,8 @@ public class SchedulePickupFragment extends Fragment implements PlaceSelectionLi
                     android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(
                             activity);
 
-                    builder.setTitle("Sorry, Drivers Not Found Nearby").setMessage("Sorry, Drivers Not Found Nearby")
-                            .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                    builder.setTitle(R.string.drivers_not_found_nearby).setMessage(R.string.drivers_not_found_nearby)
+                            .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
 
@@ -352,7 +378,7 @@ public class SchedulePickupFragment extends Fragment implements PlaceSelectionLi
             float distanceToAddress = placeLocation.distanceTo(GpsUtil.getLastKnownLocation(getContext()));
 
             if(distanceToAddress <  MAXIMUM_RIDE_DISTANCE) {
-                mSchedulePickupButton.setEnabled(true);
+
                 mSelectedDestination = place;
 
                 new Thread() {
@@ -360,9 +386,39 @@ public class SchedulePickupFragment extends Fragment implements PlaceSelectionLi
                         //zoom in selected place
                         final LatLng userLatLng = GpsUtil.getLatLng(GpsUtil.getUserLocation(getContext()));
 
+                        GoogleApiRoute route = getRoute(userLatLng,mSelectedDestination.getLatLng());
+                        final GoogleApiPolyline googlePolyLine = route.getOverview_polyline();
+                        final GoogleApiLeg leg = route.getLegs()[0];
+
+                        final PolylineOptions options = getPolylineOptions(googlePolyLine);
+
+                        //todo make price estimate calculation
+                        Float price = FareUtil.calculateFareMex(
+                                leg.getDistance().getValue(),leg.getDuration().getValue());
+
+                        final String formattedPrice = String.format("$%.2f",price);
+
                         activity.runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
+                                mSchedulePickupButton.setEnabled(true);
+                                mSchedulePickupButton.setVisibility(View.VISIBLE);
+                                footer.setVisibility(View.VISIBLE);
+
+                                priceEstimate.setText(formattedPrice
+//                                        getString(R.string.price_label)+" "+
+                                        );
+                                durationEstimate.setText(
+//                                        getString(R.string.duration_label)+" "+
+                                                leg.getDuration().getText());
+                                distanceEstimate.setText(
+//                                        getString(R.string.distance_label)+" "+
+                                                leg.getDistance().getText());
+
+                                if(destinationPolyline!=null)
+                                    destinationPolyline.remove();
+
+                                destinationPolyline = mGoogleMap.addPolyline(options);
                                 scheduleRideProgressBar.setVisibility(View.GONE);
                                 updateDestinationLocationOnMap(userLatLng,mSelectedDestination.getLatLng());
                             }
@@ -372,6 +428,7 @@ public class SchedulePickupFragment extends Fragment implements PlaceSelectionLi
 
 
             } else {
+                mSchedulePickupButton.setEnabled(false);
                 scheduleRideProgressBar.setVisibility(View.GONE);
                 new AlertDialog.Builder(activity).setTitle(R.string.destination_too_far)
                         .setMessage(R.string.destination_too_far)
@@ -473,6 +530,35 @@ public class SchedulePickupFragment extends Fragment implements PlaceSelectionLi
             destinationMarker = mGoogleMap.addMarker(options);
         }
         destinationMarker.setPosition(destLatLng);
+    }
+    private GoogleApiRoute getRoute(LatLng origin, LatLng target) {
+
+        double[][] startEndArray = new double[][]{
+                new double[]{origin.latitude,origin.longitude},
+                new double[]{target.latitude,target.longitude}};
+
+        try {
+            HttpController controller = new HttpController(getContext());
+            GoogleApiDirections directions = controller.requestDirections(startEndArray,getContext());
+            return directions.getRoutes()[0];
+
+        } catch(IOException ioe) {
+            ioe.printStackTrace();
+            //todo analytics
+        }
+        return null;
+
+    }
+    private PolylineOptions getPolylineOptions(GoogleApiPolyline googleApiPolyline) {
+        ArrayList<LatLng> polyline = PolyLineUtil.decodePoly(googleApiPolyline.getPoints());
+
+        final PolylineOptions options = new PolylineOptions().width(20)
+                .color(getResources().getColor(R.color.aventon_secondary_color,null)).geodesic(true);
+        for (int i = 0; i < polyline.size(); i++) {
+            LatLng point = polyline.get(i);
+            options.add(point);
+        }
+        return options;
     }
 
 }

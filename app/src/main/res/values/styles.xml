@@ -9,7 +9,7 @@
         <item name="android:navigationBarColor">@color/aventon_primary_color</item>
         <item name="android:windowBackground">@color/aventon_primary_color</item>
         <item name="android:colorForeground">@color/aventon_primary_color</item>
-        <item name="android:colorButtonNormal">@color/aventon_text_color</item>
+        <item name="android:colorButtonNormal">@color/aventon_secondary_color</item>
         <item name="android:textColorPrimary">@color/aventon_primary_color</item>
         <item name="android:textColorSecondary">@color/aventon_text_color</item>
 
