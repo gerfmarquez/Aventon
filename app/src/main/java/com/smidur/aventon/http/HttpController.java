@@ -13,6 +13,7 @@ import com.smidur.aventon.R;
 import com.smidur.aventon.exceptions.TokenInvalidException;
 import com.smidur.aventon.model.GoogleApiDirections;
 import com.smidur.aventon.model.SyncDestination;
+import com.smidur.aventon.model.SyncDriver;
 import com.smidur.aventon.model.SyncLocation;
 import com.smidur.aventon.model.SyncPassenger;
 import com.smidur.aventon.utilities.GoogleMapRouteRequestBuilder;
@@ -43,18 +44,20 @@ public class HttpController {
         void onConfirmedPickupScheduled(String message);
     }
 
-    public void availableRidesCall(@NonNull  final RidesAvailableCallback callback) throws IOException, TokenInvalidException {
+    public void availableRidesCall(SyncDriver syncDriver, @NonNull  final RidesAvailableCallback callback) throws IOException, TokenInvalidException {
 
         wrapper = new HttpWrapper();
 
-        HttpResponse response = wrapper.httpGET("available_rides", new HttpWrapper.UpdateCallback() {
+        String driverJson = new Gson().toJson(syncDriver);
+
+        HttpResponse response = wrapper.httpPOST("available_rides", new HttpWrapper.UpdateCallback() {
             @Override
             public void onUpdate(String message) {
 
                 callback.onNewRideAvailable(message);
 
             }
-        },context);
+        },driverJson,context);
         if(response.code==401) {
             throw new TokenInvalidException();
         }

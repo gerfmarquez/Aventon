@@ -13,6 +13,7 @@ import com.smidur.aventon.http.HttpController;
 import com.smidur.aventon.http.HttpWrapper;
 import com.smidur.aventon.managers.RideManager;
 import com.smidur.aventon.model.SyncDestination;
+import com.smidur.aventon.model.SyncDriver;
 import com.smidur.aventon.model.SyncLocation;
 import com.smidur.aventon.model.SyncPassenger;
 import com.smidur.aventon.utilities.GpsUtil;
@@ -44,6 +45,7 @@ public class Sync {
 
 
     SyncPassenger syncPassenger;
+    SyncDriver syncDriver;
 
     Stack<SyncLocation> driverLocations;
 
@@ -64,7 +66,8 @@ public class Sync {
         return instance;
     }
 
-    public void startSyncRideInfo() {
+    public void startSyncRideInfo(SyncDriver syncDriver) {
+        this.syncDriver = syncDriver;
         //sync rides info
         handler.post(syncAvailableRides);
 
@@ -136,8 +139,9 @@ public class Sync {
                     scheduleNextIteration:
                     do {
                         try {
+
                             syncAvailableDriversController = new HttpController(context);
-                            syncAvailableDriversController.availableRidesCall(new HttpController.RidesAvailableCallback() {
+                            syncAvailableDriversController.availableRidesCall(syncDriver,new HttpController.RidesAvailableCallback() {
                                 @Override
                                 public void onNewRideAvailable(String message) {
 

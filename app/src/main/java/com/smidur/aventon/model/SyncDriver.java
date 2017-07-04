@@ -5,5 +5,22 @@ package com.smidur.aventon.model;
  */
 
 public class SyncDriver {
-    SyncLocation syncPassengerLocation;
+    private String makeModel;
+    private String plates;
+
+    public String getMakeModel() {
+        return makeModel;
+    }
+
+    public void setMakeModel(String makeModel) {
+        this.makeModel = makeModel;
+    }
+
+    public String getPlates() {
+        return plates;
+    }
+
+    public void setPlates(String plates) {
+        this.plates = plates;
+    }
 }

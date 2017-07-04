@@ -7,7 +7,6 @@ import android.app.FragmentManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.location.Location;
 import android.location.LocationManager;
@@ -43,6 +42,7 @@ import com.smidur.aventon.model.GoogleApiDirections;
 import com.smidur.aventon.model.GoogleApiLeg;
 import com.smidur.aventon.model.GoogleApiPolyline;
 import com.smidur.aventon.model.GoogleApiRoute;
+import com.smidur.aventon.model.SyncDriver;
 import com.smidur.aventon.model.SyncLocation;
 import com.smidur.aventon.utilities.Constants;
 import com.smidur.aventon.utilities.FareUtil;
@@ -82,7 +82,8 @@ public class SchedulePickupFragment extends Fragment implements PlaceSelectionLi
     TextView durationEstimate;
     TextView distanceEstimate;
 
-    RelativeLayout footer;
+    RelativeLayout routeEstimateFooter;
+    RelativeLayout driverInfoFooter;
 
     Polyline destinationPolyline;
 
@@ -118,7 +119,8 @@ public class SchedulePickupFragment extends Fragment implements PlaceSelectionLi
         autocompleteFragment = (PlaceAutocompleteFragment)
                 fragmentManager.findFragmentById(R.id.autocomplete_fragment);
 
-        footer = (RelativeLayout) mFragmentView.findViewById(R.id.map_footer);
+        routeEstimateFooter = (RelativeLayout) mFragmentView.findViewById(R.id.map_footer);
+        driverInfoFooter = (RelativeLayout) mFragmentView.findViewById(R.id.driver_info_footer);
 
 
         autocompleteFragment.getView().setBackground(new ColorDrawable(getResources().getColor(android.R.color.white)));
@@ -246,7 +248,7 @@ public class SchedulePickupFragment extends Fragment implements PlaceSelectionLi
 
     RideManager.PassengerEventsListener passengerEventsListener = new RideManager.PassengerEventsListener() {
         @Override
-        public void onPickupScheduled(final String driver) {
+        public void onPickupScheduled(final SyncDriver driver) {
             //dont end updates from scheduling pickup until driver arrives
             activity.runOnUiThread(new Runnable() {
                 @Override
@@ -256,24 +258,26 @@ public class SchedulePickupFragment extends Fragment implements PlaceSelectionLi
                     scheduleRideProgressBar.setVisibility(View.INVISIBLE);
                     mSchedulePickupButton.setEnabled(false);
                     mSchedulePickupButton.setVisibility(View.INVISIBLE);
-                    footer.setVisibility(View.VISIBLE);
+
+                    routeEstimateFooter.setVisibility(View.GONE);
+                    driverInfoFooter.setVisibility(View.VISIBLE);
+
+                    TextView platesTv = (TextView)driverInfoFooter.findViewById(R.id.plates_label);
+                    TextView makeModelTv = (TextView)driverInfoFooter.findViewById(R.id.make_model_label);
+
+                    platesTv.setText(driver.getPlates());
+                    makeModelTv.setText(driver.getMakeModel());
 
                     android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(
                             activity);
 
-                    builder.setTitle(R.string.pickup_confirmed_title).setMessage(R.string.pickup_confirmed)
-                            .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
+                    String message = getContext().getString(R.string.pickup_confirmed)
+                            .toString().replace("ss","%s");
+                    message = String.format(message,driver.getMakeModel(),driver.getPlates());
 
-                                }
-                            })
-                            .setOnCancelListener(new DialogInterface.OnCancelListener() {
-                                @Override
-                                public void onCancel(DialogInterface dialog) {
-
-                                }
-                            })
+                    builder.setTitle(R.string.pickup_confirmed_title).setMessage(message)
+                            .setPositiveButton(R.string.ok, null)
+                            .setOnCancelListener(null)
                             .create().show();
                 }
             });
@@ -403,7 +407,7 @@ public class SchedulePickupFragment extends Fragment implements PlaceSelectionLi
                             public void run() {
                                 mSchedulePickupButton.setEnabled(true);
                                 mSchedulePickupButton.setVisibility(View.VISIBLE);
-                                footer.setVisibility(View.VISIBLE);
+                                routeEstimateFooter.setVisibility(View.VISIBLE);
 
                                 priceEstimate.setText(formattedPrice
 //                                        getString(R.string.price_label)+" "+
@@ -486,7 +490,7 @@ public class SchedulePickupFragment extends Fragment implements PlaceSelectionLi
 
         LatLngBounds bounds = LatLngBounds.builder().include(driverLatLng).include(userLatLng).build();
         mGoogleMap.animateCamera(
-                CameraUpdateFactory.newLatLngBounds(bounds, 5));
+                CameraUpdateFactory.newLatLngBounds(bounds, 100));
 
 //        mGoogleMap.addGroundOverlay(options);
         if(driverMarker==null) {

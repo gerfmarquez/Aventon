@@ -1,6 +1,7 @@
 package com.smidur.aventon.demo;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -9,12 +10,14 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.Toolbar;
 import android.text.Html;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.CompoundButton;
+import android.widget.EditText;
 import android.widget.Switch;
 import android.widget.TextView;
 
@@ -36,7 +39,7 @@ public class LookForRideFragment extends Fragment {
     private View mFragmentView;
 
     Activity activity;
-    boolean rideGoingOn = false;
+
 
 
     Switch driverSwitch;
@@ -59,6 +62,53 @@ public class LookForRideFragment extends Fragment {
     public void onResume() {
         super.onResume();
         RideManager.i(activity).register(driverEventsListener);
+
+        if(RideManager.i(activity).getDriverInfo() == null) {
+            android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(
+                    activity);
+
+            builder.setView(R.layout.view_input_plates_model);
+
+
+
+            builder.setTitle(R.string.required_info).setMessage(R.string.enter_make_plates)
+                    .setPositiveButton(R.string.submit, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+
+                            AlertDialog thisDialog = (AlertDialog)dialog;
+                            EditText platesView = (EditText)thisDialog.findViewById(R.id.plates);
+                            EditText makeModelView = (EditText)thisDialog.findViewById(R.id.makeModel);
+                            String plates =  platesView.getText().toString();
+                            String makeModel =  makeModelView.getText().toString();
+
+                            if(plates.trim().isEmpty() || plates.trim().length() < 5) {
+                                activity.finish();
+                                return;
+                            }
+                            if(makeModel.trim().isEmpty() || makeModel.trim().length() < 5) {
+                                activity.finish();
+                                return;
+                            }
+                            //todo validate plates and make and model
+                            RideManager.i(getContext()).setDriverInfo(makeModel,plates);
+                            driverSwitch.setEnabled(true);
+
+                        }
+                    })
+                    .setOnCancelListener(new DialogInterface.OnCancelListener() {
+                        @Override
+                        public void onCancel(DialogInterface dialog) {
+                            getActivity().finish();
+                        }
+                    })
+                    .create().show();
+
+        } else {
+            driverSwitch.setEnabled(true);
+        }
+
+
 
     }
 
@@ -110,16 +160,17 @@ public class LookForRideFragment extends Fragment {
                     android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(
                             activity);
 
-                    builder.setTitle("Confirm Ride?").setMessage("Pickup Address At: "
+
+                    builder.setTitle(R.string.confirm_ride).setMessage(getString(R.string.pickup_address_at)
                             +passenger.getSyncOrigin().getOriginAddress())
-                            .setPositiveButton("Confirm", new DialogInterface.OnClickListener() {
+                            .setPositiveButton(R.string.confirm_button, new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
 
                                    RideManager.i(activity).confirmPassengerPickup(passenger);
 
                                 }
-                            }).setNegativeButton("Reject",null)
+                            }).setNegativeButton(R.string.reject,null)
                             .create().show();
 
                 }

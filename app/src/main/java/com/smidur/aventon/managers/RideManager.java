@@ -17,6 +17,7 @@ import com.google.gson.Gson;
 import com.smidur.aventon.exceptions.TokenInvalidException;
 import com.smidur.aventon.http.HttpController;
 import com.smidur.aventon.model.SyncDestination;
+import com.smidur.aventon.model.SyncDriver;
 import com.smidur.aventon.model.SyncLocation;
 import com.smidur.aventon.model.SyncOrigin;
 import com.smidur.aventon.model.SyncPassenger;
@@ -42,6 +43,8 @@ public class RideManager {
     private boolean isDriverAvailable = false;
     private boolean isDriverOnRide = false;
     private boolean isPassengerScheduling = false;
+
+    SyncDriver syncDriver;
 
 
     /**
@@ -81,7 +84,7 @@ public class RideManager {
             public void run() {
 
                 Sync.i(context).startSyncDriverLocation();
-                Sync.i(context).startSyncRideInfo();
+                Sync.i(context).startSyncRideInfo(syncDriver);
             }
         }.start();
 
@@ -98,7 +101,7 @@ public class RideManager {
     public void resumeDriverShiftAndEndRide() {
         isDriverOnRide = false;
         isDriverAvailable = true;
-        Sync.i(context).startSyncRideInfo();
+        Sync.i(context).startSyncRideInfo(syncDriver);
     }
     @MainThread
     public void endDriverShift() {
@@ -111,6 +114,14 @@ public class RideManager {
 
         GoogleApiWrapper.getInstance(context).stopAndroidLocationUpdates(driverLocationListener);
 
+    }
+    public void setDriverInfo(String makeModel, String plates) {
+        syncDriver = new SyncDriver();
+        syncDriver.setMakeModel(makeModel);
+        syncDriver.setPlates(plates);
+    }
+    public SyncDriver getDriverInfo() {
+        return syncDriver;
     }
     /**
      * Register for  events
@@ -266,9 +277,11 @@ public class RideManager {
 
         }
         if(command.startsWith("Driver")) {
-            String driver = value;
+            String driverJson = message.replace("Driver:","");
 
-            postPickupScheduledCallback(driver);
+            SyncDriver syncDriver = new Gson().fromJson(driverJson,SyncDriver.class);
+
+            postPickupScheduledCallback(syncDriver);
 
         }
         if(command.startsWith("NewDriverLocation")) {
@@ -304,7 +317,7 @@ public class RideManager {
 
         }
     }
-    private void postPickupScheduledCallback(final String driver) {
+    private void postPickupScheduledCallback(final SyncDriver driver) {
         synchronized (passengerEventsListeners) {
             for(final PassengerEventsListener listener: passengerEventsListeners) {
                 if(listener!=null) {
@@ -473,7 +486,7 @@ public class RideManager {
         //TODO onRideEnded
     }
     public interface PassengerEventsListener {
-        void onPickupScheduled(String driver);
+        void onPickupScheduled(SyncDriver driver);
         void onDriverApproaching(SyncLocation driverNewLocation);
         void onDriverArrived();
         void onSchedulePickupConnectionError();

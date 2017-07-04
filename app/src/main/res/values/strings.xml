@@ -42,22 +42,28 @@
     <string name="identity_demo_error_dialog_title">Failed Identity Retrieval</string>
     <string name="identity_demo_error_message_failed_get_identity">Could not retrieve the user identity:\u0020</string>
 
-    <string name="choose_valid_address">Please select a valid place.</string>
+
+    <string name="choose_valid_address">Please select a valid destination.</string>
     <string name="ok">OK</string>
     <string name="destination_too_far">Destination is too far!</string>
 
-
     <string name="passenger_schedule">Passenger</string>
     <string name="driver_look_ride">Driver</string>
-    <string name="ride_from_to"><![CDATA["<html><big>Ride from </big> <small> ss </small> <br><big> to </big>  <small> ss </small></html>"]]></string>
+    <string name="ride_from_to"><![CDATA["<html><big>Ride from </big> <small> ss </small> <br><big> To </big>  <small> ss </small></html>"]]></string>
     <string name="select_destination">Where are you headed?</string>
-    <string name="price_label">Price:</string>
-    <string name="duration_label">Duration:</string>
-    <string name="distance_label">Distance:</string>
     <string name="connection_error">Connection Error</string>
     <string name="sorry_connection_error">Sorry, Connection Error</string>
-    <string name="pickup_confirmed">Driver will pick you up soon</string>
+    <string name="pickup_confirmed">Driver will pick you up soon. He\'s driving a ss and the plates are: ss</string>
     <string name="pickup_confirmed_title">Pickup Confirmed</string>
     <string name="drivers_not_found_nearby">Sorry, Drivers Not Found Nearby</string>
+    <string name="confirm_ride">Confirm Ride?</string>
+    <string name="confirm_button">Confirm</string>
+    <string name="pickup_address_at">"Pickup Address At: "</string>
+    <string name="reject">Reject</string>
+    <string name="submit">Submit</string>
+    <string name="enter_make_plates">Please enter your make/model and plates</string>
+    <string name="required_info">Required Info</string>
+    <string name="make_model">Make/Model</string>
+    <string name="plates">Plates</string>
 
 </resources>
