@@ -65,5 +65,12 @@
     <string name="required_info">Required Info</string>
     <string name="make_model">Make/Model</string>
     <string name="plates">Plates</string>
+    <string name="picked_up_passenger_button">Picked Up Passenger</string>
+    <string name="title_ride_confirmed">Ride Confirmed</string>
+    <string name="message_ride_confirmed">You can now go pickup</string>
+    <string name="great">Great</string>
+    <string name="ride_accept_failed">Ride Accept Failed!</string>
+    <string name="pickup_directions">Directions</string>
+    <string name="driver_available">Available</string>
 
 </resources>

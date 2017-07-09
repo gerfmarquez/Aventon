@@ -127,7 +127,7 @@ public class RideManager {
      * Register for  events
      */
     @WorkerThread
-    public void startSchedulePassengerPickup(Place placeDestination) throws SecurityException {
+    public void startSchedulePassengerPickup(SyncDestination syncDestination) {
 
         Location passengerLocation = GpsUtil.getUserLocation(context);
         if(passengerLocation == null) {
@@ -137,14 +137,12 @@ public class RideManager {
 
         SyncLocation syncPassengerLocation = new SyncLocation(
                 passengerLocation.getLatitude(),passengerLocation.getLongitude());
-        //todo use geocoding to get address
 
-        LatLng latLng = placeDestination.getLatLng();
-        SyncLocation syncDestLocation = new SyncLocation(latLng.latitude,latLng.longitude);
 
-        String originAddress = geoCodeOriginAddress(passengerLocation);
 
-        SyncDestination syncDestination = new SyncDestination(placeDestination.getAddress().toString(),syncDestLocation);
+        String originAddress = GpsUtil.geoCodeLocation(
+                passengerLocation.getLatitude(),passengerLocation.getLongitude(), context);
+
         SyncOrigin syncOrigin = new SyncOrigin(syncPassengerLocation,originAddress);
 
         SyncPassenger syncPassenger = new SyncPassenger();
@@ -432,24 +430,7 @@ public class RideManager {
         }
     }
 
-    private String geoCodeOriginAddress(Location passengerLocation) {
-        List<android.location.Address> geocoderResult;
-        try {
-            Geocoder geocoder = new Geocoder(context);
-            geocoderResult = geocoder.getFromLocation(passengerLocation.getLatitude(),passengerLocation.getLongitude(),1);
-        } catch(IOException ioe) {
-            //todo analytics
-            Log.e("Geocoder","Geocoder Failed to translate passenger location");
 
-            return null;
-        }
-        Address address = geocoderResult.get(0);
-        String originAddress = new String();
-        for(int i = 0; i < address.getMaxAddressLineIndex();i++) {
-            originAddress = originAddress.concat(address.getAddressLine(i)+",");
-        }
-        return originAddress;
-    }
 
 
     //todo move this to another class

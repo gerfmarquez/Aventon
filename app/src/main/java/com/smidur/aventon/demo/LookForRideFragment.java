@@ -2,15 +2,16 @@ package com.smidur.aventon.demo;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.FragmentManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.Toolbar;
 import android.text.Html;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -21,11 +22,20 @@ import android.widget.EditText;
 import android.widget.Switch;
 import android.widget.TextView;
 
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapFragment;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.smidur.aventon.R;
 import com.smidur.aventon.managers.RideManager;
-import com.smidur.aventon.model.SyncDestination;
 import com.smidur.aventon.model.SyncLocation;
 import com.smidur.aventon.model.SyncPassenger;
+import com.smidur.aventon.utilities.Constants;
+import com.smidur.aventon.utilities.GpsUtil;
 
 /**
  * Created by marqueg on 3/15/17.
@@ -41,8 +51,15 @@ public class LookForRideFragment extends Fragment {
     Activity activity;
 
 
-
+    Button mPickedUpPassengerButton;
+    Button mPickupDirectionsButton;
     Switch driverSwitch;
+
+    MapFragment mapFragment;
+    GoogleMap mGoogleMap;
+    FragmentManager fragmentManager;
+
+    Marker driverMarker;
 
 
     @Override
@@ -51,7 +68,47 @@ public class LookForRideFragment extends Fragment {
 
         // Inflate the layout for this fragment
         mFragmentView = inflater.inflate(R.layout.lookforride_fragment, container, false);
+        activity = this.getActivity();
+        fragmentManager = activity.getFragmentManager();
 
+        mapFragment = (MapFragment) fragmentManager.findFragmentById(R.id.driver_map);
+
+        mapFragment.getMapAsync(new OnMapReadyCallback() {
+            @Override
+            public void onMapReady(GoogleMap googleMap) {
+
+                mGoogleMap = googleMap;
+
+                mGoogleMap.getUiSettings().setMyLocationButtonEnabled(true);
+                mGoogleMap.getUiSettings().setCompassEnabled(true);
+                mGoogleMap.getUiSettings().setMapToolbarEnabled(true);
+                mGoogleMap.getUiSettings().setRotateGesturesEnabled(false);
+
+
+                new Thread() {
+                    public void run() {
+                        Location userLocation = GpsUtil.getUserLocation(getContext());
+                        final LatLng passengerLatLng = GpsUtil.getLatLng(userLocation);
+                        //retrieving location might take a little while and by that time fragment might go away
+                        if(activity!=null) {
+                            activity.runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+
+                                    showUserLocationOnMap(passengerLatLng);
+
+                                    mGoogleMap.animateCamera(
+                                            CameraUpdateFactory.newLatLngZoom(
+                                                    passengerLatLng,
+                                                    Constants.PICKUP_MAP_ZOOM));
+                                }
+                            });
+                        }
+
+                    }
+                }.start();
+            }
+        });
 
 
         return mFragmentView;
@@ -62,6 +119,16 @@ public class LookForRideFragment extends Fragment {
     public void onResume() {
         super.onResume();
         RideManager.i(activity).register(driverEventsListener);
+
+        mPickedUpPassengerButton = (Button)activity.findViewById(R.id.picked_up_passenger);
+        mPickupDirectionsButton = (Button)activity.findViewById(R.id.pickup_directions_button);
+        mPickedUpPassengerButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //todo enable taximeter
+                //todo change directions button for destination
+            }
+        });
 
         if(RideManager.i(activity).getDriverInfo() == null) {
             android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(
@@ -147,6 +214,11 @@ public class LookForRideFragment extends Fragment {
         if(activity != null) {
             ((Toolbar)activity.findViewById(R.id.toolbar)).removeView(driverSwitch);
         }
+
+        getActivity().getFragmentManager()
+                .beginTransaction()
+                .remove(mapFragment)
+                .commit();
     }
 
     RideManager.DriverEventsListener driverEventsListener = new RideManager.DriverEventsListener() {
@@ -186,6 +258,12 @@ public class LookForRideFragment extends Fragment {
                 @Override
                 public void run() {
 
+
+                    mPickedUpPassengerButton.setVisibility(View.VISIBLE);
+                    mPickupDirectionsButton.setVisibility(View.VISIBLE);
+
+
+
                     driverSwitch.setEnabled(false);
 
                     activity.findViewById(R.id.no_ride).setVisibility(View.GONE);
@@ -194,6 +272,16 @@ public class LookForRideFragment extends Fragment {
 
                     String destAddress = passenger.getSyncDestination().getDestinationAddress();
                     String originAddress = passenger.getSyncOrigin().getOriginAddress();
+
+                    final SyncLocation pickupLocation = passenger
+                            .getSyncOrigin().getOriginLocation();
+
+                    mPickupDirectionsButton.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            openDirections(pickupLocation);
+                        }
+                    });
 
                     rideInfo.setText(Html.fromHtml(String.format(
                                     rideInfo.getText().toString().replace("ss","%s"),
@@ -204,25 +292,13 @@ public class LookForRideFragment extends Fragment {
                     android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(
                             activity);
 
-                    builder.setTitle("Ride Confirmed").setMessage("You can now go pickup")
-                            .setPositiveButton("Great", new DialogInterface.OnClickListener() {
+                    builder.setTitle(R.string.title_ride_confirmed).setMessage(R.string.message_ride_confirmed)
+                            .setPositiveButton(R.string.great, new DialogInterface.OnClickListener() {
 
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
+                                    openDirections(pickupLocation);
 
-                                    SyncLocation pickupLocation = passenger
-                                            .getSyncOrigin().getOriginLocation();
-
-                                    String format = String.format(
-                                            "google.navigation:q=%f,%f&mode=d"
-                                            ,pickupLocation.getSyncLocationLatitude()
-                                            ,pickupLocation.getSyncLocationLongitude());
-
-                                    Uri directionsUri = Uri.parse(format);
-
-                                    Intent directionsIntent = new Intent(Intent.ACTION_VIEW, directionsUri);
-                                    directionsIntent.setPackage("com.google.android.apps.maps");
-                                    startActivity(directionsIntent);
                                 }
                             })
                             .create().show();
@@ -265,12 +341,43 @@ public class LookForRideFragment extends Fragment {
                     android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(
                             activity);
 
-                    builder.setTitle("=").setMessage("Ride Accept Failed!")
-                            .setPositiveButton("Ok",null)
+                    builder.setTitle("=").setMessage(R.string.ride_accept_failed)
+                            .setPositiveButton(R.string.ok,null)
                             .create().show();
                 }
             });
         }
     };
 
+    private void openDirections(SyncLocation destLocation) {
+
+
+        String format = String.format(
+                "google.navigation:q=%f,%f&mode=d"
+                ,destLocation.getSyncLocationLatitude()
+                ,destLocation.getSyncLocationLongitude());
+
+        Uri directionsUri = Uri.parse(format);
+
+        Intent directionsIntent = new Intent(Intent.ACTION_VIEW, directionsUri);
+        directionsIntent.setPackage("com.google.android.apps.maps");
+        startActivity(directionsIntent);
+    }
+    private void showUserLocationOnMap(LatLng latLng) {
+
+        MarkerOptions options = new MarkerOptions();
+        options.icon(BitmapDescriptorFactory.fromResource(R.drawable.bluedot))
+                .position(latLng);
+
+
+        mGoogleMap.animateCamera(
+                CameraUpdateFactory.newLatLngZoom(
+                        latLng, Constants.PICKUP_MAP_ZOOM));
+
+
+        if(driverMarker ==null) {
+            driverMarker = mGoogleMap.addMarker(options);
+        }
+        driverMarker.setPosition(latLng);
+    }
 }

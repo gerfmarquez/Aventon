@@ -6,11 +6,12 @@ import android.app.AlertDialog;
 import android.app.FragmentManager;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.pm.PackageManager;
 import android.graphics.drawable.ColorDrawable;
+
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.Vibrator;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -42,11 +43,13 @@ import com.smidur.aventon.model.GoogleApiDirections;
 import com.smidur.aventon.model.GoogleApiLeg;
 import com.smidur.aventon.model.GoogleApiPolyline;
 import com.smidur.aventon.model.GoogleApiRoute;
+import com.smidur.aventon.model.SyncDestination;
 import com.smidur.aventon.model.SyncDriver;
 import com.smidur.aventon.model.SyncLocation;
 import com.smidur.aventon.utilities.Constants;
 import com.smidur.aventon.utilities.FareUtil;
 import com.smidur.aventon.utilities.GpsUtil;
+import com.smidur.aventon.utilities.MapUtil;
 import com.smidur.aventon.utilities.PolyLineUtil;
 
 import java.io.IOException;
@@ -58,9 +61,6 @@ import java.util.ArrayList;
 
 public class SchedulePickupFragment extends Fragment implements PlaceSelectionListener {
 
-    private int MAXIMUM_RIDE_DISTANCE = 100 * 1000;//km
-
-    private static final int MY_PERMISSIONS_REQUEST_LOCATION = 89103571;//km
 
 
     /** This fragment's view. */
@@ -89,10 +89,12 @@ public class SchedulePickupFragment extends Fragment implements PlaceSelectionLi
 
     GoogleMap mGoogleMap;
 
-    Place mSelectedDestination;
+    SyncDestination mSelectedDestination;
     ProgressBar scheduleRideProgressBar;
 
     Activity activity;
+
+    boolean routeCalcInProgress = false;
 
 
     @Override
@@ -129,22 +131,17 @@ public class SchedulePickupFragment extends Fragment implements PlaceSelectionLi
 
         autocompleteFragment.setHint(getString(R.string.select_destination));
 
+
         priceEstimate = (TextView) mFragmentView.findViewById(R.id.priceEstimate);
         durationEstimate = (TextView) mFragmentView.findViewById(R.id.durationEstimate);
         distanceEstimate = (TextView) mFragmentView.findViewById(R.id.distanceEstimate);
 
 
-        try {
-            autocompleteFragment.setBoundsBias(
-                    LatLngBounds.builder()
-                            .include(GpsUtil.getLatLng(GpsUtil.getLastKnownLocation(getContext())))
-                            .build());
+        autocompleteFragment.setBoundsBias(
+                LatLngBounds.builder()
+                        .include(GpsUtil.getLatLng(GpsUtil.getLastKnownLocation(getContext())))
+                        .build());
 
-        } catch(SecurityException se) {
-            //todo analytics
-            //todo retry or check before attempting so that we know permission is there.
-            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION},1);
-        }
 
 
         scheduleRideProgressBar.setVisibility(View.VISIBLE);
@@ -156,16 +153,29 @@ public class SchedulePickupFragment extends Fragment implements PlaceSelectionLi
                 mGoogleMap = googleMap;
                 mGoogleMap.animateCamera(
                         CameraUpdateFactory.newLatLngZoom(
-                                GpsUtil.getLatLng(GpsUtil.getLastKnownLocation(getContext())), Constants.PICKUP_MAP_ZOOM));
+                                GpsUtil.getLatLng(GpsUtil.getLastKnownLocation(getContext())),
+                                Constants.PICKUP_MAP_ZOOM));
+
                 mGoogleMap.getUiSettings().setMyLocationButtonEnabled(true);
                 mGoogleMap.getUiSettings().setCompassEnabled(true);
                 mGoogleMap.getUiSettings().setMapToolbarEnabled(true);
-//                mGoogleMap.setOnCameraMoveListener(new GoogleMap.OnCameraMoveListener() {
-//                    @Override
-//                    public void onCameraMove() {
-//                        updatemarker();
-//                    }
-//                });
+                mGoogleMap.getUiSettings().setRotateGesturesEnabled(false);
+
+                mGoogleMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
+                    @Override
+                    public void onMapLongClick(final LatLng latLng) {
+                        if(routeCalcInProgress) return;
+                        routeCalcInProgress = true;
+
+                        ((Vibrator)activity.getSystemService(Context.VIBRATOR_SERVICE)).vibrate(250);
+
+                        String destinationAddress = GpsUtil.geoCodeLocation(
+                                latLng.latitude,latLng.longitude, getActivity());
+
+                        MapUtil.selectDestinationPlaceOnMap(destinationSelectedCallback, destinationAddress, latLng, getActivity());
+                        scheduleRideProgressBar.setVisibility(View.VISIBLE);
+                    }
+                });
 
                 new Thread() {
                     public void run() {
@@ -176,7 +186,7 @@ public class SchedulePickupFragment extends Fragment implements PlaceSelectionLi
                             activity.runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
-                                    showPassengerLocationOnMap(passengerLatLng);
+                                    showUserLocationOnMap(passengerLatLng);
                                 }
                             });
                         }
@@ -192,6 +202,7 @@ public class SchedulePickupFragment extends Fragment implements PlaceSelectionLi
         mSchedulePickupButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if(routeCalcInProgress)return;
 
                 //don't process
                 if(mSelectedDestination == null) {
@@ -204,14 +215,8 @@ public class SchedulePickupFragment extends Fragment implements PlaceSelectionLi
                 new Thread(new Runnable() {
                     @Override
                     public void run() {
-                        try {
-                            RideManager.i(activity).startSchedulePassengerPickup(mSelectedDestination);
-                        } catch(SecurityException se) {
-                            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}
-                                    ,MY_PERMISSIONS_REQUEST_LOCATION);
-                            //todo retry or check before attempting so that we know permission is there.
-                            //todo analytics
-                        }
+                        RideManager.i(activity).startSchedulePassengerPickup(mSelectedDestination);
+
                     }
                 }).start();
 
@@ -370,86 +375,7 @@ public class SchedulePickupFragment extends Fragment implements PlaceSelectionLi
 
         scheduleRideProgressBar.setVisibility(View.VISIBLE);
 
-        LatLng latLng = place.getLatLng();
-
-        Location placeLocation  = new Location("");
-
-        placeLocation.setLatitude(latLng.latitude);
-        placeLocation.setLongitude(latLng.longitude);
-
-        try {
-
-            float distanceToAddress = placeLocation.distanceTo(GpsUtil.getLastKnownLocation(getContext()));
-
-            if(distanceToAddress <  MAXIMUM_RIDE_DISTANCE) {
-
-                mSelectedDestination = place;
-
-                new Thread() {
-                    public void run() {
-                        //zoom in selected place
-                        final LatLng userLatLng = GpsUtil.getLatLng(GpsUtil.getUserLocation(getContext()));
-
-                        GoogleApiRoute route = getRoute(userLatLng,mSelectedDestination.getLatLng());
-                        final GoogleApiPolyline googlePolyLine = route.getOverview_polyline();
-                        final GoogleApiLeg leg = route.getLegs()[0];
-
-                        final PolylineOptions options = getPolylineOptions(googlePolyLine);
-
-                        //todo make price estimate calculation
-                        Float price = FareUtil.calculateFareMex(
-                                leg.getDistance().getValue(),leg.getDuration().getValue());
-
-                        final String formattedPrice = String.format("$%.2f",price);
-
-                        activity.runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                mSchedulePickupButton.setEnabled(true);
-                                mSchedulePickupButton.setVisibility(View.VISIBLE);
-                                routeEstimateFooter.setVisibility(View.VISIBLE);
-
-                                priceEstimate.setText(formattedPrice
-//                                        getString(R.string.price_label)+" "+
-                                        );
-                                durationEstimate.setText(
-//                                        getString(R.string.duration_label)+" "+
-                                                leg.getDuration().getText());
-                                distanceEstimate.setText(
-//                                        getString(R.string.distance_label)+" "+
-                                                leg.getDistance().getText());
-
-                                if(destinationPolyline!=null)
-                                    destinationPolyline.remove();
-
-                                destinationPolyline = mGoogleMap.addPolyline(options);
-                                scheduleRideProgressBar.setVisibility(View.GONE);
-                                updateDestinationLocationOnMap(userLatLng,mSelectedDestination.getLatLng());
-                            }
-                        });
-                    }
-                }.start();
-
-
-            } else {
-                mSchedulePickupButton.setEnabled(false);
-                scheduleRideProgressBar.setVisibility(View.GONE);
-                new AlertDialog.Builder(activity).setTitle(R.string.destination_too_far)
-                        .setMessage(R.string.destination_too_far)
-                        .setPositiveButton(R.string.ok,null).create().show();
-
-            }
-
-        } catch(SecurityException se) {
-            //todo analytics
-            //todo retry or check before attempting so that we know permission is there.
-            //todo this shouldn't happen only for few users that disable on purpose,
-            // restarting app will request permission again
-        }
-
-
-
-
+        MapUtil.selectDestinationPlaceOnMap(destinationSelectedCallback,place.getAddress().toString(), place.getLatLng(),getActivity());
     }
 
     @Override
@@ -460,32 +386,13 @@ public class SchedulePickupFragment extends Fragment implements PlaceSelectionLi
     }
 
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode,
-                                           String permissions[], int[] grantResults) {
-        switch (requestCode) {
-            case MY_PERMISSIONS_REQUEST_LOCATION: {
-                // If request is cancelled, the result arrays are empty.
-                if (grantResults.length > 0
-                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
 
-
-                } else {
-                    activity.finish();
-                }
-                return;
-            }
-
-            // other 'case' lines to check for other
-            // permissions this app might request
-        }
-    }
 
     private void updateDriverLocationOnMap(LatLng driverLatLng, LatLng userLatLng) {
 
 
         MarkerOptions options = new MarkerOptions();
-        options.icon(BitmapDescriptorFactory.fromResource(R.drawable.bluedot))
+        options.icon(BitmapDescriptorFactory.fromResource(R.drawable.reddot))
                 .position(driverLatLng);
 
         LatLngBounds bounds = LatLngBounds.builder().include(driverLatLng).include(userLatLng).build();
@@ -499,10 +406,10 @@ public class SchedulePickupFragment extends Fragment implements PlaceSelectionLi
         driverMarker.setPosition(driverLatLng);
     }
 
-    private void showPassengerLocationOnMap(LatLng latLng) {
+    private void showUserLocationOnMap(LatLng latLng) {
 
         MarkerOptions options = new MarkerOptions();
-        options.icon(BitmapDescriptorFactory.fromResource(R.drawable.reddot))
+        options.icon(BitmapDescriptorFactory.fromResource(R.drawable.bluedot))
                 .position(latLng);
 
 
@@ -522,7 +429,7 @@ public class SchedulePickupFragment extends Fragment implements PlaceSelectionLi
 
 
         MarkerOptions options = new MarkerOptions();
-        options.icon(BitmapDescriptorFactory.fromResource(R.drawable.bluedot))
+        options.icon(BitmapDescriptorFactory.fromResource(R.drawable.reddot))
                 .position(destLatLng);
 
         LatLngBounds bounds = LatLngBounds.builder().include(destLatLng).include(userLatLng).build();
@@ -535,34 +442,52 @@ public class SchedulePickupFragment extends Fragment implements PlaceSelectionLi
         }
         destinationMarker.setPosition(destLatLng);
     }
-    private GoogleApiRoute getRoute(LatLng origin, LatLng target) {
 
-        double[][] startEndArray = new double[][]{
-                new double[]{origin.latitude,origin.longitude},
-                new double[]{target.latitude,target.longitude}};
 
-        try {
-            HttpController controller = new HttpController(getContext());
-            GoogleApiDirections directions = controller.requestDirections(startEndArray,getContext());
-            return directions.getRoutes()[0];
 
-        } catch(IOException ioe) {
-            ioe.printStackTrace();
-            //todo analytics
+    MapUtil.DestinationSelectedCallback destinationSelectedCallback = new MapUtil.DestinationSelectedCallback() {
+        @Override
+        public void onDestinationSelected(LatLng userLatLng, LatLng destLatLng, PolylineOptions options, GoogleApiLeg leg,
+                                          SyncDestination syncDestination, String formattedPrice) {
+            routeCalcInProgress = false;
+
+            mSelectedDestination = syncDestination;
+            mSchedulePickupButton.setEnabled(true);
+            mSchedulePickupButton.setVisibility(View.VISIBLE);
+            routeEstimateFooter.setVisibility(View.VISIBLE);
+
+            priceEstimate.setText(formattedPrice
+//                                        getString(R.string.price_label)+" "+
+            );
+            durationEstimate.setText(
+//                                        getString(R.string.duration_label)+" "+
+                    leg.getDuration().getText());
+            distanceEstimate.setText(
+//                                        getString(R.string.distance_label)+" "+
+                    leg.getDistance().getText());
+
+            if(destinationPolyline!=null)
+                destinationPolyline.remove();
+
+            destinationPolyline = mGoogleMap.addPolyline(options);
+            scheduleRideProgressBar.setVisibility(View.GONE);
+            updateDestinationLocationOnMap(userLatLng,destLatLng);
+
+            scheduleRideProgressBar.setVisibility(View.GONE);
         }
-        return null;
 
-    }
-    private PolylineOptions getPolylineOptions(GoogleApiPolyline googleApiPolyline) {
-        ArrayList<LatLng> polyline = PolyLineUtil.decodePoly(googleApiPolyline.getPoints());
+        @Override
+        public void onDestinationTooFar() {
+            routeCalcInProgress = false;
 
-        final PolylineOptions options = new PolylineOptions().width(20)
-                .color(getResources().getColor(R.color.aventon_secondary_color,null)).geodesic(true);
-        for (int i = 0; i < polyline.size(); i++) {
-            LatLng point = polyline.get(i);
-            options.add(point);
+            mSchedulePickupButton.setEnabled(false);
+            scheduleRideProgressBar.setVisibility(View.GONE);
+            new AlertDialog.Builder(getContext()).setTitle(R.string.destination_too_far)
+                    .setMessage(R.string.destination_too_far)
+                    .setPositiveButton(R.string.ok,null).create().show();
+
+            scheduleRideProgressBar.setVisibility(View.GONE);
+
         }
-        return options;
-    }
-
+    };
 }

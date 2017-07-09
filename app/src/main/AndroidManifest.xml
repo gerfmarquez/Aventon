@@ -6,6 +6,7 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.VIBRATE" />
 
 
     <application
@@ -37,8 +38,7 @@
             android:name=".MainActivity"
             android:launchMode="singleInstance"
             android:label="@string/title_activity_main"
-            android:configChanges="keyboard|keyboardHidden|orientation|screenSize"
-            android:screenOrientation="portrait">
+            android:configChanges="keyboard|keyboardHidden|orientation|screenSize">
         </activity>
 
         <!-- BEGIN - FACEBOOK SIGN-IN -->
