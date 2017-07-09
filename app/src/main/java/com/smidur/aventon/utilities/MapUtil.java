@@ -5,6 +5,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.location.Location;
 import android.os.Vibrator;
+import android.support.annotation.MainThread;
 import android.view.View;
 
 import com.google.android.gms.maps.GoogleMap;
@@ -27,29 +28,31 @@ import java.util.ArrayList;
  */
 
 public class MapUtil {
+    @MainThread
     public static void selectDestinationPlaceOnMap(final DestinationSelectedCallback callback,
-                                                   final String address, final LatLng latLng, final Activity activity) {
+                                                   final String address, final Location originLocation,
+                                                   final LatLng destLatLng, final Activity activity) {
 
         new Thread() {
             public void run() {
 
                 Location placeLocation  = new Location("");
 
-                placeLocation.setLatitude(latLng.latitude);
-                placeLocation.setLongitude(latLng.longitude);
+                placeLocation.setLatitude(destLatLng.latitude);
+                placeLocation.setLongitude(destLatLng.longitude);
 
 
-                float distanceToAddress = placeLocation.distanceTo(GpsUtil.getUserLocation(activity));
+                float distanceToAddress = placeLocation.distanceTo(originLocation);
 
                 if(distanceToAddress <  Constants.MAXIMUM_RIDE_DISTANCE) {
 
-                    SyncLocation syncDestLocation = new SyncLocation(latLng.latitude,latLng.longitude);
+                    SyncLocation syncDestLocation = new SyncLocation(destLatLng.latitude,destLatLng.longitude);
                     final SyncDestination syncDestination = new SyncDestination(address.toString(),syncDestLocation);
 
                             //zoom in selected place
-                            final LatLng userLatLng = GpsUtil.getLatLng(GpsUtil.getUserLocation(activity));
+                            final LatLng userLatLng = GpsUtil.getLatLng(originLocation);
 
-                            GoogleApiRoute route = getRoute(userLatLng,latLng, activity);
+                            GoogleApiRoute route = getRoute(userLatLng,destLatLng, activity);
                             final GoogleApiPolyline googlePolyLine = route.getOverview_polyline();
                             final GoogleApiLeg leg = route.getLegs()[0];
 
@@ -64,7 +67,7 @@ public class MapUtil {
                             activity.runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
-                                callback.onDestinationSelected(userLatLng, latLng,options, leg, syncDestination, formattedPrice);
+                                callback.onDestinationSelected(userLatLng, destLatLng,options, leg, syncDestination, formattedPrice);
                                 }
                             });
 
@@ -81,6 +84,7 @@ public class MapUtil {
             }
         }.start();
     }
+
     private static GoogleApiRoute getRoute(LatLng origin, LatLng target, Activity activity) {
 
         double[][] startEndArray = new double[][]{

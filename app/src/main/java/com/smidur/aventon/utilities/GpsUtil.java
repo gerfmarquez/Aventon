@@ -27,6 +27,7 @@ public class GpsUtil {
 
     @WorkerThread
     public static Location getUserLocation(Context context) throws SecurityException {
+
         LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
 
         Criteria minimumCriteria = new Criteria();

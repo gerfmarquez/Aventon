@@ -19,6 +19,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.Switch;
 import android.widget.TextView;
 
@@ -28,14 +29,20 @@ import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 import com.smidur.aventon.R;
 import com.smidur.aventon.managers.RideManager;
+import com.smidur.aventon.model.GoogleApiLeg;
+import com.smidur.aventon.model.SyncDestination;
 import com.smidur.aventon.model.SyncLocation;
 import com.smidur.aventon.model.SyncPassenger;
 import com.smidur.aventon.utilities.Constants;
 import com.smidur.aventon.utilities.GpsUtil;
+import com.smidur.aventon.utilities.MapUtil;
 
 /**
  * Created by marqueg on 3/15/17.
@@ -55,11 +62,16 @@ public class LookForRideFragment extends Fragment {
     Button mPickupDirectionsButton;
     Switch driverSwitch;
 
+    ProgressBar driverProgress;
+
     MapFragment mapFragment;
-    GoogleMap mGoogleMap;
+    GoogleMap mDriverGoogleMap;
     FragmentManager fragmentManager;
 
     Marker driverMarker;
+    Marker destinationMarker;
+
+    Polyline destinationPolyline;
 
 
     @Override
@@ -73,16 +85,18 @@ public class LookForRideFragment extends Fragment {
 
         mapFragment = (MapFragment) fragmentManager.findFragmentById(R.id.driver_map);
 
+        driverProgress = (ProgressBar)activity.findViewById(R.id.driver_progress);
+
         mapFragment.getMapAsync(new OnMapReadyCallback() {
             @Override
             public void onMapReady(GoogleMap googleMap) {
 
-                mGoogleMap = googleMap;
+                mDriverGoogleMap = googleMap;
 
-                mGoogleMap.getUiSettings().setMyLocationButtonEnabled(true);
-                mGoogleMap.getUiSettings().setCompassEnabled(true);
-                mGoogleMap.getUiSettings().setMapToolbarEnabled(true);
-                mGoogleMap.getUiSettings().setRotateGesturesEnabled(false);
+                mDriverGoogleMap.getUiSettings().setMyLocationButtonEnabled(true);
+                mDriverGoogleMap.getUiSettings().setCompassEnabled(true);
+                mDriverGoogleMap.getUiSettings().setMapToolbarEnabled(true);
+                mDriverGoogleMap.getUiSettings().setRotateGesturesEnabled(false);
 
 
                 new Thread() {
@@ -97,7 +111,7 @@ public class LookForRideFragment extends Fragment {
 
                                     showUserLocationOnMap(passengerLatLng);
 
-                                    mGoogleMap.animateCamera(
+                                    mDriverGoogleMap.animateCamera(
                                             CameraUpdateFactory.newLatLngZoom(
                                                     passengerLatLng,
                                                     Constants.PICKUP_MAP_ZOOM));
@@ -240,6 +254,24 @@ public class LookForRideFragment extends Fragment {
                                 public void onClick(DialogInterface dialog, int which) {
 
                                    RideManager.i(activity).confirmPassengerPickup(passenger);
+                                    //todo add callback in case confirm fails
+
+                                    Location passengerLocation = new Location("");
+                                    Location destinationLocation = new Location("");
+
+                                    SyncLocation passSyncLocation = passenger.getSyncOrigin().getOriginLocation();
+                                    passengerLocation.setLatitude(passSyncLocation.getSyncLocationLatitude());
+                                    passengerLocation.setLongitude(passSyncLocation.getSyncLocationLongitude());
+
+                                    final SyncLocation destSyncLocation = passenger.getSyncDestination().getDestinationLocation();
+
+                                    destinationLocation.setLatitude(destSyncLocation.getSyncLocationLatitude());
+                                    destinationLocation.setLongitude(destSyncLocation.getSyncLocationLongitude());
+
+                                    MapUtil.selectDestinationPlaceOnMap(
+                                            destinationSelectedCallback,"",passengerLocation,GpsUtil.getLatLng(destinationLocation),activity);
+
+
 
                                 }
                             }).setNegativeButton(R.string.reject,null)
@@ -261,6 +293,7 @@ public class LookForRideFragment extends Fragment {
 
                     mPickedUpPassengerButton.setVisibility(View.VISIBLE);
                     mPickupDirectionsButton.setVisibility(View.VISIBLE);
+                    driverProgress.setVisibility(View.VISIBLE);//show progress until we show map on map
 
 
 
@@ -370,14 +403,58 @@ public class LookForRideFragment extends Fragment {
                 .position(latLng);
 
 
-        mGoogleMap.animateCamera(
+        mDriverGoogleMap.animateCamera(
                 CameraUpdateFactory.newLatLngZoom(
                         latLng, Constants.PICKUP_MAP_ZOOM));
 
 
         if(driverMarker ==null) {
-            driverMarker = mGoogleMap.addMarker(options);
+            driverMarker = mDriverGoogleMap.addMarker(options);
         }
         driverMarker.setPosition(latLng);
     }
+
+    private void updateDestinationLocationOnMap(LatLng userLatLng, LatLng destLatLng) {
+
+
+        MarkerOptions options = new MarkerOptions();
+        options.icon(BitmapDescriptorFactory.fromResource(R.drawable.reddot))
+                .position(destLatLng);
+
+        LatLngBounds bounds = LatLngBounds.builder().include(destLatLng).include(userLatLng).build();
+        mDriverGoogleMap.animateCamera(
+                CameraUpdateFactory.newLatLngBounds(bounds, 100));
+
+//        mDriverGoogleMap.addGroundOverlay(options);
+        if(destinationMarker==null) {
+            destinationMarker = mDriverGoogleMap.addMarker(options);
+        }
+        destinationMarker.setPosition(destLatLng);
+    }
+
+    MapUtil.DestinationSelectedCallback destinationSelectedCallback = new MapUtil.DestinationSelectedCallback() {
+        @Override
+        public void onDestinationSelected(LatLng userLatLng, LatLng destLatLng, PolylineOptions options, GoogleApiLeg leg,
+                                          SyncDestination syncDestination, String formattedPrice) {
+
+
+            //optionally keep estimates so that driver can see them
+
+            if(destinationPolyline!=null)
+                destinationPolyline.remove();
+
+            destinationPolyline = mDriverGoogleMap.addPolyline(options);
+
+            updateDestinationLocationOnMap(userLatLng,destLatLng);
+
+            driverProgress.setVisibility(View.GONE);
+        }
+
+        @Override
+        public void onDestinationTooFar() {
+            //shouldn't happen
+            driverProgress.setVisibility(View.GONE);
+        }
+    };
+
 }
