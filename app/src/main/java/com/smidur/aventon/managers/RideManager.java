@@ -113,8 +113,8 @@ public class RideManager {
     }
 
     public void startTaxiMeter() {
-        TaxiMeterManager.i().clear();
-        TaxiMeterManager.i().resetSegment();
+        TaxiMeterManager.i(context).clear();
+        TaxiMeterManager.i(context).resetSegment();
 
     }
     public void stopTaxiMeter() {
@@ -447,7 +447,7 @@ public class RideManager {
 
 
             if(location.getAccuracy() < 60) {
-                TaxiMeterManager.i().newLocationAvailable(location);
+                TaxiMeterManager.i(context).newLocationAvailable(location);
             }
         }
 
