@@ -11,22 +11,23 @@
         android:layout_alignParentTop="true"
         android:textSize="18sp"
         android:visibility="gone"/>
+
+    <ProgressBar
+        android:id="@+id/driver_progress"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        style="@android:style/Widget.Material.ProgressBar.Large"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true"
+        android:visibility="gone"
+        />
     <fragment
         android:layout_width="match_parent"
         android:layout_height="match_parent" android:id="@+id/driver_map"
         android:name="com.google.android.gms.maps.MapFragment"
         android:layout_alignParentTop="true"
         />
-    <TextView
-        android:id="@+id/no_ride"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="No Ride Yet"
-        android:layout_centerHorizontal="true"
-        android:layout_centerVertical="true"
-        android:textSize="24sp"
-        android:visibility="visible"
-        android:background="@color/aventon_text_color"/>
+
 
 
     <Button

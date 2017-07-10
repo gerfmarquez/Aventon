@@ -4,22 +4,27 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.location.Location;
 import android.support.annotation.NonNull;
+import android.util.Log;
 
 import com.amazonaws.mobile.AWSMobileClient;
 import com.amazonaws.mobile.user.IdentityManager;
 import com.google.android.gms.location.places.Place;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.gson.Gson;
 import com.smidur.aventon.R;
 import com.smidur.aventon.exceptions.TokenInvalidException;
 import com.smidur.aventon.model.GoogleApiDirections;
+import com.smidur.aventon.model.SnapToRoadService;
 import com.smidur.aventon.model.SyncDestination;
 import com.smidur.aventon.model.SyncDriver;
 import com.smidur.aventon.model.SyncLocation;
 import com.smidur.aventon.model.SyncPassenger;
 import com.smidur.aventon.utilities.GoogleMapRouteRequestBuilder;
+import com.smidur.aventon.utilities.GoogleMapsModelRequestBuilder;
 
 import java.io.IOException;
 import java.util.Hashtable;
+import java.util.List;
 
 /**
  * Created by marqueg on 4/16/17.
@@ -127,6 +132,28 @@ public class HttpController {
             throw new IOException("Http Response Code not expected");
         }
 
+    }
+
+    public SnapToRoadService requestSnapToRoad(List<LatLng> snapPoints)  {
+        try {
+
+
+            HttpWrapper wrapper = new HttpWrapper("https://maps.googleapis.com/");
+            HttpResponse response = wrapper.httpGET(
+                    "v1/snapToRoads?path="+ GoogleMapsModelRequestBuilder.buildRequestSnap(snapPoints)
+                            +"&interpolate=true&key="+context.getString(R.string.directions_key),context);
+
+            if (response.code == 200) {
+                SnapToRoadService snappedPoints = new Gson().fromJson(response.message, SnapToRoadService.class);
+                return snappedPoints;
+
+            } else {
+                throw new IOException("Http Response Code not expected");
+            }
+        }catch(IOException ioe) {
+            Log.e("","",ioe);
+        }
+        return null;
     }
 
     public boolean closeStream() {

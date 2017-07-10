@@ -32,4 +32,26 @@ public class FareUtil {
 
         return totalPrice;
     }
+    public static float calculateFareMexNoFee(float distance, float duration) {
+        Calendar time = Calendar.getInstance();
+        int hourOfDay = time.get(Calendar.HOUR_OF_DAY);
+
+
+        float perEach = 1.07f;
+        float durationPrice = (duration/45) * perEach;
+        float distancePrice = (distance/250.0f) * perEach;
+
+        float totalPrice = 0.0f;
+        if(distancePrice > durationPrice) {
+            totalPrice = distancePrice;
+        } else {
+            totalPrice =  durationPrice;
+        }
+
+        if(hourOfDay > 22 && hourOfDay < 6) {
+            totalPrice *= 1.20f;
+        }
+
+        return totalPrice;
+    }
 }

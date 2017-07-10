@@ -85,7 +85,7 @@ public class LookForRideFragment extends Fragment {
 
         mapFragment = (MapFragment) fragmentManager.findFragmentById(R.id.driver_map);
 
-        driverProgress = (ProgressBar)activity.findViewById(R.id.driver_progress);
+        driverProgress = (ProgressBar)mFragmentView.findViewById(R.id.driver_progress);
 
         mapFragment.getMapAsync(new OnMapReadyCallback() {
             @Override
@@ -299,7 +299,6 @@ public class LookForRideFragment extends Fragment {
 
                     driverSwitch.setEnabled(false);
 
-                    activity.findViewById(R.id.no_ride).setVisibility(View.GONE);
                     TextView rideInfo = (TextView) activity.findViewById(R.id.ride_info);
                     rideInfo.setVisibility(View.VISIBLE);
 

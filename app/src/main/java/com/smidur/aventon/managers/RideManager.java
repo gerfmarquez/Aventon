@@ -1,18 +1,13 @@
 package com.smidur.aventon.managers;
 
 import android.content.Context;
-import android.location.Address;
-import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationListener;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.MainThread;
 import android.support.annotation.WorkerThread;
-import android.util.Log;
 
-import com.google.android.gms.location.places.Place;
-import com.google.android.gms.maps.model.LatLng;
 import com.google.gson.Gson;
 import com.smidur.aventon.exceptions.TokenInvalidException;
 import com.smidur.aventon.http.HttpController;
@@ -27,7 +22,6 @@ import com.smidur.aventon.utilities.GpsUtil;
 
 import java.io.IOException;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -45,6 +39,8 @@ public class RideManager {
     private boolean isPassengerScheduling = false;
 
     SyncDriver syncDriver;
+
+    TaxiMeterManager taxiMeterManager;
 
 
     /**
@@ -115,6 +111,16 @@ public class RideManager {
         GoogleApiWrapper.getInstance(context).stopAndroidLocationUpdates(driverLocationListener);
 
     }
+
+    public void startTaxiMeter() {
+        TaxiMeterManager.i().clear();
+        TaxiMeterManager.i().resetSegment();
+
+    }
+    public void stopTaxiMeter() {
+        taxiMeterManager.getTotalPrice();
+    }
+
     public void setDriverInfo(String makeModel, String plates) {
         syncDriver = new SyncDriver();
         syncDriver.setMakeModel(makeModel);
@@ -217,7 +223,7 @@ public class RideManager {
      * @param listener
      */
     public void unregister(PassengerEventsListener listener) {
-        if(passengerEventsListeners ==null)return;
+        if(passengerEventsListeners == null)return;
         synchronized (passengerEventsListeners) {
             if(passengerEventsListeners.contains(listener)) {
                 passengerEventsListeners.remove(listener);
@@ -438,6 +444,11 @@ public class RideManager {
         @Override
         public void onLocationChanged(Location location) {
             Sync.i(context).pushDriverLocationToSync(location);
+
+
+            if(location.getAccuracy() < 60) {
+                TaxiMeterManager.i().newLocationAvailable(location);
+            }
         }
 
         @Override

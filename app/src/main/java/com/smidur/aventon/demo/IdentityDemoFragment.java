@@ -128,7 +128,7 @@ public class IdentityDemoFragment extends Fragment implements IdentityManager.Si
                 userNameTextView.setText(getString(R.string.unknown_user));
             } catch (final IllegalStateException e) {
                 // This can happen when app shuts down and activity is gone
-                Log.w(LOG_TAG, "Unable to reset user name back to default.");
+                Log.w(LOG_TAG, "Unable to resetSegment user name back to default.");
             }
         }
     }
@@ -140,7 +140,7 @@ public class IdentityDemoFragment extends Fragment implements IdentityManager.Si
                 userImageView.setImageResource(R.mipmap.user);
             } catch (final IllegalStateException e) {
                 // This can happen when app shuts down and activity is gone
-                Log.w(LOG_TAG, "Unable to reset user image back to default image.");
+                Log.w(LOG_TAG, "Unable to resetSegment user image back to default image.");
             }
         }
     }

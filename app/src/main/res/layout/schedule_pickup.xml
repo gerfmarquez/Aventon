@@ -9,15 +9,6 @@
         android:layout_alignParentTop="true"
         android:layout_above="@+id/map_footer"/>
 
-    <ProgressBar
-        android:id="@+id/driver_progress"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        style="@android:style/Widget.Material.ProgressBar.Large"
-        android:layout_centerHorizontal="true"
-        android:layout_centerVertical="true"
-        android:visibility="gone"
-        />
     <fragment
         android:id="@+id/autocomplete_fragment"
         android:name="com.google.android.gms.location.places.ui.PlaceAutocompleteFragment"
