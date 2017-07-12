@@ -12,7 +12,6 @@ import com.smidur.aventon.utilities.GpsUtil;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -34,6 +33,7 @@ public class TaxiMeterManager {
     }
 
     private static final int INCREASE_PRICE_TIME = 45 * 1000; //milliseconds
+    private static final int DISTANCE_SEGMENT_THRESHOLD = 250;
 
 //    long elapsedTime;
 
@@ -41,6 +41,9 @@ public class TaxiMeterManager {
     Timer checkPriceIncreaseTimer;
 
     List<LatLng> segmentLocations;
+
+    Location lastLocation = null;
+    int likelyDistanceSegment = 0;
 
     public void clear() {
         currentPrice = 0.0f;
@@ -51,16 +54,46 @@ public class TaxiMeterManager {
     }
 
     public void resetSegment() {
+        likelyDistanceSegment = 0;
 //        elapsedTime = new Date().getTime();
         if(checkPriceIncreaseTimer==null)checkPriceIncreaseTimer = new Timer();
         checkPriceIncreaseTimer.cancel();
         checkPriceIncreaseTimer.schedule(checkPriceIncreaseSegment,INCREASE_PRICE_TIME);
     }
 
+    private int percentageSubtractAccuracy(int distance, int accuracy) {
+        //todo distance percentage of threshold and use it to determine above or below 50%
+        //todo then subtract a third or a fourth or even a fifth depending
+        //todo put that in a configuration file?
+
+    }
+
     public void newLocationAvailable(Location location) {
         //accuracy might be real bad
         if(location.getAccuracy() < 80) {
-            segmentLocations.add(GpsUtil.getLatLng(location));
+            if(lastLocation!=null) {
+
+                int minimumDistanceSoFar = (int)(location.distanceTo(lastLocation));
+                minimumDistanceSoFar -= (lastLocation.getAccuracy()/3);
+                minimumDistanceSoFar -= (location.getAccuracy()/3);
+
+                //keep segment locations anyhow
+                segmentLocations.add(GpsUtil.getLatLng(location));
+                //minimum distance can be negative if distance is too close, don't process it
+                if(minimumDistanceSoFar > 0) {
+                    minimumDistanceSoFar += likelyDistanceSegment;
+
+                    likelyDistanceSegment += minimumDistanceSoFar;
+
+
+                    if(minimumDistanceSoFar > 250) {
+                        likelyMetThresholdDistance(segmentLocations);
+                    }
+                }
+
+
+            }
+            lastLocation = location;
         }
 
 //        long difference = new Date().getTime() - elapsedTime;
@@ -68,19 +101,20 @@ public class TaxiMeterManager {
 //        }
 
     }
-    public void newTimeSegmentAvailable(List<LatLng> snapshotLocations) {
+    public void likelyMetThresholdDistance(List<LatLng> snapshotLocations) {
 
-        //todo before snapping which is expensive check if its worth it from number and distance of locations?
         float distanceSinceLastSegment = snapLocationsBatchAndCalcDistance(snapshotLocations);
 
-        float calculateFareDistance = FareUtil.calculateFareMexNoFee(distanceSinceLastSegment,0);
-        float calculateFareDuration = FareUtil.calculateFareMexNoFee(0,45);
+        if(distanceSinceLastSegment > DISTANCE_SEGMENT_THRESHOLD) {
 
-        if(calculateFareDistance > calculateFareDuration) {
+            resetSegment();
+            clearLocations();
+
+            float calculateFareDistance = FareUtil.calculateFareMexNoFee(distanceSinceLastSegment,0);
             currentPrice += calculateFareDistance;
-        } else if (calculateFareDuration > calculateFareDistance) {
-            currentPrice += calculateFareDuration;
         }
+
+
     }
 
     public float getTotalPrice() {
@@ -115,10 +149,10 @@ public class TaxiMeterManager {
         public void run() {
             // still keep 45 second rate steady independently of calculation of new segment
             resetSegment();
-            //make a copy of current locations and clear memory locations
-            List<LatLng> snapshotLocations = new ArrayList<>(segmentLocations);
-            clearLocations();
-            newTimeSegmentAvailable(snapshotLocations);
+
+            float calculateFareDuration = FareUtil.calculateFareMexNoFee(0,45);
+            currentPrice += calculateFareDuration;
+
         }
     };
 }

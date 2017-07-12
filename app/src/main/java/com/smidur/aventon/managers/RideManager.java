@@ -446,9 +446,7 @@ public class RideManager {
             Sync.i(context).pushDriverLocationToSync(location);
 
 
-            if(location.getAccuracy() < 60) {
-                TaxiMeterManager.i(context).newLocationAvailable(location);
-            }
+            TaxiMeterManager.i(context).newLocationAvailable(location);
         }
 
         @Override
