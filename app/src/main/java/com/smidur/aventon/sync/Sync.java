@@ -19,6 +19,7 @@ import com.smidur.aventon.model.SyncPassenger;
 import com.smidur.aventon.utilities.GpsUtil;
 
 import java.io.IOException;
+import java.net.ConnectException;
 import java.util.PriorityQueue;
 import java.util.Stack;
 
@@ -258,11 +259,21 @@ public class Sync {
 
                             identityManager.refresh();
 
+                        } catch(ConnectException ce) {
+                            //catch exceptions related to server down
+
+                            RideManager.i(context).postScheduleConnectionErrorCallback();
+                            handler.removeCallbacks(syncSchedulePickup);
+
+                            ce.printStackTrace();
+                            closeConnectionIfOpen();
+                            //post callback of server down
+                            //don't schedule next attempt
+                            return;
+
+
                         } catch(IOException ioe) {
 
-//                            RideManager.i(context).postScheduleConnectionErrorCallback();
-//
-//                            handler.removeCallbacks(syncSchedulePickup);
 
                             ioe.printStackTrace();
 

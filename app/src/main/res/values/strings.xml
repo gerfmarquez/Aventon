@@ -72,5 +72,9 @@
     <string name="ride_accept_failed">Ride Accept Failed!</string>
     <string name="pickup_directions">Directions</string>
     <string name="driver_available">Available</string>
+    <string name="destination_directions">Destination</string>
+    <string name="reached_destination">Reached Destination</string>
+    <string name="total_cost">Ride Total Cost</string>
+    <string name="total_cost_message">"Total Cost is: "</string>
 
 </resources>

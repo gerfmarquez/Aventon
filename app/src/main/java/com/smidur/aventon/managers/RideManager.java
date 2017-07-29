@@ -42,6 +42,8 @@ public class RideManager {
 
     TaxiMeterManager taxiMeterManager;
 
+    SyncPassenger syncPassenger;
+
 
     /**
      *  Start - Singleton
@@ -62,10 +64,10 @@ public class RideManager {
         }
         return instance;
     }
-    /**
-     * Finish - Singleton
-     */
 
+    public boolean isDriverOnRide() {
+        return isDriverOnRide;
+    }
 
     /**
      * Register for  events
@@ -89,7 +91,11 @@ public class RideManager {
 
 
     }
-    public void pauseDriverShiftAndStartRide(String passenger) {
+
+    /**
+     * mainly start taxi meter.
+     */
+    public void pauseDriverShiftAndStartRide() {
         isDriverOnRide = true;
         isDriverAvailable = false;
         //By closing connection we let the service know that driver is on a ride or not available.
@@ -121,8 +127,13 @@ public class RideManager {
     }
 
     public void reAcquireGpsSignal() {
-        GoogleApiWrapper.getInstance(context).stopAndroidLocationUpdates(driverLocationListener);
-        GoogleApiWrapper.getInstance(context).requestAndroidLocationUpdates(driverLocationListener);
+        new Handler(context.getMainLooper()).post(new Runnable() {
+            @Override
+            public void run() {
+                GoogleApiWrapper.getInstance(context).stopAndroidLocationUpdates(driverLocationListener);
+                GoogleApiWrapper.getInstance(context).requestAndroidLocationUpdates(driverLocationListener);
+            }
+        });
     }
 
     public void startTaxiMeter() {
@@ -144,7 +155,7 @@ public class RideManager {
 
     }
     public void stopTaxiMeter() {
-        float totalPrice = taxiMeterManager.getTotalPrice();
+        TaxiMeterManager.i(context).stopTaximeter();
     }
 
     public void setDriverInfo(String makeModel, String plates) {
@@ -154,6 +165,9 @@ public class RideManager {
     }
     public SyncDriver getDriverInfo() {
         return syncDriver;
+    }
+    public SyncPassenger getSyncPassenger() {
+        return syncPassenger;
     }
     /**
      * Register for  events
@@ -260,6 +274,7 @@ public class RideManager {
 
 
     public void confirmPassengerPickup(final SyncPassenger passenger) {
+        this.syncPassenger = passenger;
         new Thread(){
             public void run() {
                 try {
@@ -471,9 +486,8 @@ public class RideManager {
         public void onLocationChanged(Location location) {
             Sync.i(context).pushDriverLocationToSync(location);
 
-            if(isDriverOnRide) {
-                TaxiMeterManager.i(context).newLocationAvailable(location);
-            }
+            TaxiMeterManager.i(context).newLocationAvailable(location);
+
         }
 
         @Override

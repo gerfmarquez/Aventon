@@ -36,6 +36,7 @@ import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.smidur.aventon.R;
 import com.smidur.aventon.managers.RideManager;
+import com.smidur.aventon.managers.TaxiMeterManager;
 import com.smidur.aventon.model.GoogleApiLeg;
 import com.smidur.aventon.model.SyncDestination;
 import com.smidur.aventon.model.SyncLocation;
@@ -124,6 +125,54 @@ public class LookForRideFragment extends Fragment {
             }
         });
 
+        mPickedUpPassengerButton = (Button)mFragmentView.findViewById(R.id.picked_up_passenger);
+        mPickupDirectionsButton = (Button)mFragmentView.findViewById(R.id.pickup_directions_button);
+        mPickedUpPassengerButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //enable taximeter
+                RideManager.i(getContext()).pauseDriverShiftAndStartRide();
+                //change directions button for destination
+                mPickupDirectionsButton.setText(R.string.destination_directions);
+                mPickupDirectionsButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        SyncLocation destination = RideManager.i(getContext())
+                                .getSyncPassenger().getSyncDestination().getDestinationLocation();
+
+                        openDirections(destination.getSyncLocationLatitude(),
+                                destination.getSyncLocationLongitude());
+                    }
+                });
+                //show reached destination button
+                mPickedUpPassengerButton.setText(R.string.reached_destination);
+                mPickedUpPassengerButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        float totalCost = TaxiMeterManager.i(getContext()).getTotalPrice();
+                        RideManager.i(getContext()).resumeDriverShiftAndEndRide();
+                        //todo call server? or just show results from taxi meter to driver?
+                        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(
+                                activity);
+
+                        String formatTotalCost = String.format(" %02f.2",totalCost);
+
+                        builder.setTitle(R.string.total_cost)
+                                .setMessage(getString(R.string.total_cost_message)+formatTotalCost)
+                                .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        activity.finish();
+                                    }
+                                })
+                                .create().show();
+                    }
+                });
+
+
+            }
+        });
+
 
         return mFragmentView;
     }
@@ -134,15 +183,6 @@ public class LookForRideFragment extends Fragment {
         super.onResume();
         RideManager.i(activity).register(driverEventsListener);
 
-        mPickedUpPassengerButton = (Button)activity.findViewById(R.id.picked_up_passenger);
-        mPickupDirectionsButton = (Button)activity.findViewById(R.id.pickup_directions_button);
-        mPickedUpPassengerButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                //todo enable taximeter
-                //todo change directions button for destination
-            }
-        });
 
         if(RideManager.i(activity).getDriverInfo() == null) {
             android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(
@@ -311,7 +351,9 @@ public class LookForRideFragment extends Fragment {
                     mPickupDirectionsButton.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                            openDirections(pickupLocation);
+                            openDirections(
+                                    pickupLocation.getSyncLocationLatitude(),
+                                    pickupLocation.getSyncLocationLongitude());
                         }
                     });
 
@@ -329,7 +371,8 @@ public class LookForRideFragment extends Fragment {
 
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
-                                    openDirections(pickupLocation);
+                                    openDirections(pickupLocation.getSyncLocationLatitude(),
+                                                    pickupLocation.getSyncLocationLongitude());
 
                                 }
                             })
@@ -381,13 +424,13 @@ public class LookForRideFragment extends Fragment {
         }
     };
 
-    private void openDirections(SyncLocation destLocation) {
+    private void openDirections(double latitude, double longitude) {
 
 
         String format = String.format(
                 "google.navigation:q=%f,%f&mode=d"
-                ,destLocation.getSyncLocationLatitude()
-                ,destLocation.getSyncLocationLongitude());
+                ,latitude
+                ,longitude);
 
         Uri directionsUri = Uri.parse(format);
 

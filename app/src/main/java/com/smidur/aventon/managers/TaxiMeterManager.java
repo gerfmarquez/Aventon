@@ -56,8 +56,9 @@ public class TaxiMeterManager {
         currentPrice = 0.0f;
         segmentLocations = new ArrayList<>();
         checkPriceIncreaseTimer = new Timer();
+        likelyDistanceSegment = 0;
     }
-    public synchronized void  resetSegment(int rolloverMeters) {
+    public synchronized void resetSegment(int rolloverMeters) {
             checkPriceIncreaseTimer.cancel();
             checkPriceIncreaseTimer = new Timer();
             checkPriceIncreaseTimer.schedule(new checkPriceIncreaseSegmentTask(),INCREASE_PRICE_TIME);
@@ -78,6 +79,11 @@ public class TaxiMeterManager {
 
         segmentLocations = newLocationsSegment;
     }
+    public void stopTaximeter() {
+        init();
+        clearLocations();
+
+    }
 
 
 
@@ -85,40 +91,43 @@ public class TaxiMeterManager {
         GoogleApiWrapper.getInstance(context).requestDriverActivityUpdates(7000, new GoogleApiWrapper.DetectedActivityCallback() {
             @Override
             public void onDetectedActivity(List<DetectedActivity> detectedActivityList) {
-                for(DetectedActivity detectedActivity: detectedActivityList) {
-
-                    short confidence = (short)(detectedActivity.getConfidence());
-
-                    switch (detectedActivity.getType()) {
-                        case DetectedActivity.WALKING:
-                            break;
-                        case DetectedActivity.RUNNING:
-                            break;
-                        case DetectedActivity.IN_VEHICLE:
-                            //todo don't disable driving until we're completely sure it stopped?
-                            //maybe some offset of 10 seconds until disabling? probably NOT
-                            if(confidence > 29) {
-                                inVehicle = true;
-                            } else {
-                                inVehicle = false;
-                            }
-                            break;
-                        case DetectedActivity.ON_BICYCLE:
-                            break;
-                        case DetectedActivity.TILTING:
-                            break;
-                        case DetectedActivity.ON_FOOT:
-                            break;
-                        case DetectedActivity.STILL:
-                            break;
-                    }
-                }
+                inVehicle = true;
+//                for(DetectedActivity detectedActivity: detectedActivityList) {
+//
+//                    short confidence = (short)(detectedActivity.getConfidence());
+//
+//                    switch (detectedActivity.getType()) {
+//                        case DetectedActivity.WALKING:
+//                            break;
+//                        case DetectedActivity.RUNNING:
+//                            break;
+//                        case DetectedActivity.IN_VEHICLE:
+//                            //todo don't disable driving until we're completely sure it stopped?
+//                            //maybe some offset of 10 seconds until disabling? probably NOT
+//                            if(confidence > 29) {
+//                                inVehicle = true;
+//                            } else {
+//                                inVehicle = false;
+//                            }
+//                            break;
+//                        case DetectedActivity.ON_BICYCLE:
+//                            break;
+//                        case DetectedActivity.TILTING:
+//                            break;
+//                        case DetectedActivity.ON_FOOT:
+//                            break;
+//                        case DetectedActivity.STILL:
+//                            break;
+//                    }
+//                }
             }
         });
     }
 
 
     public void newLocationAvailable(Location location) {
+        if(!RideManager.i(context).isDriverOnRide())return;
+
         //accuracy might be real bad
         if(location.getAccuracy() < 65 && inVehicle) {
             if(lastLocation!=null) {

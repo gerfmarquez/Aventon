@@ -28,15 +28,12 @@
         android:layout_alignParentTop="true"
         />
 
-
-
     <Button
         android:id="@+id/picked_up_passenger"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/picked_up_passenger_button"
         android:layout_centerHorizontal="true"
-        android:enabled="false"
         android:textColor="@color/aventon_background_color"
         android:visibility="gone"
         android:layout_alignParentBottom="true"
