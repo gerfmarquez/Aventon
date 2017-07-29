@@ -2,9 +2,12 @@ package com.smidur.aventon.utilities;
 
 import android.app.PendingIntent;
 import android.content.Context;
+import android.content.Intent;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.annotation.MainThread;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.util.Log;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -12,6 +15,8 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.PendingResult;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
+import com.google.android.gms.location.ActivityRecognition;
+import com.google.android.gms.location.DetectedActivity;
 import com.google.android.gms.location.Geofence;
 import com.google.android.gms.location.GeofencingRequest;
 import com.google.android.gms.location.LocationListener;
@@ -26,7 +31,7 @@ import java.util.List;
  * Created by marqueg on 5/18/17.
  */
 
-public class GoogleApiWrapper {
+public class GoogleApiWrapper implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
     private String TAG = GoogleApiWrapper.class.getCanonicalName();
     private static GoogleApiWrapper instance = null;
@@ -38,6 +43,7 @@ public class GoogleApiWrapper {
         instance.mContext = context;
         return instance;
     }
+    private DetectedActivityCallback detectedActivityCallback;
 
     GoogleApiEstablishedCallback googleApiEstablishedCallback;
     GoogleApiClient googleApiClient;
@@ -80,7 +86,8 @@ public class GoogleApiWrapper {
     public void requestAndroidLocationUpdates(android.location.LocationListener locationListener) {
         try {
             LocationManager locationManager = (LocationManager)mContext.getSystemService(Context.LOCATION_SERVICE);
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,5 * 1000,0,locationListener);
+            //gps locations actual rate seem to average 12 seconds, does this depend on manufacturer? or road/gps satellite conditions?
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,7 * 1000,0,locationListener);
 //            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,5000,0,locationListener);
         } catch(SecurityException se) {
             throw new IllegalStateException("This shouldn't happen");
@@ -98,81 +105,37 @@ public class GoogleApiWrapper {
 
     }
 
-//    public void requestGeofence(final Geofence geofence, PendingIntent radius, int initialTrigger) {
-//
-//        List<Geofence> fences = new ArrayList<Geofence>();
-//        fences.add(geofence);
-//        GeofencingRequest.Builder builder = new GeofencingRequest.Builder();
-//
-//        builder.setInitialTrigger(initialTrigger);
-//        builder.addGeofences(fences);
-//
-//        PendingResult<Status> result = LocationServices.
-//                GeofencingApi.addGeofences(googleApiClient, builder.build(), radius);
-//
-//        result.setResultCallback(new ResultCallback<Status>() {
-//            @Override
-//            public void onResult(Status status) {
-//                if (status.isSuccess()) {
-//                    Log.d(TAG, "GeoFence setup succeeded : " + geofence.getRequestId());
-//                } else {
-//                    Log.w(TAG, "GeoFence setup failed with status code: " + status.getStatusCode());
-//                }
-//            }
-//        });
-//    }
+    public void requestDriverActivityUpdates(int activityUpdatesRate, DetectedActivityCallback callback) {
+        this.detectedActivityCallback = callback;
 
-//    public void removeGeoFence(String... geoFenceRequestId) {
-//        if(!isConnected()) return;
-//        PendingResult<Status> result =
-//                LocationServices.GeofencingApi.removeGeofences(
-//                        googleApiClient, Arrays.asList(geoFenceRequestId));
-//
-//        result.setResultCallback(new ResultCallback<Status>() {
-//            @Override
-//            public void onResult(Status status) {
-//                if (status.isSuccess()) {
-//                    Log.d(TAG, "GeoFence successfully removed.");
-//                } else {
-//                    Log.w(TAG, "GeoFence failed to be removed with status code: " + status.getStatusCode());
-//                }
-//            }
-//        });
-//    }
+        PendingResult<Status> result = ActivityRecognition.ActivityRecognitionApi.requestActivityUpdates(
+                googleApiClient,
+                activityUpdatesRate,
+                getActivityDetectionPendingIntent());
 
-//    @Override
-//    public void onConnected(Bundle bundle) {
-//        googleApiEstablishedCallback.onGoogleServicesConnectionSucceeded();
-//        Log.i(TAG, "on connected");
-//    }
-//
-//    @Override
-//    public void onConnectionFailed(ConnectionResult connectionResult) {
-//        Log.e(TAG, "Google API Connection Failed!!");
-//        googleApiEstablishedCallback.onGoogleServicesConnectionFailed();
-//    }
-//
-//    @Override
-//    public void onConnectionSuspended(int cause) {
-//        Log.w(TAG,"on connect suspended, cause: "+(
-//                (cause == GoogleApiClient.ConnectionCallbacks.CAUSE_NETWORK_LOST)?"Network Lost"
-//                        :(cause == GoogleApiClient.ConnectionCallbacks.CAUSE_SERVICE_DISCONNECTED)?"Service Disconnected":" Something")
-//        );
-//        //silently reconnect
-//        connect(new GoogleApiEstablishedCallback() {
-//            @Override
-//            public void onGoogleServicesConnectionSucceeded() {
-//                Log.d(TAG,"Successfully re-connected to Google Location Services.");
-//            }
-//
-//            @Override
-//            public void onGoogleServicesConnectionFailed() {
-//                Log.e(TAG,"Error reconnecting to Google Api Location Services after connection got suspended.");
-//            }
-//        });
-//    }
+        result.setResultCallback(new ResultCallback<Status>() {
+            @Override
+            public void onResult(Status status) {
+                if (status.isSuccess()) {
+                    Log.i(TAG, "Successfully requested Detected Activity updates for: " + status.describeContents());
+                } else {
+                    Log.w(TAG, "Failed to request GPS updates for: " + status.getStatusCode());
+                }
+            }
+        });
 
+    }
 
+    /**
+     * Gets a PendingIntent to be sent for each activity detection.
+     */
+    private PendingIntent getActivityDetectionPendingIntent() {
+        Intent intent = new Intent(mContext, DetectedActivityIntentService.class);
+
+        // We use FLAG_UPDATE_CURRENT so that we get the same pending intent back when calling
+        // requestActivityUpdates() and removeActivityUpdates().
+        return PendingIntent.getService(mContext, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+    }
 
     public boolean isConnected() {
         return googleApiClient!=null && googleApiClient.isConnected();
@@ -186,9 +149,9 @@ public class GoogleApiWrapper {
         } else {
             Log.i(TAG, "Google Api - Starting initialization");
             googleApiClient = new GoogleApiClient.Builder(mContext)
-                    .addConnectionCallbacks(null)
-                    .addOnConnectionFailedListener(null)
-                    .addApi(LocationServices.API)
+                    .addConnectionCallbacks(this)
+                    .addOnConnectionFailedListener(this)
+                    .addApi(ActivityRecognition.API)
                     .build();
             this.googleApiEstablishedCallback = googleApiEstablishedCallback;
             googleApiClient.connect();
@@ -197,9 +160,35 @@ public class GoogleApiWrapper {
 
     }
 
+    @Override
+    public void onConnected(@Nullable Bundle bundle) {
+        if(googleApiEstablishedCallback != null) {
+            googleApiEstablishedCallback.onGoogleServicesConnectionSucceeded();
+        }
+    }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+        if(googleApiEstablishedCallback != null) {
+            googleApiEstablishedCallback.onGoogleServicesConnectionFailed();
+        }
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+        //NOP//todo handle
+    }
+
+    public void postDetectedActivityCallback(List<DetectedActivity> detectedActivities) {
+        if(detectedActivityCallback!=null)
+            detectedActivityCallback.onDetectedActivity(detectedActivities);
+    }
 
     public interface GoogleApiEstablishedCallback {
         void onGoogleServicesConnectionSucceeded();
         void onGoogleServicesConnectionFailed();
+    }
+    public interface DetectedActivityCallback {
+        void onDetectedActivity(List<DetectedActivity> detectedActivityList);
     }
 }

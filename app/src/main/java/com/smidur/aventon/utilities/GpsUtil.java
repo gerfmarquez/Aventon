@@ -68,7 +68,7 @@ public class GpsUtil {
 
     public static Location getLastKnownLocation(Context context) throws SecurityException {
         LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
-        Location lastKnownLocation = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+        Location lastKnownLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
         if(lastKnownLocation==null) throw new SecurityException();
         return lastKnownLocation;
     }

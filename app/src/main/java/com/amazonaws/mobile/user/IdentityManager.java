@@ -411,7 +411,7 @@ public class IdentityManager {
     }
 
     /**
-     * Sign out of the currently in use credentials provider and clear Cognito credentials.
+     * Sign out of the currently in use credentials provider and init Cognito credentials.
      */
     public void signOut() {
         Log.d(LOG_TAG, "Signing out...");
@@ -501,7 +501,7 @@ public class IdentityManager {
             is.close();
         } catch (IOException e) {
             Log.w(LOG_TAG, "Failed to prefetch user image: " + userImageUrl, e);
-            // clear user image
+            // init user image
             userImage = null;
         }
     }

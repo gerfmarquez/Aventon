@@ -66,12 +66,18 @@ public class Sync {
         return instance;
     }
 
+    /**
+     * This lets the web service know that driver is available for doing rides.
+     * @param syncDriver
+     */
     public void startSyncRideInfo(SyncDriver syncDriver) {
         this.syncDriver = syncDriver;
         //sync rides info
         handler.post(syncAvailableRides);
 
     }
+
+
     public void stopSyncRideInfo() {
         //stop sync ride infos
         closeConnectionIfOpen();

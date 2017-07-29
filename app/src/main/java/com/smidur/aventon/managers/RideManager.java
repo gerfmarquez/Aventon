@@ -87,14 +87,22 @@ public class RideManager {
 
         GoogleApiWrapper.getInstance(context).requestAndroidLocationUpdates(driverLocationListener);
 
+
     }
     public void pauseDriverShiftAndStartRide(String passenger) {
         isDriverOnRide = true;
         isDriverAvailable = false;
-        //we might wanna keep connection open
-        if(isDriverAvailable)   Sync.i(context).stopSyncRideInfo();
+        //By closing connection we let the service know that driver is on a ride or not available.
+        Sync.i(context).stopSyncRideInfo();
+
+        startTaxiMeter();
+
     }
     public void resumeDriverShiftAndEndRide() {
+
+        stopTaxiMeter();//create callback to let activity know about the total price.
+        //also move the above line and separate it from resuming shift until after driver clicks a dialog ok.
+
         isDriverOnRide = false;
         isDriverAvailable = true;
         Sync.i(context).startSyncRideInfo(syncDriver);
@@ -112,13 +120,31 @@ public class RideManager {
 
     }
 
+    public void reAcquireGpsSignal() {
+        GoogleApiWrapper.getInstance(context).stopAndroidLocationUpdates(driverLocationListener);
+        GoogleApiWrapper.getInstance(context).requestAndroidLocationUpdates(driverLocationListener);
+    }
+
     public void startTaxiMeter() {
-        TaxiMeterManager.i(context).clear();
-        TaxiMeterManager.i(context).resetSegment();
+
+        GoogleApiWrapper.getInstance(context).connect(new GoogleApiWrapper.GoogleApiEstablishedCallback() {
+            @Override
+            public void onGoogleServicesConnectionSucceeded() {
+                TaxiMeterManager.i(context).startActivityDetectionForTaxiMeter();
+
+            }
+
+            @Override
+            public void onGoogleServicesConnectionFailed() {
+                throw new IllegalStateException("Couldn't connect to google play services");
+            }
+        });
+        TaxiMeterManager.i(context).init();
+        TaxiMeterManager.i(context).resetSegment(0);
 
     }
     public void stopTaxiMeter() {
-        taxiMeterManager.getTotalPrice();
+        float totalPrice = taxiMeterManager.getTotalPrice();
     }
 
     public void setDriverInfo(String makeModel, String plates) {
@@ -445,8 +471,9 @@ public class RideManager {
         public void onLocationChanged(Location location) {
             Sync.i(context).pushDriverLocationToSync(location);
 
-
-            TaxiMeterManager.i(context).newLocationAvailable(location);
+            if(isDriverOnRide) {
+                TaxiMeterManager.i(context).newLocationAvailable(location);
+            }
         }
 
         @Override

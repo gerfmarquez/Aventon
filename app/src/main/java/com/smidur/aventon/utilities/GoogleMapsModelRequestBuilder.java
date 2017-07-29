@@ -1,5 +1,6 @@
 package com.smidur.aventon.utilities;
 
+import android.location.Location;
 import android.support.annotation.NonNull;
 
 import com.google.android.gms.maps.model.LatLng;
@@ -64,7 +65,7 @@ public class GoogleMapsModelRequestBuilder {
      *
      * @return request to send to Google Api with properly formatted "way points".
      */
-    public static String buildRequestSnap(@NonNull List<LatLng> snapPoints) {
+    public static String buildRequestSnap(@NonNull List<Location> snapPoints) {
         StringBuilder deliveriesBuilder = new StringBuilder();
 //        if(snapPoints.length <2)return null;//dont even bother
 //        else {//size is at least 2 is good
@@ -89,7 +90,7 @@ public class GoogleMapsModelRequestBuilder {
             }
             deliveriesBuilder.append(String.format("%.05f,%.05f"
                     +multipleWaypointsSeparator
-                    ,snapPoints.get(i).latitude,snapPoints.get(i).longitude));
+                    ,snapPoints.get(i).getLatitude(),snapPoints.get(i).getLongitude()));
         }
 
         return deliveriesBuilder.toString();

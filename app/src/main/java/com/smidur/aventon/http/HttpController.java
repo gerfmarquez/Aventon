@@ -134,11 +134,11 @@ public class HttpController {
 
     }
 
-    public SnapToRoadService requestSnapToRoad(List<LatLng> snapPoints)  {
+    public SnapToRoadService requestSnapToRoad(List<Location> snapPoints)  {
         try {
 
 
-            HttpWrapper wrapper = new HttpWrapper("https://maps.googleapis.com/");
+            HttpWrapper wrapper = new HttpWrapper("https://roads.googleapis.com/");
             HttpResponse response = wrapper.httpGET(
                     "v1/snapToRoads?path="+ GoogleMapsModelRequestBuilder.buildRequestSnap(snapPoints)
                             +"&interpolate=true&key="+context.getString(R.string.directions_key),context);
