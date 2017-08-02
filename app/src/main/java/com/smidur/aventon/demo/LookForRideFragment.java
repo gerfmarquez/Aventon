@@ -22,6 +22,7 @@ import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.Switch;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -188,11 +189,8 @@ public class LookForRideFragment extends Fragment {
             android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(
                     activity);
 
-            builder.setView(R.layout.view_input_plates_model);
-
-
-
-            builder.setTitle(R.string.required_info).setMessage(R.string.enter_make_plates)
+            final AlertDialog platesMakeDialog = builder.setTitle(R.string.required_info)
+                    .setMessage(R.string.enter_make_plates)
                     .setPositiveButton(R.string.submit, new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
@@ -203,12 +201,26 @@ public class LookForRideFragment extends Fragment {
                             String plates =  platesView.getText().toString();
                             String makeModel =  makeModelView.getText().toString();
 
-                            if(plates.trim().isEmpty() || plates.trim().length() < 5) {
-                                activity.finish();
+                            if(plates.trim().isEmpty() || plates.trim().length() < 4) {
+                                Toast.makeText(getContext(), R.string.enter_plates_error,Toast.LENGTH_LONG).show();
+                                getActivity().runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        activity.finish();
+                                    }
+                                });
+
                                 return;
                             }
-                            if(makeModel.trim().isEmpty() || makeModel.trim().length() < 5) {
-                                activity.finish();
+                            if(makeModel.trim().isEmpty() || makeModel.trim().length() < 4) {
+                                Toast.makeText(getContext(), R.string.enter_model,Toast.LENGTH_LONG).show();
+                                getActivity().runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        activity.finish();
+                                    }
+                                });
+
                                 return;
                             }
                             //todo validate plates and make and model
@@ -223,7 +235,12 @@ public class LookForRideFragment extends Fragment {
                             getActivity().finish();
                         }
                     })
-                    .create().show();
+                    .create();
+            platesMakeDialog.setView(getLayoutInflater(null)
+                    .inflate(R.layout.view_input_plates_model,null));
+            platesMakeDialog.show();
+//            platesMakeDialog.setContentView(,
+//                    new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 
         } else {
             driverSwitch.setEnabled(true);
@@ -268,11 +285,13 @@ public class LookForRideFragment extends Fragment {
         if(activity != null) {
             ((Toolbar)activity.findViewById(R.id.toolbar)).removeView(driverSwitch);
         }
+        if(!getActivity().isDestroyed()) {
+            getActivity().getFragmentManager()
+                    .beginTransaction()
+                    .remove(mapFragment)
+                    .commit();
+        }
 
-        getActivity().getFragmentManager()
-                .beginTransaction()
-                .remove(mapFragment)
-                .commit();
     }
 
     RideManager.DriverEventsListener driverEventsListener = new RideManager.DriverEventsListener() {
@@ -403,6 +422,8 @@ public class LookForRideFragment extends Fragment {
                             .setPositiveButton(R.string.ok, null)
                             .create().show();
                     driverSwitch.setChecked(false);
+
+                    RideManager.i(getContext()).endDriverShift();
                 }
             });
         }

@@ -9,6 +9,8 @@
 package com.smidur.aventon;
 
 import android.app.Application;
+import android.content.Context;
+import android.support.multidex.MultiDex;
 import android.util.Log;
 
 import com.amazonaws.mobile.AWSMobileClient;
@@ -25,6 +27,12 @@ public class AventonApplication extends Application {
         super.onCreate();
         initializeApplication();
         Log.d(LOG_TAG, "Application.onCreate - Application initialized OK");
+    }
+
+    @Override
+    protected void attachBaseContext(Context base) {
+        super.attachBaseContext(base);
+        MultiDex.install(this);
     }
 
     private void initializeApplication() {

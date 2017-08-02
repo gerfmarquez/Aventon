@@ -158,13 +158,10 @@ public class HttpController {
 
     public boolean closeStream() {
 
-        if(wrapper!=null && wrapper.getStreamReader()!=null) {
-            try {
-                wrapper.getStreamReader().close();
-                return true;
-            } catch(IOException ioe) {
-                ioe.printStackTrace();
-            }
+        if(wrapper!=null && wrapper.getConnection()!=null) {
+
+                wrapper.getConnection().disconnect();
+
         }
         return false;
     }

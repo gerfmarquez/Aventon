@@ -61,12 +61,14 @@ public class HttpWrapper {
     //avoid loading ssl certificates every http call
     private static SSLContext sslContext = null;
 
+    private HttpURLConnection connection;
+
     UpdateCallback updateCallback;
     public interface UpdateCallback {
         public void onUpdate(String message);
     }
 
-    BufferedReader inFromServer;
+
 
     private enum HttpRequestType { PUT, POST, GET,DELETE}
 
@@ -99,30 +101,32 @@ public class HttpWrapper {
             if(rootUrl==null)rootUrl="";
             String fullURL = rootUrl+path;
             Log.d(TAG+"","Http Request "+requestType.name()+": "+fullURL);
-            HttpURLConnection connection = connectionInitialization(fullURL,context);
-
-            switch(requestType) {
-                case GET:
-                    break;
-                case POST:
-                    if(requestParams!=null) {
-                        if(requestParams instanceof Hashtable) {
-                            makePostRequest(connection, (Hashtable<String,String>) requestParams);
-                        } else if(requestParams instanceof String) {
-                            makePostRequestWithJson(connection,(String)requestParams);
-                        }
-                    }
-                    break;
-                case PUT:
-                    if(requestParams!=null)makePutRequest(connection, (String)requestParams);
-                    break;
-                case DELETE:
-                    makeDeleteRequest(connection);
-                    break;
-            }
+            connection = connectionInitialization(fullURL,context);
 
             HttpResponse response = new HttpResponse();
             try {
+                switch(requestType) {
+                    case GET:
+                        break;
+                    case POST:
+                        if(requestParams!=null) {
+
+                            if(requestParams instanceof Hashtable) {
+                                makePostRequest(connection, (Hashtable<String,String>) requestParams);
+                            } else if(requestParams instanceof String) {
+                                makePostRequestWithJson(connection,(String)requestParams);
+                            }
+                        }
+                        break;
+                    case PUT:
+                        if(requestParams!=null)makePutRequest(connection, (String)requestParams);
+                        break;
+                    case DELETE:
+                        makeDeleteRequest(connection);
+                        break;
+                }
+
+
 
                 response.message = getMessageFromInputStream(connection.getInputStream());
 
@@ -138,6 +142,7 @@ public class HttpWrapper {
 //            } else {
 //                response.message = getMessageFromInputStream(connection.getErrorStream());
 //            }
+            connection.disconnect();
 
             Log.d(TAG, "Response Code: " + response.code);
             Log.d(TAG, "Response Message: " + response.message);
@@ -148,6 +153,29 @@ public class HttpWrapper {
             //force reloading of the certificates in next call
             sslContext = null;
             throw new IOException("SSL issue"+rootUrl+path,sslExc);
+
+        }
+    }
+
+    private void makePostRequestWithJson(HttpURLConnection con, String json) throws IOException {
+        if(json != null && !json.isEmpty()) {
+            con.setRequestMethod("POST");
+            con.setRequestProperty("Content-Type", "application/json");
+            con.setDoInput(true);
+            con.setDoOutput(true);
+
+
+            OutputStream outputStream = con.getOutputStream();
+            BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(outputStream,"UTF-8"));
+            bw.write(json);
+            bw.flush();
+            bw.close();
+            outputStream.close();
+
+
+            Log.d(TAG, "Request Sent: " + json + " ");
+
+            con.connect();
 
         }
     }
@@ -177,32 +205,20 @@ public class HttpWrapper {
             Log.d(TAG, "Request Sent: " + requestSent + " ");
 
             con.connect();
+
         }
     }
-    private void makePostRequestWithJson(HttpURLConnection con, String json) throws IOException {
-        if(json != null && !json.isEmpty()) {
-            con.setRequestMethod("POST");
-            con.setRequestProperty("Content-Type", "application/json");
-            con.setDoInput(true);
-            con.setDoOutput(true);
 
-            OutputStream outputStream = con.getOutputStream();
-            BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(outputStream,"UTF-8"));
-            bw.write(json);
-            bw.flush();
-            bw.close();
-            outputStream.close();
 
-            Log.d(TAG, "Request Sent: " + json + " ");
-
-            con.connect();
-        }
+    public HttpURLConnection getConnection() {
+        return connection;
     }
     private void makePutRequest(HttpURLConnection con, String jsonObjString) throws IOException {
         con.setRequestProperty("Content-Type", "application/json");
         con.setRequestMethod("PUT");
         con.setDoInput(true);
         con.setDoOutput(true);
+
         if(jsonObjString != null && !jsonObjString.isEmpty()) {
 
             OutputStreamWriter outputStreamWriter = new OutputStreamWriter(con.getOutputStream(),"UTF-8");
@@ -246,6 +262,8 @@ public class HttpWrapper {
         con.setRequestProperty("Accept-Charset", "UTF-8");
         con.setRequestProperty("User-Agent", getUserAgent());
 
+
+
         IdentityManager identityManager = AWSMobileClient.defaultMobileClient()
                 .getIdentityManager();
 
@@ -262,17 +280,14 @@ public class HttpWrapper {
         return con;
     }
 
-    public BufferedReader getStreamReader() {
-        return inFromServer;
-    }
 
-    private String getMessageFromInputStream(InputStream stream) throws  IOException {
-        inFromServer = new BufferedReader(new InputStreamReader(stream));
+    private String getMessageFromInputStream(InputStream inputStream) throws  IOException {
+        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
 
 
         String readLine = null;
         StringBuilder builder = new StringBuilder();
-        while ((readLine = inFromServer.readLine())!=null) {
+        while ((readLine = bufferedReader.readLine())!=null) {
 
             if(updateCallback!=null) {
                 updateCallback.onUpdate(readLine);
@@ -290,7 +305,7 @@ public class HttpWrapper {
 
 
         try {
-            if(stream!=null)stream.close();
+            if(bufferedReader!=null)bufferedReader.close();
 
         } catch (IOException ioe) {}
         finally {

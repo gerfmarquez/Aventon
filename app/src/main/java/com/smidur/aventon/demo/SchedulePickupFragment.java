@@ -35,6 +35,7 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.smidur.aventon.MainActivity;
 import com.smidur.aventon.R;
 import com.smidur.aventon.managers.RideManager;
 import com.smidur.aventon.model.GoogleApiLeg;
@@ -44,6 +45,8 @@ import com.smidur.aventon.model.SyncLocation;
 import com.smidur.aventon.utilities.Constants;
 import com.smidur.aventon.utilities.GpsUtil;
 import com.smidur.aventon.utilities.MapUtil;
+
+import static com.amazonaws.mobile.util.ThreadUtils.runOnUiThread;
 
 /**
  * Created by marqueg on 3/15/17.
@@ -126,11 +129,36 @@ public class SchedulePickupFragment extends Fragment implements PlaceSelectionLi
         durationEstimate = (TextView) mFragmentView.findViewById(R.id.durationEstimate);
         distanceEstimate = (TextView) mFragmentView.findViewById(R.id.distanceEstimate);
 
+        new Thread() {
+            public void run() {
+                try {
+                    final LatLng lastLatLng = GpsUtil.getLatLng(GpsUtil.getUserLocation(getContext()));
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            autocompleteFragment.setBoundsBias(
+                                    LatLngBounds.builder()
+                                            .include(lastLatLng)
+                                            .build());
+                        }
+                    });
 
-        autocompleteFragment.setBoundsBias(
-                LatLngBounds.builder()
-                        .include(GpsUtil.getLatLng(GpsUtil.getLastKnownLocation(getContext())))
-                        .build());
+
+                } catch(SecurityException se) {
+                    //todo analytics
+                    //todo retry or check before attempting so that we know permission is there.
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            requestPermissions(new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},0);
+                        }
+                    });
+
+
+                }
+            }
+        }.start();
+
 
 
 
@@ -141,10 +169,36 @@ public class SchedulePickupFragment extends Fragment implements PlaceSelectionLi
                 scheduleRideProgressBar.setVisibility(View.GONE);
 
                 mPassengerGoogleMap = googleMap;
-                mPassengerGoogleMap.animateCamera(
-                        CameraUpdateFactory.newLatLngZoom(
-                                GpsUtil.getLatLng(GpsUtil.getLastKnownLocation(getContext())),
-                                Constants.PICKUP_MAP_ZOOM));
+                new Thread() {
+                    public void run() {
+                        try {
+                            final LatLng lastLatLng = GpsUtil.getLatLng(GpsUtil.getUserLocation(getContext()));
+
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    mPassengerGoogleMap.animateCamera(
+                                            CameraUpdateFactory.newLatLngZoom(
+                                                    lastLatLng,
+                                                    Constants.PICKUP_MAP_ZOOM));
+                                }
+                            });
+
+                        } catch(SecurityException se) {
+                            //todo analytics
+                            //todo retry or check before attempting so that we know permission is there.
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    requestPermissions(new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},0);
+                                }
+                            });
+
+
+                        }
+                    }
+                }.start();
+
 
                 mPassengerGoogleMap.getUiSettings().setMyLocationButtonEnabled(true);
                 mPassengerGoogleMap.getUiSettings().setCompassEnabled(true);

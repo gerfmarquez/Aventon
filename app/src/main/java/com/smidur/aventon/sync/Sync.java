@@ -20,6 +20,7 @@ import com.smidur.aventon.utilities.GpsUtil;
 
 import java.io.IOException;
 import java.net.ConnectException;
+import java.net.SocketException;
 import java.util.PriorityQueue;
 import java.util.Stack;
 
@@ -82,6 +83,9 @@ public class Sync {
     public void stopSyncRideInfo() {
         //stop sync ride infos
         closeConnectionIfOpen();
+
+        if(syncAvailableRidesThread!=null)
+            syncAvailableRidesThread.interrupt();
 
         if(syncAvailableRides!=null)
             handler.removeCallbacks(syncAvailableRides);
@@ -162,6 +166,25 @@ public class Sync {
 
                             identityManager.refresh();
 
+                        }  catch(ConnectException ce) {
+                            //catch exceptions related to server down
+
+                            RideManager.i(context).postLookForRideConnectionErrorCallback();
+                            handler.removeCallbacks(syncAvailableRides);
+
+                            ce.printStackTrace();
+                            closeConnectionIfOpen();
+                            //post callback of server down
+                            //don't schedule next attempt
+                            return;
+
+
+                        }  catch(SocketException se) {
+                            //when disconnect to the connection gets called from other place like a button
+                            se.printStackTrace();
+                            handler.removeCallbacks(syncAvailableRides);
+                            closeConnectionIfOpen();
+                            return;
                         } catch(IOException ioe) {
 
 //                            handler.removeCallbacks(syncAvailableRides);
@@ -210,13 +233,8 @@ public class Sync {
 
                         } catch(IOException ioe) {
 
-//                            handler.removeCallbacks(syncDriverLocation);
-
-                            ioe.printStackTrace();
-
                             closeConnectionIfOpen();
-
-
+                            ioe.printStackTrace();
                         }
                     } while(false);
                     handler.removeCallbacks(syncDriverLocation);
@@ -272,6 +290,12 @@ public class Sync {
                             return;
 
 
+                        } catch(SocketException se) {
+
+                            se.printStackTrace();
+                            handler.removeCallbacks(syncSchedulePickup);
+                            closeConnectionIfOpen();
+                            return;
                         } catch(IOException ioe) {
 
 

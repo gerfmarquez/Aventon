@@ -114,15 +114,26 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        try {
-            GpsUtil.getLatLng(GpsUtil.getLastKnownLocation(this));
+        new Thread() {
+            public void run() {
+                try {
+                    GpsUtil.getLatLng(GpsUtil.getUserLocation(MainActivity.this));
 
-        } catch(SecurityException se) {
-            //todo analytics
-            //todo retry or check before attempting so that we know permission is there.
-            requestPermissions(new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},MY_PERMISSIONS_REQUEST_LOCATION);
+                } catch(SecurityException se) {
+                    //todo analytics
+                    //todo retry or check before attempting so that we know permission is there.
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            requestPermissions(new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},MY_PERMISSIONS_REQUEST_LOCATION);
+                        }
+                    });
 
-        }
+
+                }
+            }
+        }.start();
+
 
 
         // Obtain a reference to the mobile client. It is created in the Application class,

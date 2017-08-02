@@ -76,5 +76,7 @@
     <string name="reached_destination">Reached Destination</string>
     <string name="total_cost">Ride Total Cost</string>
     <string name="total_cost_message">"Total Cost is: "</string>
+    <string name="enter_model">Please enter correct model</string>
+    <string name="enter_plates_error">Please enter correct plates</string>
 
 </resources>
