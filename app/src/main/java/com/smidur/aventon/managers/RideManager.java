@@ -36,7 +36,11 @@ public class RideManager {
     private Set<PassengerEventsListener> passengerEventsListeners;
     private boolean isDriverAvailable = false;
     private boolean isDriverOnRide = false;
-    private boolean isPassengerScheduling = false;
+    //determines if passenger hasn't gotten a confirmation for the ride.
+    private boolean isPassengerPickupConfirmed = false;
+    public boolean isPassengerPickupConfirmed() {
+        return isPassengerPickupConfirmed;
+    }
 
     SyncDriver syncDriver;
 
@@ -200,12 +204,12 @@ public class RideManager {
 
         Sync.i(context).startSyncSchedulePickup(syncPassenger);
 
-        isPassengerScheduling = true;
+
     }
     public void pauseSchedulePassengerPickup(String passenger) {
 
         //we might wanna keep connection open
-        if(isPassengerScheduling)   Sync.i(context).stopSyncSchedulePickup();
+        Sync.i(context).stopSyncSchedulePickup();
     }
     public void resumeSchedulePassengerPickup() {
 
@@ -216,12 +220,15 @@ public class RideManager {
         //todo notify server that user stopped scheduling a pickup
     }
 
+    /**
+     * Call when drive gets to pickup. (Doesn't need location updates from driver anymore.
+     */
     public void endSchedulePassengerPickup() {
 
-        if(isPassengerScheduling) {
+
             Sync.i(context).stopSyncSchedulePickup();
-        }
-        isPassengerScheduling = false;
+
+
 
     }
 
@@ -365,6 +372,7 @@ public class RideManager {
         }
     }
     private void postPickupScheduledCallback(final SyncDriver driver) {
+        isPassengerPickupConfirmed = true;
         synchronized (passengerEventsListeners) {
             for(final PassengerEventsListener listener: passengerEventsListeners) {
                 if(listener!=null) {

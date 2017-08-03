@@ -104,6 +104,7 @@ public class HttpController {
         wrapper = new HttpWrapper();
 
         String syncDestinationJson = new Gson().toJson(syncPassenger);
+        //todo add a 30 seconds timeout so that driver doesn't keep there waiting forever.
 
         HttpResponse response = wrapper.httpPOST("shcedule_pickup",new HttpWrapper.UpdateCallback() {
             @Override

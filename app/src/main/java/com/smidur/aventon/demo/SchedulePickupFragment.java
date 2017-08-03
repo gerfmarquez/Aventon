@@ -339,7 +339,6 @@ public class SchedulePickupFragment extends Fragment implements PlaceSelectionLi
                 @Override
                 public void run() {
 
-                    RideManager.i(getContext()).endSchedulePassengerPickup();
 
                     //hide progress loader
                     scheduleRideProgressBar.setVisibility(View.INVISIBLE);
@@ -395,6 +394,7 @@ public class SchedulePickupFragment extends Fragment implements PlaceSelectionLi
 
         @Override
         public void onDriverApproaching(final SyncLocation driverNewLocation) {
+
 
             final LatLng driverLatLng = new LatLng(
                     driverNewLocation.getSyncLocationLatitude()

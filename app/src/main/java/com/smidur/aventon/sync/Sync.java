@@ -294,10 +294,14 @@ public class Sync {
                         } catch(SocketTimeoutException ste) {
 
                             ste.printStackTrace();
-                            handler.removeCallbacks(syncSchedulePickup);
-                            closeConnectionIfOpen();
-                            RideManager.i(context).postNoDriverFoundCallback();
-                            return;
+                            //if the driver is not pickup confirmed.
+                            if(!RideManager.i(context).isPassengerPickupConfirmed()){
+                                handler.removeCallbacks(syncSchedulePickup);
+                                closeConnectionIfOpen();
+                                RideManager.i(context).postNoDriverFoundCallback();
+                                return;
+                            }
+
                         } catch(SocketException se) {
 
                             se.printStackTrace();
