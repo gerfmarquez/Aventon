@@ -98,8 +98,10 @@ public class RideManager {
     public void pauseDriverShiftAndStartRide() {
         isDriverOnRide = true;
         isDriverAvailable = false;
-        //By closing connection we let the service know that driver is on a ride or not available.
-        Sync.i(context).stopSyncRideInfo();
+        //DEPRECATED--By closing connection we let the service know that driver is on a ride or not available.
+        //Server will keep track of what drivers have Passengers assigned (Are on a ride) and avoid forwarding ride requests.
+        //this way we can still communicate with driver through the long-polling commands for future enhancements
+//        Sync.i(context).stopSyncRideInfo();
 
         startTaxiMeter();
 
@@ -394,7 +396,7 @@ public class RideManager {
 
         }
     }
-    private void postNoDriverFoundCallback() {
+    public void postNoDriverFoundCallback() {
         synchronized (passengerEventsListeners) {
             for(final PassengerEventsListener listener: passengerEventsListeners) {
                 if(listener!=null) {

@@ -151,7 +151,9 @@ public class LookForRideFragment extends Fragment {
                     @Override
                     public void onClick(View v) {
                         float totalCost = TaxiMeterManager.i(getContext()).getTotalPrice();
-                        RideManager.i(getContext()).resumeDriverShiftAndEndRide();
+                        //todo dont kill activity and handle end of ride well
+//                        RideManager.i(getContext()).resumeDriverShiftAndEndRide();
+                        RideManager.i(getContext()).endDriverShift();
                         //todo call server? or just show results from taxi meter to driver?
                         android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(
                                 activity);

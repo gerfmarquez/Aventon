@@ -5,6 +5,7 @@ import android.app.AlertDialog;
 import android.app.FragmentManager;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.drawable.ColorDrawable;
 
 import android.location.Location;
@@ -12,6 +13,7 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Vibrator;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,8 +22,11 @@ import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
+import com.google.android.gms.common.GooglePlayServicesRepairableException;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.places.Place;
+import com.google.android.gms.location.places.ui.PlaceAutocomplete;
 import com.google.android.gms.location.places.ui.PlaceAutocompleteFragment;
 import com.google.android.gms.location.places.ui.PlaceSelectionListener;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -46,6 +51,8 @@ import com.smidur.aventon.utilities.Constants;
 import com.smidur.aventon.utilities.GpsUtil;
 import com.smidur.aventon.utilities.MapUtil;
 
+import static android.app.Activity.RESULT_CANCELED;
+import static android.app.Activity.RESULT_OK;
 import static com.amazonaws.mobile.util.ThreadUtils.runOnUiThread;
 
 /**
@@ -114,6 +121,7 @@ public class SchedulePickupFragment extends Fragment implements PlaceSelectionLi
         autocompleteFragment = (PlaceAutocompleteFragment)
                 fragmentManager.findFragmentById(R.id.autocomplete_fragment);
 
+
         routeEstimateFooter = (RelativeLayout) mFragmentView.findViewById(R.id.map_footer);
         driverInfoFooter = (RelativeLayout) mFragmentView.findViewById(R.id.driver_info_footer);
 
@@ -128,6 +136,14 @@ public class SchedulePickupFragment extends Fragment implements PlaceSelectionLi
         priceEstimate = (TextView) mFragmentView.findViewById(R.id.priceEstimate);
         durationEstimate = (TextView) mFragmentView.findViewById(R.id.durationEstimate);
         distanceEstimate = (TextView) mFragmentView.findViewById(R.id.distanceEstimate);
+
+        Button place = (Button)mFragmentView.findViewById(R.id.place);
+        place.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                callPlaceAutocompleteActivityIntent();
+            }
+        });
 
         new Thread() {
             public void run() {
@@ -261,6 +277,8 @@ public class SchedulePickupFragment extends Fragment implements PlaceSelectionLi
 
         });
 
+
+
         mSchedulePickupButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -304,7 +322,7 @@ public class SchedulePickupFragment extends Fragment implements PlaceSelectionLi
     @Override
     public void onDetach() {
         super.onDetach();
-
+        if(getActivity().isDestroyed())return;
         getActivity().getFragmentManager()
                 .beginTransaction()
                 .remove(mapFragment)
@@ -320,6 +338,8 @@ public class SchedulePickupFragment extends Fragment implements PlaceSelectionLi
             activity.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
+
+                    RideManager.i(getContext()).endSchedulePassengerPickup();
 
                     //hide progress loader
                     scheduleRideProgressBar.setVisibility(View.INVISIBLE);
@@ -565,4 +585,34 @@ public class SchedulePickupFragment extends Fragment implements PlaceSelectionLi
 
         }
     };
+
+    public void callPlaceAutocompleteActivityIntent() {
+        try {
+            Intent intent =
+                    new PlaceAutocomplete.IntentBuilder(PlaceAutocomplete.MODE_FULLSCREEN)
+                            .build(getActivity());
+            startActivityForResult(intent, 333);
+            //PLACE_AUTOCOMPLETE_REQUEST_CODE is integer for request code
+        } catch (GooglePlayServicesRepairableException | GooglePlayServicesNotAvailableException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        //autocompleteFragment.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == 333) {
+            if (resultCode == RESULT_OK) {
+                Place place = PlaceAutocomplete.getPlace(getActivity(), data);
+                Log.i("", "Place:" + place.toString());
+            } else if (resultCode == PlaceAutocomplete.RESULT_ERROR) {
+                Status status = PlaceAutocomplete.getStatus(getActivity(), data);
+                Log.i("", status.getStatusMessage());
+            } else if (requestCode == RESULT_CANCELED) {
+
+            }
+        }
+    }
 }

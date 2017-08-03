@@ -107,7 +107,7 @@ public class MapUtil {
         ArrayList<LatLng> polyline = PolyLineUtil.decodePoly(googleApiPolyline.getPoints());
 
         final PolylineOptions options = new PolylineOptions().width(20)
-                .color(activity.getResources().getColor(R.color.aventon_secondary_color,null)).geodesic(true);
+                .color(activity.getResources().getColor(R.color.aventon_secondary_color)).geodesic(true);
         for (int i = 0; i < polyline.size(); i++) {
             LatLng point = polyline.get(i);
             options.add(point);

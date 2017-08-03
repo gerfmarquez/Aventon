@@ -21,6 +21,7 @@ import com.smidur.aventon.utilities.GpsUtil;
 import java.io.IOException;
 import java.net.ConnectException;
 import java.net.SocketException;
+import java.net.SocketTimeoutException;
 import java.util.PriorityQueue;
 import java.util.Stack;
 
@@ -290,6 +291,13 @@ public class Sync {
                             return;
 
 
+                        } catch(SocketTimeoutException ste) {
+
+                            ste.printStackTrace();
+                            handler.removeCallbacks(syncSchedulePickup);
+                            closeConnectionIfOpen();
+                            RideManager.i(context).postNoDriverFoundCallback();
+                            return;
                         } catch(SocketException se) {
 
                             se.printStackTrace();

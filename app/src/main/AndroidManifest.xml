@@ -37,7 +37,7 @@
         </activity>
         <activity
             android:name=".MainActivity"
-            android:launchMode="singleInstance"
+
             android:label="@string/title_activity_main"
             android:configChanges="keyboard|keyboardHidden|orientation|screenSize">
         </activity>

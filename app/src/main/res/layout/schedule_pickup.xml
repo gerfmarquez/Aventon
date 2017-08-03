@@ -18,6 +18,7 @@
         android:layout_marginTop="8dp"
         android:layout_marginLeft="8dp"
         android:layout_marginRight="8dp"
+
         />
     <ProgressBar
         android:id="@+id/schedule_progress"
@@ -39,6 +40,17 @@
         android:textColor="@color/aventon_background_color"
         android:visibility="invisible"
         android:layout_alignParentBottom="true"
+
+        />
+    <Button
+        android:id="@+id/place"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Place"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="48dp"
+        android:textColor="@color/aventon_background_color"
+        android:layout_below="@id/autocomplete_fragment"
 
         />
     <RelativeLayout
