@@ -137,14 +137,6 @@ public class SchedulePickupFragment extends Fragment implements PlaceSelectionLi
         durationEstimate = (TextView) mFragmentView.findViewById(R.id.durationEstimate);
         distanceEstimate = (TextView) mFragmentView.findViewById(R.id.distanceEstimate);
 
-        Button place = (Button)mFragmentView.findViewById(R.id.place);
-        place.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                callPlaceAutocompleteActivityIntent();
-            }
-        });
-
         new Thread() {
             public void run() {
                 try {
@@ -586,33 +578,4 @@ public class SchedulePickupFragment extends Fragment implements PlaceSelectionLi
         }
     };
 
-    public void callPlaceAutocompleteActivityIntent() {
-        try {
-            Intent intent =
-                    new PlaceAutocomplete.IntentBuilder(PlaceAutocomplete.MODE_FULLSCREEN)
-                            .build(getActivity());
-            startActivityForResult(intent, 333);
-            //PLACE_AUTOCOMPLETE_REQUEST_CODE is integer for request code
-        } catch (GooglePlayServicesRepairableException | GooglePlayServicesNotAvailableException e) {
-            e.printStackTrace();
-        }
-
-    }
-
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        //autocompleteFragment.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == 333) {
-            if (resultCode == RESULT_OK) {
-                Place place = PlaceAutocomplete.getPlace(getActivity(), data);
-                Log.i("", "Place:" + place.toString());
-            } else if (resultCode == PlaceAutocomplete.RESULT_ERROR) {
-                Status status = PlaceAutocomplete.getStatus(getActivity(), data);
-                Log.i("", status.getStatusMessage());
-            } else if (requestCode == RESULT_CANCELED) {
-
-            }
-        }
-    }
 }

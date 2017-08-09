@@ -158,7 +158,7 @@ public class LookForRideFragment extends Fragment {
                         android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(
                                 activity);
 
-                        String formatTotalCost = String.format(" %02f.2",totalCost);
+                        String formatTotalCost = String.format(" %.2f",totalCost);
 
                         builder.setTitle(R.string.total_cost)
                                 .setMessage(getString(R.string.total_cost_message)+formatTotalCost)
@@ -315,23 +315,6 @@ public class LookForRideFragment extends Fragment {
                                 public void onClick(DialogInterface dialog, int which) {
 
                                    RideManager.i(activity).confirmPassengerPickup(passenger);
-                                    //todo add callback in case confirm fails
-
-                                    Location passengerLocation = new Location("");
-                                    Location destinationLocation = new Location("");
-
-                                    SyncLocation passSyncLocation = passenger.getSyncOrigin().getOriginLocation();
-                                    passengerLocation.setLatitude(passSyncLocation.getSyncLocationLatitude());
-                                    passengerLocation.setLongitude(passSyncLocation.getSyncLocationLongitude());
-
-                                    final SyncLocation destSyncLocation = passenger.getSyncDestination().getDestinationLocation();
-
-                                    destinationLocation.setLatitude(destSyncLocation.getSyncLocationLatitude());
-                                    destinationLocation.setLongitude(destSyncLocation.getSyncLocationLongitude());
-
-                                    MapUtil.selectDestinationPlaceOnMap(
-                                            destinationSelectedCallback,"",passengerLocation,GpsUtil.getLatLng(destinationLocation),activity);
-
 
 
                                 }
@@ -344,12 +327,39 @@ public class LookForRideFragment extends Fragment {
 
         }
 
-        @Override
-        public void onRideStarted(final SyncPassenger passenger) {
 
+
+        @Override
+        public void onRideEnded() {
             activity.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
+                    driverSwitch.setEnabled(true);
+                }
+            });
+        }
+
+        @Override
+        public void onRideConfirmAccepted(final SyncPassenger passenger) {
+            activity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+
+
+                    Location passengerLocation = new Location("");
+                    Location destinationLocation = new Location("");
+
+                    SyncLocation passSyncLocation = passenger.getSyncOrigin().getOriginLocation();
+                    passengerLocation.setLatitude(passSyncLocation.getSyncLocationLatitude());
+                    passengerLocation.setLongitude(passSyncLocation.getSyncLocationLongitude());
+
+                    final SyncLocation destSyncLocation = passenger.getSyncDestination().getDestinationLocation();
+
+                    destinationLocation.setLatitude(destSyncLocation.getSyncLocationLatitude());
+                    destinationLocation.setLongitude(destSyncLocation.getSyncLocationLongitude());
+
+                    MapUtil.selectDestinationPlaceOnMap(
+                            destinationSelectedCallback,"",passengerLocation,GpsUtil.getLatLng(destinationLocation),activity);
 
 
                     mPickedUpPassengerButton.setVisibility(View.VISIBLE);
@@ -379,10 +389,10 @@ public class LookForRideFragment extends Fragment {
                     });
 
                     rideInfo.setText(Html.fromHtml(String.format(
-                                    rideInfo.getText().toString().replace("ss","%s"),
-                                    originAddress,
-                                    destAddress
-                                    )));
+                            rideInfo.getText().toString().replace("ss","%s"),
+                            originAddress,
+                            destAddress
+                    )));
 
                     android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(
                             activity);
@@ -393,7 +403,7 @@ public class LookForRideFragment extends Fragment {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
                                     openDirections(pickupLocation.getSyncLocationLatitude(),
-                                                    pickupLocation.getSyncLocationLongitude());
+                                            pickupLocation.getSyncLocationLongitude());
 
                                 }
                             })
@@ -403,11 +413,16 @@ public class LookForRideFragment extends Fragment {
         }
 
         @Override
-        public void onRideEnded() {
+        public void onRideConfirmedFailed() {
             activity.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    driverSwitch.setEnabled(true);
+                    android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(
+                            activity);
+
+                    builder.setTitle(R.string.passenger_taken).setMessage(R.string.passenger_taken)
+                            .setPositiveButton(R.string.ok,null)
+                            .create().show();
                 }
             });
         }
@@ -429,8 +444,8 @@ public class LookForRideFragment extends Fragment {
                 }
             });
         }
-
         @Override
+
         public void onRideAcceptFailed() {
 
             activity.runOnUiThread(new Runnable() {
@@ -439,7 +454,7 @@ public class LookForRideFragment extends Fragment {
                     android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(
                             activity);
 
-                    builder.setTitle("=").setMessage(R.string.ride_accept_failed)
+                    builder.setTitle("Ride Confirm Failed").setMessage(R.string.ride_accept_failed)
                             .setPositiveButton(R.string.ok,null)
                             .create().show();
                 }

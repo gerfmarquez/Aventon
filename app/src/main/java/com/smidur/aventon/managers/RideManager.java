@@ -290,12 +290,6 @@ public class RideManager {
                     HttpController controller = new HttpController(context);
                     controller.confirmRide(passenger);
 
-                    handler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            postRideStartedCallback(passenger);
-                        }
-                    });
 
                 } catch(TokenInvalidException tokenInvalid) {
 
@@ -350,6 +344,13 @@ public class RideManager {
                     )
             );
 
+        }
+        if(command.startsWith("Confirmed")) {
+
+            postRideConfirmAccepted();
+        }
+        if(command.startsWith("Taken")) {
+            postRideConfirmFailed();
         }
         if(command.startsWith("NoDriverFound")) {
             postNoDriverFoundCallback();
@@ -437,23 +438,6 @@ public class RideManager {
         }
     }
 
-
-    private void postRideStartedCallback(final SyncPassenger passenger) {
-        synchronized (driverEventsListeners) {
-            for(final DriverEventsListener listener: driverEventsListeners) {
-                if(listener!=null) {
-                    new Thread(new Runnable() {
-                        @Override
-                        public void run() {
-                            listener.onRideStarted(passenger);
-                        }
-                    }).start();
-
-                }
-            }
-
-        }
-    }
     private void postRideAcceptFailedCallback() {
         synchronized (driverEventsListeners) {
             for(final DriverEventsListener listener: driverEventsListeners) {
@@ -471,7 +455,7 @@ public class RideManager {
         }
     }
     public void postLookForRideConnectionErrorCallback() {
-        synchronized (passengerEventsListeners) {
+        synchronized (driverEventsListeners) {
             for(final DriverEventsListener listener: driverEventsListeners) {
                 if(listener!=null) {
                     new Thread(new Runnable() {
@@ -486,8 +470,38 @@ public class RideManager {
 
         }
     }
+    public void postRideConfirmAccepted() {
+        synchronized (driverEventsListeners) {
+            for(final DriverEventsListener listener: driverEventsListeners) {
+                if(listener!=null) {
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            listener.onRideConfirmAccepted(syncPassenger);
+                        }
+                    }).start();
 
+                }
+            }
 
+        }
+    }
+    public void postRideConfirmFailed() {
+        synchronized (driverEventsListeners) {
+            for(final DriverEventsListener listener: driverEventsListeners) {
+                if(listener!=null) {
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            listener.onRideConfirmedFailed();
+                        }
+                    }).start();
+
+                }
+            }
+
+        }
+    }
 
 
     //todo move this to another class
@@ -520,7 +534,8 @@ public class RideManager {
 
     public interface DriverEventsListener {
         void onRideAvailable(SyncPassenger passenger);
-        void onRideStarted(SyncPassenger passenger);
+        void onRideConfirmAccepted(SyncPassenger passenger);
+        void onRideConfirmedFailed();
         void onRideEnded();
         void onRideAcceptFailed();
         void onLookForRideConnectionError();

@@ -30,6 +30,7 @@ import com.amazonaws.mobile.AWSMobileClient;
 import com.amazonaws.mobile.user.IdentityManager;
 
 
+import com.smidur.aventon.cloud.ApiGatewayController;
 import com.smidur.aventon.navigation.NavigationDrawer;
 import com.smidur.aventon.utilities.GpsUtil;
 
@@ -167,6 +168,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
 
         setupSignInButtons();
+
+        new ApiGatewayController().invokeAPI();
     }
 
     @Override

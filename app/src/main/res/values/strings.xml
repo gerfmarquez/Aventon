@@ -78,5 +78,7 @@
     <string name="total_cost_message">"Total Cost is: "</string>
     <string name="enter_model">Please enter correct model</string>
     <string name="enter_plates_error">Please enter correct plates</string>
+    <string name="passenger_taken">Ride was Taken first by other driver.</string>
+
 
 </resources>

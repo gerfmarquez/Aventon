@@ -12,6 +12,9 @@ import android.content.Context;
 import android.util.Log;
 
 import com.amazonaws.ClientConfiguration;
+import com.amazonaws.mobile.api.CloudLogicAPI;
+import com.amazonaws.mobile.api.CloudLogicAPIConfiguration;
+import com.amazonaws.mobile.api.CloudLogicAPIFactory;
 import com.amazonaws.mobile.user.IdentityManager;
 import com.amazonaws.regions.Regions;
 import com.smidur.aventon.R;
@@ -164,6 +167,23 @@ public class AWSMobileClient {
             AWSMobileClient.setDefaultMobileClient(awsClient);
         }
         Log.d(LOG_TAG, "AWS Mobile Client is OK");
+    }
+
+
+    /**
+     * Creates and bootstraps Amazon API Gateway client with the current credentials
+     * provider.
+     * @param clientClass Amazon API Gateway client class
+     * @return client instance
+     */
+    public CloudLogicAPI createAPIClient(final Class<?> clientClass) {
+        for (final CloudLogicAPIConfiguration config : CloudLogicAPIFactory.getAPIs()) {
+            if (config.getClientClass().equals(clientClass)) {
+                return config.getClient();
+            }
+        }
+
+        throw new IllegalArgumentException("Unable to find API client for class: " + clientClass.getName());
     }
 
 }
