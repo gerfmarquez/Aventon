@@ -13,6 +13,7 @@ import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.support.annotation.MainThread;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
@@ -25,6 +26,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import com.amazonaws.mobile.AWSMobileClient;
 import com.amazonaws.mobile.user.IdentityManager;
@@ -33,6 +35,8 @@ import com.amazonaws.mobile.user.IdentityManager;
 import com.smidur.aventon.cloud.ApiGatewayController;
 import com.smidur.aventon.navigation.NavigationDrawer;
 import com.smidur.aventon.utilities.GpsUtil;
+
+import java.util.concurrent.CountDownLatch;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
     /** Class name for log messages. */
@@ -60,6 +64,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private static final int MY_PERMISSIONS_REQUEST_LOCATION = 89103571;
 
+    private CountDownLatch permissionLatch = new CountDownLatch(1);
+
     /**
      * Initializes the Toolbar for use with the activity.
      */
@@ -76,6 +82,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             // Restore the Toolbar's title.
             getSupportActionBar().setTitle(
                     savedInstanceState.getCharSequence(BUNDLE_KEY_TOOLBAR_TITLE));
+
+
         }
     }
 
@@ -101,13 +109,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         navigationDrawer = new NavigationDrawer(this, toolbar, drawerLayout, drawerItems,
                 R.id.main_fragment_container);
 
+        String mode = getIntent().getStringExtra("mode");
+        if(mode != null && mode.equals("passenger")) {
+            navigationDrawer.addDemoFeatureToMenu(NavigationDrawer.Screen.PASSENGER_SCHEDULE_FRAGMENT);
 
-        navigationDrawer.addDemoFeatureToMenu(NavigationDrawer.Screen.PASSENGER_SCHEDULE_FRAGMENT);
-        navigationDrawer.addDemoFeatureToMenu(NavigationDrawer.Screen.DRIVER_LOOK_FOR_RIDE);
+        } else if (mode != null && mode.equals("driver")) {
+            navigationDrawer.addDemoFeatureToMenu(NavigationDrawer.Screen.DRIVER_LOOK_FOR_RIDE);
+
+        }
 
         if (savedInstanceState == null) {
             // Add the home fragment to be displayed initially.
-            navigationDrawer.showHome();
+            navigationDrawer.showHome(MainActivity.this,getIntent());
         }
     }
 
@@ -117,26 +130,34 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         new Thread() {
             public void run() {
+
+                requestPermissions(new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},MY_PERMISSIONS_REQUEST_LOCATION);
+                try{
+                    permissionLatch.await();
+                }catch(InterruptedException ie) {
+                    //todo analytics
+                }
                 try {
                     GpsUtil.getLatLng(GpsUtil.getUserLocation(MainActivity.this));
 
                 } catch(SecurityException se) {
                     //todo analytics
                     //todo retry or check before attempting so that we know permission is there.
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            requestPermissions(new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},MY_PERMISSIONS_REQUEST_LOCATION);
-                        }
-                    });
-
+                    return;
 
                 }
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        onContinueOnCreate(savedInstanceState);
+                    }
+                });
             }
         }.start();
 
 
-
+    }
+    private void onContinueOnCreate(final Bundle savedInstanceState) {
         // Obtain a reference to the mobile client. It is created in the Application class,
         // but in case a custom Application class is not used, we initialize it here if necessary.
         AWSMobileClient.initializeMobileClientIfNecessary(this);
@@ -152,24 +173,39 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         setupToolbar(savedInstanceState);
 
         setupNavigationMenu(savedInstanceState);
+
+        setupSignInButtons();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
 
-        if (!AWSMobileClient.defaultMobileClient().getIdentityManager().isUserSignedIn()) {
-            // In the case that the activity is restarted by the OS after the application
-            // is killed we must redirect to the splash activity to handle the sign-in flow.
-            Intent intent = new Intent(this, SplashActivity.class);
-            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-            startActivity(intent);
-            return;
-        }
+        new Thread() {
+            public void run() {
+                try{
+                    permissionLatch.await();
+                }catch(InterruptedException ie) {
+                    //todo analytics
+                }
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (!AWSMobileClient.defaultMobileClient().getIdentityManager().isUserSignedIn()) {
+                            // In the case that the activity is restarted by the OS after the application
+                            // is killed we must redirect to the splash activity to handle the sign-in flow.
+                            Intent intent = new Intent(MainActivity.this, SplashActivity.class);
+                            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                            startActivity(intent);
+                            return;
+                        }
 
-        setupSignInButtons();
 
-        new ApiGatewayController().invokeAPI();
+                    }
+                });
+            }
+        }.start();
+
     }
 
     @Override
@@ -245,6 +281,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onRequestPermissionsResult(int requestCode,
                                            String permissions[], int[] grantResults) {
+        permissionLatch.countDown();
+
         switch (requestCode) {
             case MY_PERMISSIONS_REQUEST_LOCATION: {
                 // If request is cancelled, the result arrays are empty.
@@ -253,6 +291,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
                 } else {
+                    Toast.makeText(MainActivity.this, R.string.accept_permission, Toast.LENGTH_LONG).show();
                     finish();
                 }
                 return;

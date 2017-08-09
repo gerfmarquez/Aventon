@@ -24,19 +24,38 @@ public class ApiGatewayController {
 
     String TAG = getClass().getSimpleName();
 
-    public void invokeAPI() {
+
+
+    public void checkDriverRegistered(String email,final DriverRegisteredCallback driverRegisteredCallback) {
+
+        String path = "/checkRegisteredDrivers";
+        String body = "{\"email\":\""+email+"\"}";
+        ApiGatewayResult apiGatewayResult = new ApiGatewayResult() {
+            @Override
+            public void onSuccess(int code, String message) {
+                if(code == 200) {
+                    driverRegisteredCallback.onDriverRegistered();
+                } else {
+                    driverRegisteredCallback.onDriverNotRegistered();
+                }
+            }
+
+            @Override
+            public void onError() {
+                driverRegisteredCallback.onError();
+            }
+        };
+        invokeAwsGatewayApi(path,body,apiGatewayResult);
+    }
+
+    private void invokeAwsGatewayApi(final String path, String jsonBody,final ApiGatewayResult apiGatewayResult) {
 
         // Set your request method, path, query string parameters, and request body
         final String method = "POST";
-        final String path = "/checkRegisteredDrivers";
-        final String body = "{\"email\":\"\"}";
 
         final Map<String, String> headers = new HashMap<String, String>();
-//        headers.put("Authorization",accessToken);
 
-
-        final byte[] content = body.getBytes(StringUtils.UTF8);
-
+        final byte[] content = jsonBody.getBytes(StringUtils.UTF8);
 
         // Create an instance of your custom SDK client
         final AWSMobileClient mobileClient = AWSMobileClient.defaultMobileClient();
@@ -69,14 +88,27 @@ public class ApiGatewayController {
 
                     Log.d(TAG, "Response Status: " + statusCode + " " + statusText);
 
-                    // TODO: Add your custom handling for server response status codes (e.g., 403 Forbidden)
+                    apiGatewayResult.onSuccess(statusCode,statusText);
+
 
                 } catch (final AmazonClientException exception) {
                     Log.e(TAG, exception.getMessage(), exception);
 
-                    // TODO: Put your exception handling code here (e.g., network error)
+                    apiGatewayResult.onError();
                 }
             }
         }).start();
+    }
+
+
+    public interface DriverRegisteredCallback {
+        public void onDriverRegistered();
+        public void onDriverNotRegistered();
+        public void onError();
+    }
+
+    interface ApiGatewayResult {
+        void onSuccess(int code, String message);
+        void onError();
     }
 }

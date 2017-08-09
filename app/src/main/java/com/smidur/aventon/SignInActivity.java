@@ -52,8 +52,8 @@ public class SignInActivity extends Activity {
                 @Override
                 public void run() {
                     Log.d(LOG_TAG, "Launching Main Activity...");
-                    startActivity(new Intent(SignInActivity.this, MainActivity.class)
-                            .setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
+                    startActivity(new Intent(SignInActivity.this, SplashActivity.class)
+                            .setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK));
                     // finish should always be called on the main thread.
                     finish();
                 }

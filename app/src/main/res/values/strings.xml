@@ -47,8 +47,8 @@
     <string name="ok">OK</string>
     <string name="destination_too_far">Destination is too far!</string>
 
-    <string name="passenger_schedule">Passenger</string>
-    <string name="driver_look_ride">Driver</string>
+    <string name="passenger_schedule">Passenger Mode</string>
+    <string name="driver_look_ride">Driver Mode</string>
     <string name="ride_from_to"><![CDATA["<html><big>Ride from </big> <small> ss </small> <br><big> To </big>  <small> ss </small></html>"]]></string>
     <string name="select_destination">Where are you headed?</string>
     <string name="connection_error">Connection Error</string>
@@ -79,6 +79,9 @@
     <string name="enter_model">Please enter correct model</string>
     <string name="enter_plates_error">Please enter correct plates</string>
     <string name="passenger_taken">Ride was Taken first by other driver.</string>
+    <string name="accept_permission">You must accept the permission</string>
+    <string name="driver_mode">Drive Somebody</string>
+    <string name="passenger_mode">Find a Ride</string>
 
 
 </resources>

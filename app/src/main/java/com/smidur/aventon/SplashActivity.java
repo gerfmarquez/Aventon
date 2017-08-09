@@ -8,9 +8,14 @@
 //
 package com.smidur.aventon;
 
+import android.accounts.Account;
+import android.accounts.AccountManager;
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.widget.Toast;
@@ -19,8 +24,10 @@ import com.amazonaws.mobile.user.signin.SignInManager;
 import com.amazonaws.mobile.user.signin.SignInProvider;
 import com.amazonaws.mobile.user.IdentityManager;
 import com.amazonaws.mobile.user.IdentityProvider;
+import com.smidur.aventon.cloud.ApiGatewayController;
 
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Splash Activity is the start-up activity that appears until a delay is expired
@@ -31,6 +38,8 @@ public class SplashActivity extends Activity {
     private static final String LOG_TAG = SplashActivity.class.getSimpleName();
     private final CountDownLatch timeoutLatch = new CountDownLatch(1);
     private SignInManager signInManager;
+
+    private CountDownLatch latchPermission = new CountDownLatch(1);
 
     /**
      * SignInResultsHandler handles the results from sign-in for a previously signed in user.
@@ -57,9 +66,78 @@ public class SplashActivity extends Activity {
                     .loadUserInfoAndImage(provider, new Runnable() {
                         @Override
                         public void run() {
-                            goMain();
+                           new Thread() {
+                               public void run() {
+
+                                   requestPermissions(new String[]{"android.permission.GET_ACCOUNTS"},5);
+
+                                   try {
+                                       //if user denies the permission countdown latch is still released but security exception
+                                       //will be thrown below.
+                                       //next time however app will ask for permission again.
+                                       latchPermission.await();
+                                   }
+                                   catch(InterruptedException ie){
+                                       //todo log analytics}
+                                   }
+
+                                   AccountManager accountManager = (AccountManager) getSystemService(Context.ACCOUNT_SERVICE);
+
+                                   String email = null;
+                                   try {
+                                       Account[] accounts = accountManager.getAccounts();
+                                       for(Account account: accounts) {
+                                           if(account.name.contains("gmail")) {
+                                               Log.d("##","Account: "+account.name);
+                                               email = account.name;
+                                               break;
+                                           }
+
+                                       }
+                                   }catch(SecurityException se) {
+
+                                       return;
+                                   }
+
+                                   if(email == null) {
+                                       finish();
+                                       return;
+                                   }
+                                   ApiGatewayController apiGatewayController = new ApiGatewayController();
+
+                                   apiGatewayController.checkDriverRegistered(email,new ApiGatewayController.DriverRegisteredCallback() {
+                                       @Override
+                                       public void onDriverRegistered() {
+
+                                           goMain("driver");
+                                       }
+
+                                       @Override
+                                       public void onDriverNotRegistered() {
+
+                                           goMain("passenger");
+
+                                       }
+
+                                       @Override
+                                       public void onError() {
+                                           Toast.makeText(SplashActivity.this, getString(R.string.connection_error), Toast.LENGTH_LONG).show();
+                                           runOnUiThread(new Runnable() {
+                                               @Override
+                                               public void run() {
+                                                   finish();
+                                               }
+                                           });
+                                       }
+                                   });
+                               }
+                           }.start();
                         }
                     });
+
+
+
+
         }
 
         /**
@@ -98,6 +176,7 @@ public class SplashActivity extends Activity {
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
+
 
         final Thread thread = new Thread(new Runnable() {
             public void run() {
@@ -159,12 +238,26 @@ public class SplashActivity extends Activity {
         thread.start();
     }
 
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        latchPermission.countDown();
+        if (requestCode==5 && grantResults.length > 0
+                && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+        } else {
+            Toast.makeText(SplashActivity.this, R.string.accept_permission, Toast.LENGTH_LONG).show();
+            finish();
+        }
+    }
+
     /**
      * Go to the main activity after the splash timeout has expired.
      */
-    protected void goMain() {
+    protected void goMain(String mode) {
+
         Log.d(LOG_TAG, "Launching Main Activity...");
-        goAfterSplashTimeout(new Intent(this, MainActivity.class));
+        Intent intent = new Intent(this, MainActivity.class);
+        intent.putExtra("mode",mode);
+        goAfterSplashTimeout(intent);
     }
 
     /**

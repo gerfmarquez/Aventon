@@ -1,5 +1,7 @@
 package com.smidur.aventon.navigation;
 
+import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Build;
@@ -224,18 +226,38 @@ public class NavigationDrawer {
         }
     }
 
-    public void showHome() {
-        final SchedulePickupFragment fragment = new SchedulePickupFragment();
+    public void showHome(Context context, Intent intent) {
 
-        containingActivity.getSupportFragmentManager()
-                .beginTransaction()
-                .add(fragmentContainerId, fragment, "PASSENGER_SCHEDULE_FRAGMENT")
-                .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
-                .commit();
+
+
+        String mode = intent.getStringExtra("mode");
+        String titleMode = "";
+        if(mode != null && mode.equals("passenger")) {
+            Fragment fragment = new SchedulePickupFragment();
+            containingActivity.getSupportFragmentManager()
+                    .beginTransaction()
+                    .add(fragmentContainerId, fragment, Screen.PASSENGER_SCHEDULE_FRAGMENT.name())
+                    .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
+                    .commit();
+            titleMode = context.getString(R.string.passenger_mode);
+
+        } else if (mode != null && mode.equals("driver")) {
+            Fragment fragment = new LookForRideFragment();
+            containingActivity.getSupportFragmentManager()
+                    .beginTransaction()
+                    .add(fragmentContainerId, fragment, Screen.DRIVER_LOOK_FOR_RIDE.name())
+                    .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
+                    .commit();
+            titleMode = context.getString(R.string.driver_mode);
+
+        }
+
+
+
 
         // Set the title for the fragment.
         final ActionBar actionBar = containingActivity.getSupportActionBar();
-        actionBar.setTitle(R.string.app_name);
+        actionBar.setTitle(context.getString(R.string.app_name)+" "+titleMode);
         closeDrawer();
     }
 
