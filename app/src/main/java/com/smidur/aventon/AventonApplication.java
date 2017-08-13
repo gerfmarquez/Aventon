@@ -14,6 +14,10 @@ import android.support.multidex.MultiDex;
 import android.util.Log;
 
 import com.amazonaws.mobile.AWSMobileClient;
+import com.crashlytics.android.Crashlytics;
+import com.crashlytics.android.core.CrashlyticsCore;
+
+import io.fabric.sdk.android.Fabric;
 
 /**
  * Application class responsible for initializing singletons and other common components.
@@ -27,6 +31,8 @@ public class AventonApplication extends Application {
         super.onCreate();
         initializeApplication();
         Log.d(LOG_TAG, "Application.onCreate - Application initialized OK");
+
+        initCrashlytics();
     }
 
     @Override
@@ -39,5 +45,11 @@ public class AventonApplication extends Application {
         AWSMobileClient.initializeMobileClientIfNecessary(getApplicationContext());
 
         // ...Put any application-specific initialization logic here...
+    }
+    private void initCrashlytics() {
+        Crashlytics crashlyticsKit = new com.crashlytics.android.Crashlytics.Builder()
+                .core(new CrashlyticsCore.Builder().disabled(false).build())
+                .build();
+        Fabric.with(this, crashlyticsKit, new Crashlytics());
     }
 }
