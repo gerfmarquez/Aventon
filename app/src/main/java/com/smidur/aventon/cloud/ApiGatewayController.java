@@ -12,6 +12,7 @@ import com.amazonaws.mobile.user.IdentityManager;
 import com.amazonaws.mobileconnectors.apigateway.ApiRequest;
 import com.amazonaws.mobileconnectors.apigateway.ApiResponse;
 import com.amazonaws.util.StringUtils;
+import com.google.gson.Gson;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -29,8 +30,8 @@ public class ApiGatewayController {
     public void checkDriverRegistered(String email,final DriverRegisteredCallback driverRegisteredCallback) {
 
         String path = "/checkRegisteredDrivers";
-        String body = "{\"email\":\""+email+"\"}";
-        ApiGatewayResult apiGatewayResult = new ApiGatewayResult() {
+
+        final ApiGatewayResult apiGatewayResult = new ApiGatewayResult() {
             @Override
             public void onSuccess(int code, String message) {
                 if(code == 200) {
@@ -45,17 +46,13 @@ public class ApiGatewayController {
                 driverRegisteredCallback.onError();
             }
         };
-        invokeAwsGatewayApi(path,body,apiGatewayResult);
-    }
-
-    private void invokeAwsGatewayApi(final String path, String jsonBody,final ApiGatewayResult apiGatewayResult) {
 
         // Set your request method, path, query string parameters, and request body
         final String method = "POST";
 
         final Map<String, String> headers = new HashMap<String, String>();
 
-        final byte[] content = jsonBody.getBytes(StringUtils.UTF8);
+//        final byte[] content = jsonBody.getBytes(StringUtils.UTF8);
 
         // Create an instance of your custom SDK client
         final AWSMobileClient mobileClient = AWSMobileClient.defaultMobileClient();
@@ -67,10 +64,11 @@ public class ApiGatewayController {
                         .withPath(path)
                         .withHttpMethod(HttpMethodName.valueOf(method))
                         .withHeaders(headers)
+                        .withParameter("email",email)
                         .addHeader("Content-Type", "application/json")
-                        .addHeader("Content-Length", String.valueOf(content.length))
-                        .withBody(content);
-
+                        .addHeader("Content-Length", String.valueOf(1))//content.length))
+                        .withBody(".")
+                ;
 
 
         // Make network call on background thread
@@ -98,6 +96,41 @@ public class ApiGatewayController {
                 }
             }
         }).start();
+
+    }
+
+//    public void completeRide(long timeCompleted,String email, float totalCost,final DriverRegisteredCallback driverRegisteredCallback) {
+//
+//        String path = "/completeride";
+//
+//        HashMap<String,String> toJson = new HashMap<>();
+//        toJson.put("timeCompleted",""+timeCompleted);
+//        toJson.put("email",""+email);
+//        toJson.put("totalCost",""+totalCost);
+//
+//        String body = new Gson().toJson(toJson);
+//
+//        ApiGatewayResult apiGatewayResult = new ApiGatewayResult() {
+//            @Override
+//            public void onSuccess(int code, String message) {
+//                if(code == 200) {
+//                    driverRegisteredCallback.onDriverRegistered();
+//                } else {
+//                    driverRegisteredCallback.onDriverNotRegistered();
+//                }
+//            }
+//
+//            @Override
+//            public void onError() {
+//                driverRegisteredCallback.onError();
+//            }
+//        };
+//        invokeAwsGatewayApi(path,apiGatewayResult);
+//    }
+
+    private void invokeAwsGatewayApi(final String path,final ApiGatewayResult apiGatewayResult) {
+
+
     }
 
 

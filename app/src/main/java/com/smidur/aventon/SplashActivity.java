@@ -69,6 +69,7 @@ public class SplashActivity extends Activity {
                            new Thread() {
                                public void run() {
 
+
                                    requestPermissions(new String[]{"android.permission.GET_ACCOUNTS"},5);
 
                                    try {

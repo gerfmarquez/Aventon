@@ -1,4 +1,5 @@
 apply plugin: 'com.android.application'
+apply plugin: 'io.fabric'
 
 android {
     compileSdkVersion 25
@@ -44,6 +45,10 @@ dependencies {
     compile('com.amazonaws:aws-android-sdk-apigateway-core:2.3.8')
 
     compile 'com.google.android.gms:play-services:10.2.6'
+
+    compile('com.crashlytics.sdk.android:crashlytics:2.6.8@aar') {
+        transitive = true;
+    }
 
     testCompile 'junit:junit:4.12'
 }
