@@ -83,7 +83,7 @@ public class HttpWrapper {
     public HttpResponse httpPOST(String path, @Nullable Hashtable<String, String> postValues, Context context) throws  IOException {
         return genericHttpCall(path,context, HttpRequestType.POST,postValues);
     }
-    public HttpResponse httpPOST(String path, UpdateCallback updateCallback, @Nullable String json, Context context) throws  IOException {
+    public HttpResponse httpPOST(String path, @Nullable UpdateCallback updateCallback, @Nullable String json, Context context) throws  IOException {
         this.updateCallback = updateCallback;
         return genericHttpCall(path,context, HttpRequestType.POST,json);
     }

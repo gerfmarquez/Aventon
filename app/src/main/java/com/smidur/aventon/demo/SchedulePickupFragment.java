@@ -47,6 +47,7 @@ import com.smidur.aventon.model.GoogleApiLeg;
 import com.smidur.aventon.model.SyncDestination;
 import com.smidur.aventon.model.SyncDriver;
 import com.smidur.aventon.model.SyncLocation;
+import com.smidur.aventon.model.SyncRideSummary;
 import com.smidur.aventon.utilities.Constants;
 import com.smidur.aventon.utilities.GpsUtil;
 import com.smidur.aventon.utilities.MapUtil;
@@ -364,6 +365,7 @@ public class SchedulePickupFragment extends Fragment implements PlaceSelectionLi
 
         }
 
+
         @Override
         public void onSchedulePickupConnectionError() {
 
@@ -403,7 +405,18 @@ public class SchedulePickupFragment extends Fragment implements PlaceSelectionLi
 
         }
         @Override
-        public void onDriverArrived() {
+        public void onDriverArrived(SyncRideSummary rideSummary) {
+            android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(
+                    activity);
+            String totalCostFormat = String.format("$%.2f",rideSummary.getTotalCost());
+            builder.setTitle(R.string.arrived_destination).setMessage(getString(R.string.total_cost_label)+" "+totalCostFormat)
+                    .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            //todo save on shared preferences or notify api gateway for historical record?
+                        }
+                    })
+                    .create().show();
             //stop receving updates from driver once they arrive
             RideManager.i(activity).endSchedulePassengerPickup();
         }

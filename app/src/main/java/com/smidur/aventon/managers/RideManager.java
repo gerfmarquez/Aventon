@@ -16,6 +16,7 @@ import com.smidur.aventon.model.SyncDriver;
 import com.smidur.aventon.model.SyncLocation;
 import com.smidur.aventon.model.SyncOrigin;
 import com.smidur.aventon.model.SyncPassenger;
+import com.smidur.aventon.model.SyncRideSummary;
 import com.smidur.aventon.sync.Sync;
 import com.smidur.aventon.utilities.GoogleApiWrapper;
 import com.smidur.aventon.utilities.GpsUtil;
@@ -44,10 +45,12 @@ public class RideManager {
 
     SyncDriver syncDriver;
 
+    String email;
+
     TaxiMeterManager taxiMeterManager;
 
     SyncPassenger syncPassenger;
-
+    SyncRideSummary syncRideSummary;
 
     /**
      *  Start - Singleton
@@ -115,6 +118,8 @@ public class RideManager {
         stopTaxiMeter();//create callback to let activity know about the total price.
         //also move the above line and separate it from resuming shift until after driver clicks a dialog ok.
 
+        syncPassenger = null;
+
         isDriverOnRide = false;
         isDriverAvailable = true;
         Sync.i(context).startSyncRideInfo(syncDriver);
@@ -174,6 +179,12 @@ public class RideManager {
     }
     public SyncPassenger getSyncPassenger() {
         return syncPassenger;
+    }
+    public void setDriverEmail(String email) {
+        this.email = email;
+    }
+    public String getDriverEmail() {
+        return email;
     }
     /**
      * Register for  events
@@ -280,6 +291,32 @@ public class RideManager {
         }
     }
 
+    public void completeRide(final SyncRideSummary syncRideSummary) {
+        this.syncRideSummary = syncRideSummary;
+
+        new Thread(){
+            public void run() {
+                try {
+                    HttpController controller = new HttpController(context);
+                    controller.completeRide(syncRideSummary);
+
+                } catch(TokenInvalidException tokenInvalid) {
+                    //todo refresh and try again.
+                    tokenInvalid.printStackTrace();
+                }
+                catch(IOException ioe) {
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            postCompleteRideFailedCallback();
+                        }
+                    });
+
+                }
+            }
+        }.start();
+
+    }
 
 
     public void confirmPassengerPickup(final SyncPassenger passenger) {
@@ -345,6 +382,12 @@ public class RideManager {
             );
 
         }
+        if(command.startsWith("DropOff")) {
+            String jsonSummary = message.replace("DropOff:","");
+
+            SyncRideSummary rideSummary = new Gson().fromJson(jsonSummary,SyncRideSummary.class);
+            postArrivedCallback(rideSummary);
+        }
         if(command.startsWith("Confirmed")) {
 
             postRideConfirmAccepted();
@@ -352,6 +395,10 @@ public class RideManager {
         if(command.startsWith("Taken")) {
             postRideConfirmFailed();
         }
+        if(command.startsWith("Completed")) {
+            postCompleteRideSuccessCallback(syncRideSummary);
+        }
+
         if(command.startsWith("NoDriverFound")) {
             postNoDriverFoundCallback();
         }
@@ -381,6 +428,22 @@ public class RideManager {
                         @Override
                         public void run() {
                             listener.onPickupScheduled(driver);
+                        }
+                    }).start();
+
+                }
+            }
+
+        }
+    }
+    private void postArrivedCallback(final SyncRideSummary syncRideSummary) {
+        synchronized (passengerEventsListeners) {
+            for(final PassengerEventsListener listener: passengerEventsListeners) {
+                if(listener!=null) {
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            listener.onDriverArrived(syncRideSummary);
                         }
                     }).start();
 
@@ -446,6 +509,38 @@ public class RideManager {
                         @Override
                         public void run() {
                             listener.onRideAcceptFailed();
+                        }
+                    }).start();
+
+                }
+            }
+
+        }
+    }
+    private void postCompleteRideFailedCallback() {
+        synchronized (driverEventsListeners) {
+            for(final DriverEventsListener listener: driverEventsListeners) {
+                if(listener!=null) {
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            listener.onCompleteRideFailure();
+                        }
+                    }).start();
+
+                }
+            }
+
+        }
+    }
+    private void postCompleteRideSuccessCallback(final SyncRideSummary rideSummary) {
+        synchronized (driverEventsListeners) {
+            for(final DriverEventsListener listener: driverEventsListeners) {
+                if(listener!=null) {
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            listener.onCompleteRideSuccess(rideSummary);
                         }
                     }).start();
 
@@ -536,6 +631,8 @@ public class RideManager {
         void onRideAvailable(SyncPassenger passenger);
         void onRideConfirmAccepted(SyncPassenger passenger);
         void onRideConfirmedFailed();
+        void onCompleteRideFailure();
+        void onCompleteRideSuccess(SyncRideSummary rideSummary);
         void onRideEnded();
         void onRideAcceptFailed();
         void onLookForRideConnectionError();
@@ -544,7 +641,7 @@ public class RideManager {
     public interface PassengerEventsListener {
         void onPickupScheduled(SyncDriver driver);
         void onDriverApproaching(SyncLocation driverNewLocation);
-        void onDriverArrived();
+        void onDriverArrived(SyncRideSummary rideSummary);
         void onSchedulePickupConnectionError();
         void onNoDriverFoundNearby();//todo
     }

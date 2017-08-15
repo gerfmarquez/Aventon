@@ -19,6 +19,7 @@ import com.smidur.aventon.model.SyncDestination;
 import com.smidur.aventon.model.SyncDriver;
 import com.smidur.aventon.model.SyncLocation;
 import com.smidur.aventon.model.SyncPassenger;
+import com.smidur.aventon.model.SyncRideSummary;
 import com.smidur.aventon.utilities.GoogleMapRouteRequestBuilder;
 import com.smidur.aventon.utilities.GoogleMapsModelRequestBuilder;
 
@@ -98,7 +99,21 @@ public class HttpController {
             throw new IOException("Http Code not expected:"+response.code);
         }
     }
+    public void completeRide(SyncRideSummary rideSummary) throws IOException, TokenInvalidException {
 
+        wrapper = new HttpWrapper();
+
+        String jsonBody = new Gson().toJson(rideSummary);
+
+        HttpResponse response = wrapper.httpPOST("accept_ride",null,jsonBody,context);
+
+        if(response.code==401) {
+            throw new TokenInvalidException();
+        }
+        if(response.code != 200) {
+            throw new IOException("Http Code not expected:"+response.code);
+        }
+    }
     public void schedulePickupCall(SyncPassenger syncPassenger, @NonNull final SchedulePickupCallback callback) throws IOException, TokenInvalidException {
 
         wrapper = new HttpWrapper();

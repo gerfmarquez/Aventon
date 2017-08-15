@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.Toolbar;
 import android.text.Html;
@@ -36,12 +37,15 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.smidur.aventon.R;
+import com.smidur.aventon.cloud.ApiGatewayController;
+import com.smidur.aventon.http.HttpController;
 import com.smidur.aventon.managers.RideManager;
 import com.smidur.aventon.managers.TaxiMeterManager;
 import com.smidur.aventon.model.GoogleApiLeg;
 import com.smidur.aventon.model.SyncDestination;
 import com.smidur.aventon.model.SyncLocation;
 import com.smidur.aventon.model.SyncPassenger;
+import com.smidur.aventon.model.SyncRideSummary;
 import com.smidur.aventon.utilities.Constants;
 import com.smidur.aventon.utilities.GpsUtil;
 import com.smidur.aventon.utilities.MapUtil;
@@ -150,25 +154,13 @@ public class LookForRideFragment extends Fragment {
                 mPickedUpPassengerButton.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        float totalCost = TaxiMeterManager.i(getContext()).getTotalPrice();
-                        //todo dont kill activity and handle end of ride well
-//                        RideManager.i(getContext()).resumeDriverShiftAndEndRide();
-                        RideManager.i(getContext()).endDriverShift();
-                        //todo call server? or just show results from taxi meter to driver?
-                        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(
-                                activity);
+                        final SyncRideSummary rideSummary = TaxiMeterManager.i(getContext()).getRideSummary();
 
-                        String formatTotalCost = String.format(" %.2f",totalCost);
+                        String passengerId = RideManager.i(getContext()).getSyncPassenger().getPassengerId();
+                        rideSummary.setPassengerId(passengerId);
 
-                        builder.setTitle(R.string.total_cost)
-                                .setMessage(getString(R.string.total_cost_message)+formatTotalCost)
-                                .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int which) {
-                                        activity.finish();
-                                    }
-                                })
-                                .create().show();
+                        RideManager.i(getContext()).completeRide(rideSummary);
+
                     }
                 });
 
@@ -459,6 +451,54 @@ public class LookForRideFragment extends Fragment {
                             .create().show();
                 }
             });
+        }
+
+        @Override
+        public void onCompleteRideSuccess(final SyncRideSummary rideSummary) {
+
+            //this shouldn't be null at this point
+            String driverEmail = RideManager.i(getContext()).getDriverEmail();
+
+            ApiGatewayController apiGatewayController = new ApiGatewayController();
+
+            apiGatewayController.completeRide(driverEmail,rideSummary, new ApiGatewayController.RideCompletedCallback() {
+                        @Override
+                        public void onRideCompletedSuccessful() {
+                            new Handler(getContext().getMainLooper()).post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    //todo dont kill activity and handle end of ride well
+                                    RideManager.i(getContext()).resumeDriverShiftAndEndRide();
+
+                                    android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(
+                                            activity);
+
+                                    String formatTotalCost = String.format(" %.2f",rideSummary.getTotalCost());
+
+                                    builder.setTitle(R.string.total_cost)
+                                            .setMessage(getString(R.string.total_cost_message)+formatTotalCost)
+                                            .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                                                @Override
+                                                public void onClick(DialogInterface dialog, int which) {
+                                                    activity.finish();
+                                                }
+                                            })
+                                            .create().show();
+                                }
+                            });
+                        }
+
+                        @Override
+                        public void onRideCompletedFailed() {
+                            //todo error
+                            //todo analytics
+                        }
+                    });
+        }
+
+        @Override
+        public void onCompleteRideFailure() {
+
         }
     };
 

@@ -82,6 +82,8 @@
     <string name="accept_permission">You must accept the permission</string>
     <string name="driver_mode">Drive Somebody</string>
     <string name="passenger_mode">Find a Ride</string>
+    <string name="arrived_destination">Arrived to Destination</string>
+    <string name="total_cost_label">"Total Cost: "</string>
 
 
 </resources>

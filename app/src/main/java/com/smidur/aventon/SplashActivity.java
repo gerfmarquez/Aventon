@@ -25,6 +25,7 @@ import com.amazonaws.mobile.user.signin.SignInProvider;
 import com.amazonaws.mobile.user.IdentityManager;
 import com.amazonaws.mobile.user.IdentityProvider;
 import com.smidur.aventon.cloud.ApiGatewayController;
+import com.smidur.aventon.managers.RideManager;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -89,8 +90,9 @@ public class SplashActivity extends Activity {
                                        Account[] accounts = accountManager.getAccounts();
                                        for(Account account: accounts) {
                                            if(account.name.contains("gmail")) {
-                                               Log.d("##","Account: "+account.name);
+                                               Log.d("","Account: "+account.name);
                                                email = account.name;
+                                               RideManager.i(SplashActivity.this).setDriverEmail(email);
                                                break;
                                            }
 

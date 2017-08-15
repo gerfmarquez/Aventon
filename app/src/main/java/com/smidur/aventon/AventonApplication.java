@@ -33,6 +33,7 @@ public class AventonApplication extends Application {
         Log.d(LOG_TAG, "Application.onCreate - Application initialized OK");
 
         initCrashlytics();
+
     }
 
     @Override
