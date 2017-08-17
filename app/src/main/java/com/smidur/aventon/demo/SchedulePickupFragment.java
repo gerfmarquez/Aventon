@@ -405,18 +405,27 @@ public class SchedulePickupFragment extends Fragment implements PlaceSelectionLi
 
         }
         @Override
-        public void onDriverArrived(SyncRideSummary rideSummary) {
-            android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(
-                    activity);
-            String totalCostFormat = String.format("$%.2f",rideSummary.getTotalCost());
-            builder.setTitle(R.string.arrived_destination).setMessage(getString(R.string.total_cost_label)+" "+totalCostFormat)
-                    .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            //todo save on shared preferences or notify api gateway for historical record?
-                        }
-                    })
-                    .create().show();
+        public void onDriverArrived(final SyncRideSummary rideSummary) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(
+                            activity);
+                    String totalCostFormat = String.format("$%.2f",rideSummary.getTotalCost());
+                    builder.setTitle(R.string.arrived_destination).setMessage(getString(R.string.total_cost_label)+" "+totalCostFormat)
+                            .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    //todo save on shared preferences or notify api gateway for historical record?
+                                    //analytics
+                                    getActivity().finish();
+                                }
+                            })
+                            .setCancelable(false)
+                            .create().show();
+                }
+            });
+
             //stop receving updates from driver once they arrive
             RideManager.i(activity).endSchedulePassengerPickup();
         }

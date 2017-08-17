@@ -350,7 +350,6 @@ public class RideManager {
     public void processMessage(String message) {
         String[] pair = message.split(":");
         String command = (pair)[0].trim();
-        String value = (pair)[1].trim();
 
         if(command.startsWith("Passenger")) {
             String passenger = message.replace("Passenger:","").trim();
@@ -371,6 +370,7 @@ public class RideManager {
         }
         if(command.startsWith("NewDriverLocation")) {
 
+            String value = (pair)[1].trim();
             String latitude = value.split(",")[0];
             String longitude = value.split(",")[1];
 

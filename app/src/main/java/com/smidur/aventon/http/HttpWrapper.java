@@ -291,7 +291,6 @@ public class HttpWrapper {
 
             if(updateCallback!=null) {
                 updateCallback.onUpdate(readLine);
-                updateCallback = null;
             }
             if(updateCallback == null) {
                 builder.append(readLine);

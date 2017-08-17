@@ -4,6 +4,7 @@ import android.content.Context;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Handler;
+import android.util.Log;
 
 import com.amazonaws.mobile.AWSMobileClient;
 import com.amazonaws.mobile.user.IdentityManager;
@@ -185,7 +186,9 @@ public class Sync {
                             se.printStackTrace();
                             handler.removeCallbacks(syncAvailableRides);
                             closeConnectionIfOpen();
-                            return;
+
+                            Log.e(TAG,"SocketException Sync Available Rides",se);
+
                         } catch(IOException ioe) {
 
 //                            handler.removeCallbacks(syncAvailableRides);
@@ -307,7 +310,9 @@ public class Sync {
                             se.printStackTrace();
                             handler.removeCallbacks(syncSchedulePickup);
                             closeConnectionIfOpen();
-                            return;
+
+                            Log.e(TAG,"SocketException Sync Schedule Pickup",se);
+
                         } catch(IOException ioe) {
 
 

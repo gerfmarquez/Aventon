@@ -90,7 +90,7 @@ public class HttpController {
         //todo add headers for passenger which driver is confirming ride?
         Hashtable<String,String> parameters = new Hashtable<>();
         parameters.put("passengerId",passenger.getPassengerId());
-        HttpResponse response = wrapper.httpPOST("complete_ride",parameters,context);
+        HttpResponse response = wrapper.httpPOST("accept_ride",parameters,context);
 
         if(response.code==401) {
             throw new TokenInvalidException();
@@ -105,7 +105,7 @@ public class HttpController {
 
         String jsonBody = new Gson().toJson(rideSummary);
 
-        HttpResponse response = wrapper.httpPOST("accept_ride",null,jsonBody,context);
+        HttpResponse response = wrapper.httpPOST("complete_ride",null,jsonBody,context);
 
         if(response.code==401) {
             throw new TokenInvalidException();
