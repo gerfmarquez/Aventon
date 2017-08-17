@@ -11,6 +11,7 @@ public class SyncRideSummary {
     private float distance;
     private float duration;
     private float timeCompleted;
+    private String dateTimeCompleted;
 
 
     public String getPassengerId() {
@@ -51,5 +52,13 @@ public class SyncRideSummary {
 
     public void setTimeCompleted(float timeCompleted) {
         this.timeCompleted = timeCompleted;
+    }
+
+    public String getDateTimeCompleted() {
+        return dateTimeCompleted;
+    }
+
+    public void setDateTimeCompleted(String dateTimeCompleted) {
+        this.dateTimeCompleted = dateTimeCompleted;
     }
 }

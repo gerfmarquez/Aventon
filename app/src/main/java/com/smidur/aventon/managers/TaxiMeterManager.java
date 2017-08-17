@@ -14,8 +14,10 @@ import com.smidur.aventon.utilities.GoogleApiWrapper;
 import com.smidur.aventon.utilities.GpsUtil;
 import com.smidur.aventon.utilities.NotificationUtil;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -225,11 +227,15 @@ public class TaxiMeterManager {
     public SyncRideSummary getRideSummary() {
         SyncRideSummary rideSummary = new SyncRideSummary();
 
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat();
+
         long rideDuration = System.currentTimeMillis() - timeTaxiMeterStarted;
         rideSummary.setDuration(rideDuration);
         rideSummary.setDistance(totalRideDistance);
         rideSummary.setTimeCompleted(System.currentTimeMillis());
         rideSummary.setTotalCost(currentPrice);
+        rideSummary.setDateTimeCompleted(simpleDateFormat.format(Calendar.getInstance().getTime()));
+
         return rideSummary;
     }
 
