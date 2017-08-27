@@ -48,6 +48,11 @@ public class HttpWrapper {
         byte unique_timestamp = (byte)System.currentTimeMillis();
         TAG = TAG+" "+unique_timestamp;
     }
+    public HttpWrapper(int read_timeout) {
+        this.read_timeout = read_timeout;
+        byte unique_timestamp = (byte)System.currentTimeMillis();
+        TAG = TAG+" "+unique_timestamp;
+    }
     public HttpWrapper(String rootUrl) {
         this.rootUrl = rootUrl;
         byte unique_timestamp = (byte)System.currentTimeMillis();
@@ -55,8 +60,12 @@ public class HttpWrapper {
     }
 
 
+
+
 //    private String rootUrl = "http://custom-env.ewpmtrqu8z.us-east-1.elasticbeanstalk.com/";
     private String rootUrl = "http://10.0.0.200:5000/";
+    private int read_timeout = 240 * 1000;
+    private final static int connect_timeout = 30 * 1000;
 
     //avoid loading ssl certificates every http call
     private static SSLContext sslContext = null;
@@ -273,8 +282,8 @@ public class HttpWrapper {
         con.setRequestProperty("Authorization",accessToken);
         Log.d(TAG,"header auth sent: "+accessToken);
 
-        con.setConnectTimeout(240000);
-        con.setReadTimeout(240000);
+        con.setConnectTimeout(connect_timeout);
+        con.setReadTimeout(read_timeout);
 
 
         return con;

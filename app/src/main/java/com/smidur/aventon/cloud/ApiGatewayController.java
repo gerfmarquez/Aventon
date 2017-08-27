@@ -138,11 +138,14 @@ public class ApiGatewayController {
                         .withPath(path)
                         .withHttpMethod(HttpMethodName.valueOf(method))
                         .withHeaders(headers)
+                        .withParameter("completed_ride_time", Long.toString(rideSummary.getTimeCompleted()))
                         .withParameter("driver",driver)
-                        .withParameter("passenger",rideSummary.getPassengerId())//todo extract email?
+                        .withParameter("passengerId","passengerId")//todo extract email?
                         .withParameter("totalCost", String.format("%.2f",rideSummary.getTotalCost()))
                         .withParameter("distance", String.format("%.2f",rideSummary.getDistance()))
-                        .withParameter("time", String.format("%.2f",rideSummary.getDuration()))
+                        .withParameter("duration", String.format("%.2f",rideSummary.getDuration()))
+                        .withParameter("dateTimeCompleted", rideSummary.getDateTimeCompleted())
+//                        .withParameter("compl", "asdf")
                         .addHeader("Content-Type", "application/json")
                         .addHeader("Content-Length", String.valueOf(1))//content.length))
                         .withBody(".")

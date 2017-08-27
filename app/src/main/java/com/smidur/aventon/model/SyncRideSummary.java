@@ -10,9 +10,10 @@ public class SyncRideSummary {
     private float totalCost;
     private float distance;
     private float duration;
-    private float timeCompleted;
+    private long timeCompleted;
     private String dateTimeCompleted;
 
+    //todo add plates and make/model?
 
     public String getPassengerId() {
         return passengerId;
@@ -46,11 +47,11 @@ public class SyncRideSummary {
         this.duration = duration;
     }
 
-    public float getTimeCompleted() {
+    public long getTimeCompleted() {
         return timeCompleted;
     }
 
-    public void setTimeCompleted(float timeCompleted) {
+    public void setTimeCompleted(long timeCompleted) {
         this.timeCompleted = timeCompleted;
     }
 

@@ -116,10 +116,9 @@ public class HttpController {
     }
     public void schedulePickupCall(SyncPassenger syncPassenger, @NonNull final SchedulePickupCallback callback) throws IOException, TokenInvalidException {
 
-        wrapper = new HttpWrapper();
+        wrapper = new HttpWrapper(15 * 1000);
 
         String syncDestinationJson = new Gson().toJson(syncPassenger);
-        //todo add a 30 seconds timeout so that driver doesn't keep there waiting forever.
 
         HttpResponse response = wrapper.httpPOST("shcedule_pickup",new HttpWrapper.UpdateCallback() {
             @Override

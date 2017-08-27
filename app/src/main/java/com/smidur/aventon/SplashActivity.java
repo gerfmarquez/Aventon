@@ -12,9 +12,11 @@ import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.app.Activity;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.os.Handler;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -26,9 +28,12 @@ import com.amazonaws.mobile.user.IdentityManager;
 import com.amazonaws.mobile.user.IdentityProvider;
 import com.smidur.aventon.cloud.ApiGatewayController;
 import com.smidur.aventon.managers.RideManager;
+import com.smidur.aventon.model.SyncRideSummary;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+
+import static java.security.AccessController.getContext;
 
 /**
  * Splash Activity is the start-up activity that appears until a delay is expired
@@ -179,6 +184,8 @@ public class SplashActivity extends Activity {
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
+
+
 
 
         final Thread thread = new Thread(new Runnable() {
