@@ -266,7 +266,7 @@ public class SplashActivity extends Activity {
 
         Log.d(LOG_TAG, "Launching Main Activity...");
         Intent intent = new Intent(this, MainActivity.class);
-        mode = "passenger";
+        mode = "driver";
         intent.putExtra("mode",mode);
         goAfterSplashTimeout(intent);
     }

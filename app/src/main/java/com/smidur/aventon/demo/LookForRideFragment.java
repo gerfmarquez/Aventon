@@ -10,6 +10,7 @@ import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.Toolbar;
 import android.text.Html;
@@ -49,6 +50,7 @@ import com.smidur.aventon.model.SyncRideSummary;
 import com.smidur.aventon.utilities.Constants;
 import com.smidur.aventon.utilities.GpsUtil;
 import com.smidur.aventon.utilities.MapUtil;
+import com.smidur.aventon.utilities.NotificationUtil;
 
 /**
  * Created by marqueg on 3/15/17.
@@ -78,6 +80,8 @@ public class LookForRideFragment extends Fragment {
     Marker destinationMarker;
 
     Polyline destinationPolyline;
+
+    boolean isActivityShowing;
 
 
     @Override
@@ -169,15 +173,19 @@ public class LookForRideFragment extends Fragment {
         });
 
 
+
         return mFragmentView;
     }
 
+    @Override
+    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        RideManager.i(activity).register(driverEventsListener);
+    }
 
     @Override
     public void onResume() {
         super.onResume();
-        RideManager.i(activity).register(driverEventsListener);
-
 
         if(RideManager.i(activity).getDriverInfo() == null) {
             android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(
@@ -240,13 +248,19 @@ public class LookForRideFragment extends Fragment {
             driverSwitch.setEnabled(true);
         }
 
-
+        isActivityShowing = true;
 
     }
 
     @Override
     public void onPause() {
         super.onPause();
+        isActivityShowing  = false;
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
         RideManager.i(activity).unregister(driverEventsListener);
     }
 
@@ -292,26 +306,32 @@ public class LookForRideFragment extends Fragment {
         @Override
         public void onRideAvailable(final SyncPassenger passenger) {
 
+
             activity.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
 
-                    android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(
-                            activity);
+                    if(isActivityShowing) {
+                        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(
+                                activity);
 
 
-                    builder.setTitle(R.string.confirm_ride).setMessage(getString(R.string.pickup_address_at)
-                            +passenger.getSyncOrigin().getOriginAddress())
-                            .setPositiveButton(R.string.confirm_button, new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
+                        builder.setTitle(R.string.confirm_ride).setMessage(getString(R.string.pickup_address_at)
+                                +passenger.getSyncOrigin().getOriginAddress())
+                                .setPositiveButton(R.string.confirm_button, new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
 
-                                   RideManager.i(activity).confirmPassengerPickup(passenger);
+                                        RideManager.i(activity).confirmPassengerPickup(passenger);
 
 
-                                }
-                            }).setNegativeButton(R.string.reject,null)
-                            .create().show();
+                                    }
+                                }).setNegativeButton(R.string.reject,null)
+                                .create().show();
+                    } else {
+                        NotificationUtil.i(getContext()).createNewRideAvailableNotification();
+                    }
+
 
                 }
             });

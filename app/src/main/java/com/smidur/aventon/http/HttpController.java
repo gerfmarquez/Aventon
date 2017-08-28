@@ -115,8 +115,8 @@ public class HttpController {
         }
     }
     public void schedulePickupCall(SyncPassenger syncPassenger, @NonNull final SchedulePickupCallback callback) throws IOException, TokenInvalidException {
-
-        wrapper = new HttpWrapper(15 * 1000);
+        //todo move to constants class with time outs
+        wrapper = new HttpWrapper(30 * 1000);
 
         String syncDestinationJson = new Gson().toJson(syncPassenger);
 

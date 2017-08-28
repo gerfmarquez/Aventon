@@ -20,6 +20,7 @@ import com.smidur.aventon.model.SyncRideSummary;
 import com.smidur.aventon.sync.Sync;
 import com.smidur.aventon.utilities.GoogleApiWrapper;
 import com.smidur.aventon.utilities.GpsUtil;
+import com.smidur.aventon.utilities.NotificationUtil;
 
 import java.io.IOException;
 import java.util.HashSet;
@@ -163,6 +164,7 @@ public class RideManager {
         });
         TaxiMeterManager.i(context).init();
         TaxiMeterManager.i(context).resetSegment(0);
+
 
     }
     public void stopTaxiMeter() {

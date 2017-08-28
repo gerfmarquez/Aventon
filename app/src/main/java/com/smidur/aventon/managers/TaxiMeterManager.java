@@ -4,14 +4,12 @@ import android.content.Context;
 import android.location.Location;
 
 import com.google.android.gms.location.DetectedActivity;
-import com.google.android.gms.maps.model.LatLng;
 import com.smidur.aventon.http.HttpController;
 import com.smidur.aventon.model.SnapToRoadService;
 import com.smidur.aventon.model.SnappedPoints;
 import com.smidur.aventon.model.SyncRideSummary;
 import com.smidur.aventon.utilities.FareUtil;
 import com.smidur.aventon.utilities.GoogleApiWrapper;
-import com.smidur.aventon.utilities.GpsUtil;
 import com.smidur.aventon.utilities.NotificationUtil;
 
 import java.text.SimpleDateFormat;
@@ -63,6 +61,7 @@ public class TaxiMeterManager {
         likelyDistanceSegment = 0;
         timeTaxiMeterStarted = System.currentTimeMillis();
         totalRideDistance = 0;
+        NotificationUtil.i(context).updateOngoingRideNotification(currentPrice, (int)totalRideDistance);
     }
     public synchronized void resetSegment(int rolloverMeters) {
             checkPriceIncreaseTimer.cancel();
@@ -88,6 +87,7 @@ public class TaxiMeterManager {
     public void stopTaximeter() {
         init();
         clearLocations();
+        NotificationUtil.i(context).endOngoingRideNotification();
 
     }
 
@@ -213,9 +213,7 @@ public class TaxiMeterManager {
                     float calculateFareDistance = FareUtil.calculateFareMexNoFee(distanceSinceLastSegment,0);
                     currentPrice += calculateFareDistance;
 
-                    NotificationUtil.createNotification(context,
-                            "METERS: "+distanceSinceLastSegment
-                            +"price"+currentPrice);
+                    NotificationUtil.i(context).updateOngoingRideNotification(currentPrice, (int)totalRideDistance);
                 }
             }
         }.start();
@@ -276,9 +274,7 @@ public class TaxiMeterManager {
             //interrupt current ongoing gps rate to start over as soon as possible.
             RideManager.i(context).reAcquireGpsSignal();
 
-            NotificationUtil.createNotification(context,
-                    "45 seconds: "
-                            +"price"+currentPrice);
+            NotificationUtil.i(context).updateOngoingRideNotification(currentPrice,(int)totalRideDistance);
 
         }
     };
