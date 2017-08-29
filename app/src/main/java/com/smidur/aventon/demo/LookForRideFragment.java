@@ -39,7 +39,6 @@ import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.smidur.aventon.R;
 import com.smidur.aventon.cloud.ApiGatewayController;
-import com.smidur.aventon.http.HttpController;
 import com.smidur.aventon.managers.RideManager;
 import com.smidur.aventon.managers.TaxiMeterManager;
 import com.smidur.aventon.model.GoogleApiLeg;
@@ -65,6 +64,7 @@ public class LookForRideFragment extends Fragment {
 
     Activity activity;
 
+    SyncPassenger temporaryPassengerVariable;
 
     Button mPickedUpPassengerButton;
     Button mPickupDirectionsButton;
@@ -183,9 +183,17 @@ public class LookForRideFragment extends Fragment {
         RideManager.i(activity).register(driverEventsListener);
     }
 
+
     @Override
     public void onResume() {
         super.onResume();
+
+        Bundle extras = getActivity().getIntent().getExtras();
+        if(extras!= null && extras.containsKey("confirm_ride")) {
+            NotificationUtil.i(getContext()).cancelIncomingRideRequestNotification();
+            RideManager.i(activity).confirmPassengerPickup(temporaryPassengerVariable);
+            return;
+        }
 
         if(RideManager.i(activity).getDriverInfo() == null) {
             android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(
@@ -304,8 +312,9 @@ public class LookForRideFragment extends Fragment {
 
     RideManager.DriverEventsListener driverEventsListener = new RideManager.DriverEventsListener() {
         @Override
-        public void onRideAvailable(final SyncPassenger passenger) {
+        public void onRideAvailable(SyncPassenger passenger) {
 
+            LookForRideFragment.this.temporaryPassengerVariable = passenger;
 
             activity.runOnUiThread(new Runnable() {
                 @Override
@@ -316,18 +325,32 @@ public class LookForRideFragment extends Fragment {
                                 activity);
 
 
-                        builder.setTitle(R.string.confirm_ride).setMessage(getString(R.string.pickup_address_at)
-                                +passenger.getSyncOrigin().getOriginAddress())
+                        final AlertDialog alertDialog = builder.setTitle(R.string.confirm_ride).setMessage(getString(R.string.pickup_address_at)
+                                +temporaryPassengerVariable.getSyncOrigin().getOriginAddress())
                                 .setPositiveButton(R.string.confirm_button, new DialogInterface.OnClickListener() {
                                     @Override
                                     public void onClick(DialogInterface dialog, int which) {
 
-                                        RideManager.i(activity).confirmPassengerPickup(passenger);
+                                        RideManager.i(activity).confirmPassengerPickup(temporaryPassengerVariable);
 
 
                                     }
                                 }).setNegativeButton(R.string.reject,null)
-                                .create().show();
+                                .create();
+
+                        alertDialog.show();
+                        NotificationUtil.i(getContext()).chime();
+
+                        new Handler().postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                if(alertDialog.isShowing()) {
+                                    alertDialog.cancel();
+                                }
+                            }
+                        },30 * 1000);
+
+
                     } else {
                         NotificationUtil.i(getContext()).createNewRideAvailableNotification();
                     }
@@ -356,7 +379,6 @@ public class LookForRideFragment extends Fragment {
             activity.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-
 
                     Location passengerLocation = new Location("");
                     Location destinationLocation = new Location("");

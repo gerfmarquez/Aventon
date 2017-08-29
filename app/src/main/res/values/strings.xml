@@ -86,6 +86,9 @@
     <string name="total_cost_label">"Total Cost: "</string>
     <string name="ride_summary">Total Distance So far: ddd cost so far: $fff</string>
     <string name="ride_summary_title">Ride Summary</string>
+    <string name="aventon">Aventon</string>
+    <string name="incoming_ride_request">Incoming Ride Request</string>
+    <string name="confirm">Confirm</string>
 
 
 </resources>

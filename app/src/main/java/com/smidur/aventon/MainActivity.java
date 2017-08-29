@@ -15,6 +15,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.PersistableBundle;
 import android.support.annotation.MainThread;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -39,6 +40,7 @@ import com.smidur.aventon.managers.RideManager;
 import com.smidur.aventon.model.SyncRideSummary;
 import com.smidur.aventon.navigation.NavigationDrawer;
 import com.smidur.aventon.utilities.GpsUtil;
+import com.smidur.aventon.utilities.NotificationUtil;
 
 import java.util.concurrent.CountDownLatch;
 
@@ -129,51 +131,70 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        if(intent.hasExtra("confirm_ride")) {
+            this.getIntent().putExtra("confirm_ride",true);
+        }
+        if(intent.hasExtra("reject_ride")) {
+            NotificationUtil.i(this).cancelIncomingRideRequestNotification();
+        }
+
+
+    }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState, PersistableBundle persistentState) {
+        super.onCreate(savedInstanceState, persistentState);
+    }
+
+
+    @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         ApiGatewayController apiGatewayController = new ApiGatewayController();
 
-        final SyncRideSummary summary = new SyncRideSummary();
-        summary.setDateTimeCompleted("asdf");
-        summary.setPassengerId("asdf");
-        summary.setTotalCost(33.33f);
-        summary.setDuration(33.33f);
-        summary.setDistance(33.33f);
-        summary.setTimeCompleted(3333);
-        apiGatewayController.completeRide("smth@smth.com",summary, new ApiGatewayController.RideCompletedCallback() {
-            @Override
-            public void onRideCompletedSuccessful() {
-                new Handler(MainActivity.this.getMainLooper()).post(new Runnable() {
-                    @Override
-                    public void run() {
-                        //todo dont kill activity and handle end of ride well
-                        RideManager.i(MainActivity.this).resumeDriverShiftAndEndRide();
-
-                        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(
-                                MainActivity.this);
-
-                        String formatTotalCost = String.format(" %.2f",summary.getTotalCost());
-
-                        builder.setTitle(R.string.total_cost)
-                                .setMessage(getString(R.string.total_cost_message)+formatTotalCost)
-                                .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int which) {
-
-                                    }
-                                })
-                                .create().show();
-                    }
-                });
-            }
-
-            @Override
-            public void onRideCompletedFailed() {
-                //todo error
-                //todo analytics
-            }
-        });
+//        final SyncRideSummary summary = new SyncRideSummary();
+//        summary.setDateTimeCompleted("asdf");
+//        summary.setPassengerId("asdf");
+//        summary.setTotalCost(33.33f);
+//        summary.setDuration(33.33f);
+//        summary.setDistance(33.33f);
+//        summary.setTimeCompleted(3333);
+//        apiGatewayController.completeRide("smth@smth.com",summary, new ApiGatewayController.RideCompletedCallback() {
+//            @Override
+//            public void onRideCompletedSuccessful() {
+//                new Handler(MainActivity.this.getMainLooper()).post(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        //todo dont kill activity and handle end of ride well
+//                        RideManager.i(MainActivity.this).resumeDriverShiftAndEndRide();
+//
+//                        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(
+//                                MainActivity.this);
+//
+//                        String formatTotalCost = String.format(" %.2f",summary.getTotalCost());
+//
+//                        builder.setTitle(R.string.total_cost)
+//                                .setMessage(getString(R.string.total_cost_message)+formatTotalCost)
+//                                .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+//                                    @Override
+//                                    public void onClick(DialogInterface dialog, int which) {
+//
+//                                    }
+//                                })
+//                                .create().show();
+//                    }
+//                });
+//            }
+//
+//            @Override
+//            public void onRideCompletedFailed() {
+//                //todo error
+//                //todo analytics
+//            }
+//        });
 
 
         new Thread() {
