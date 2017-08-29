@@ -233,7 +233,12 @@ public class TaxiMeterManager {
         rideSummary.setTimeCompleted(System.currentTimeMillis());
         rideSummary.setTotalCost(currentPrice);
         rideSummary.setDateTimeCompleted(simpleDateFormat.format(Calendar.getInstance().getTime()));
-
+//        summary.setDateTimeCompleted("asdf");
+//        summary.setPassengerId("asdf");
+//        summary.setTotalCost(33.33f);
+//        summary.setDuration(33.33f);
+//        summary.setDistance(33.33f);
+//        summary.setTimeCompleted(3333);
         return rideSummary;
     }
 

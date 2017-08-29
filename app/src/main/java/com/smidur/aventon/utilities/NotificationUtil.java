@@ -68,7 +68,7 @@ public class NotificationUtil {
 
     public void createNewRideAvailableNotification() {
 
-        //todo acquire wakelock for few seconds to let user confirm or discard ride that just popped up!
+        //acquire wakelock for few seconds to let user confirm or discard ride that just popped up!
         turnDisplayOn();
         chime();
         newAvailableRide++;
@@ -113,8 +113,39 @@ public class NotificationUtil {
 
 
     }
+    public void createNewArrivedDestinationNotification(String title, String text) {
 
-    void turnDisplayOn() {
+        turnDisplayOn();
+        chime();
+        newAvailableRide++;
+
+        final NotificationManager notifMan = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+
+        Notification notif = new Notification.Builder(context).
+
+                setAutoCancel(true).
+                setContentTitle(title).
+                setContentText(text).
+
+                setSmallIcon(R.drawable.ic_launcher).
+                setLargeIcon(BitmapFactory.decodeResource(context.getResources(), R.drawable.ic_launcher)).
+                build();
+
+        notifMan.notify(newAvailableRide, notif);
+
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                notifMan.cancel(newAvailableRide);
+                releaseWakeLock();
+            }
+        },30 * 1000);
+        //todo move to constants class with time outs
+
+
+    }
+
+    private void turnDisplayOn() {
         PowerManager pw = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
         wakeLock = pw.newWakeLock(PowerManager.FULL_WAKE_LOCK |
                 PowerManager.ACQUIRE_CAUSES_WAKEUP, "");
@@ -123,7 +154,7 @@ public class NotificationUtil {
         }
         wakeLock.acquire();
     }
-    protected void releaseWakeLock() {
+    private void releaseWakeLock() {
         if(wakeLock!=null && wakeLock.isHeld()) {
             wakeLock.release();
         }

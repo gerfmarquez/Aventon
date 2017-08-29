@@ -51,6 +51,7 @@ import com.smidur.aventon.model.SyncRideSummary;
 import com.smidur.aventon.utilities.Constants;
 import com.smidur.aventon.utilities.GpsUtil;
 import com.smidur.aventon.utilities.MapUtil;
+import com.smidur.aventon.utilities.NotificationUtil;
 
 import static android.app.Activity.RESULT_CANCELED;
 import static android.app.Activity.RESULT_OK;
@@ -412,7 +413,9 @@ public class SchedulePickupFragment extends Fragment implements PlaceSelectionLi
                     android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(
                             activity);
                     String totalCostFormat = String.format("$%.2f",rideSummary.getTotalCost());
-                    builder.setTitle(R.string.arrived_destination).setMessage(getString(R.string.total_cost_label)+" "+totalCostFormat)
+                    String arrivedTitle = getString(R.string.arrived_destination);
+                    String arrivedText = getString(R.string.total_cost_label)+" "+totalCostFormat;
+                    builder.setTitle(arrivedTitle).setMessage(arrivedText)
                             .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
@@ -423,6 +426,7 @@ public class SchedulePickupFragment extends Fragment implements PlaceSelectionLi
                             })
                             .setCancelable(false)
                             .create().show();
+                    NotificationUtil.i(getContext()).createNewArrivedDestinationNotification(arrivedTitle,arrivedText);
                 }
             });
 

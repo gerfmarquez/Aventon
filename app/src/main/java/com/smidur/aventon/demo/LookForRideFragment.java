@@ -10,8 +10,10 @@ import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.widget.Toolbar;
 import android.text.Html;
 import android.view.Gravity;
@@ -26,6 +28,7 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.crashlytics.android.Crashlytics;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
@@ -46,6 +49,7 @@ import com.smidur.aventon.model.SyncDestination;
 import com.smidur.aventon.model.SyncLocation;
 import com.smidur.aventon.model.SyncPassenger;
 import com.smidur.aventon.model.SyncRideSummary;
+import com.smidur.aventon.navigation.NavigationDrawer;
 import com.smidur.aventon.utilities.Constants;
 import com.smidur.aventon.utilities.GpsUtil;
 import com.smidur.aventon.utilities.MapUtil;
@@ -68,6 +72,7 @@ public class LookForRideFragment extends Fragment {
 
     Button mPickedUpPassengerButton;
     Button mPickupDirectionsButton;
+    Button mCancelRideButton;
     Switch driverSwitch;
 
     ProgressBar driverProgress;
@@ -136,37 +141,73 @@ public class LookForRideFragment extends Fragment {
 
         mPickedUpPassengerButton = (Button)mFragmentView.findViewById(R.id.picked_up_passenger);
         mPickupDirectionsButton = (Button)mFragmentView.findViewById(R.id.pickup_directions_button);
+        mCancelRideButton = (Button)mFragmentView.findViewById(R.id.cancel_ride_button);
+
         mPickedUpPassengerButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //enable taximeter
-                RideManager.i(getContext()).pauseDriverShiftAndStartRide();
-                //change directions button for destination
-                mPickupDirectionsButton.setText(R.string.destination_directions);
-                mPickupDirectionsButton.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        SyncLocation destination = RideManager.i(getContext())
-                                .getSyncPassenger().getSyncDestination().getDestinationLocation();
 
-                        openDirections(destination.getSyncLocationLatitude(),
-                                destination.getSyncLocationLongitude());
+                new Thread() {
+                    public void run() {
+                        final Location driverCurrentLocation = GpsUtil.getUserLocation(getContext());
+
+                        new Handler(getContext().getMainLooper()).post(new Runnable() {
+                            @Override
+                            public void run() {
+                                //enable taximeter
+                                RideManager.i(getContext()).pauseDriverShiftAndStartRide();
+
+                                driverProgress.setVisibility(View.VISIBLE);
+
+                                final SyncLocation destSyncLocation = temporaryPassengerVariable.getSyncDestination().getDestinationLocation();
+
+                                final Location destinationLocation = new Location("");
+                                destinationLocation.setLatitude(destSyncLocation.getSyncLocationLatitude());
+                                destinationLocation.setLongitude(destSyncLocation.getSyncLocationLongitude());
+
+                                MapUtil.selectDestinationPlaceOnMap(
+                                        destinationSelectedCallback,"",driverCurrentLocation,GpsUtil.getLatLng(destinationLocation),activity);
+
+                                //change directions button for destination
+                                mPickupDirectionsButton.setText(R.string.destination_directions);
+                                mPickupDirectionsButton.setOnClickListener(new View.OnClickListener() {
+                                    @Override
+                                    public void onClick(View v) {
+                                        SyncLocation destination = RideManager.i(getContext())
+                                                .getSyncPassenger().getSyncDestination().getDestinationLocation();
+
+                                        openDirections(destination.getSyncLocationLatitude(),
+                                                destination.getSyncLocationLongitude());
+                                    }
+                                });
+                                //show reached destination button
+                                mPickedUpPassengerButton.setText(R.string.reached_destination);
+                                mPickedUpPassengerButton.setOnClickListener(new View.OnClickListener() {
+                                    @Override
+                                    public void onClick(View v) {
+                                        final SyncRideSummary rideSummary = TaxiMeterManager.i(getContext()).getRideSummary();
+
+                                        String passengerId = RideManager.i(getContext()).getSyncPassenger().getPassengerId();
+                                        rideSummary.setPassengerId(passengerId);
+
+                                        RideManager.i(getContext()).completeRide(rideSummary);
+
+
+
+                                    }
+                                });
+                                mPickupDirectionsButton.setOnClickListener(new View.OnClickListener() {
+                                    @Override
+                                    public void onClick(View v) {
+
+                                        openDirections(destinationLocation.getLatitude(),destinationLocation.getLongitude());
+                                    }
+                                });
+
+                            }
+                        });
                     }
-                });
-                //show reached destination button
-                mPickedUpPassengerButton.setText(R.string.reached_destination);
-                mPickedUpPassengerButton.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        final SyncRideSummary rideSummary = TaxiMeterManager.i(getContext()).getRideSummary();
-
-                        String passengerId = RideManager.i(getContext()).getSyncPassenger().getPassengerId();
-                        rideSummary.setPassengerId(passengerId);
-
-                        RideManager.i(getContext()).completeRide(rideSummary);
-
-                    }
-                });
+                }.start();
 
 
             }
@@ -291,6 +332,9 @@ public class LookForRideFragment extends Fragment {
                     }
                 }
             });
+            if(RideManager.i(context).isDriverAvailable()) {
+                driverSwitch.setChecked(true);
+            }
             toolbar.addView(driverSwitch,new Toolbar.LayoutParams(Gravity.RIGHT));
         }
     }
@@ -376,24 +420,24 @@ public class LookForRideFragment extends Fragment {
 
         @Override
         public void onRideConfirmAccepted(final SyncPassenger passenger) {
+
+            final Location driverCurrentLocation = GpsUtil.getUserLocation(getContext());
+
             activity.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
 
+                    temporaryPassengerVariable = passenger;
+
                     Location passengerLocation = new Location("");
-                    Location destinationLocation = new Location("");
+
 
                     SyncLocation passSyncLocation = passenger.getSyncOrigin().getOriginLocation();
                     passengerLocation.setLatitude(passSyncLocation.getSyncLocationLatitude());
                     passengerLocation.setLongitude(passSyncLocation.getSyncLocationLongitude());
 
-                    final SyncLocation destSyncLocation = passenger.getSyncDestination().getDestinationLocation();
-
-                    destinationLocation.setLatitude(destSyncLocation.getSyncLocationLatitude());
-                    destinationLocation.setLongitude(destSyncLocation.getSyncLocationLongitude());
-
                     MapUtil.selectDestinationPlaceOnMap(
-                            destinationSelectedCallback,"",passengerLocation,GpsUtil.getLatLng(destinationLocation),activity);
+                            destinationSelectedCallback,"",driverCurrentLocation,GpsUtil.getLatLng(passengerLocation),activity);
 
 
                     mPickedUpPassengerButton.setVisibility(View.VISIBLE);
@@ -407,10 +451,10 @@ public class LookForRideFragment extends Fragment {
                     TextView rideInfo = (TextView) activity.findViewById(R.id.ride_info);
                     rideInfo.setVisibility(View.VISIBLE);
 
-                    String destAddress = passenger.getSyncDestination().getDestinationAddress();
-                    String originAddress = passenger.getSyncOrigin().getOriginAddress();
+                    String destAddress = temporaryPassengerVariable.getSyncDestination().getDestinationAddress();
+                    String originAddress = temporaryPassengerVariable.getSyncOrigin().getOriginAddress();
 
-                    final SyncLocation pickupLocation = passenger
+                    final SyncLocation pickupLocation = temporaryPassengerVariable
                             .getSyncOrigin().getOriginLocation();
 
                     mPickupDirectionsButton.setOnClickListener(new View.OnClickListener() {
@@ -522,18 +566,48 @@ public class LookForRideFragment extends Fragment {
                                             .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
                                                 @Override
                                                 public void onClick(DialogInterface dialog, int which) {
-                                                    activity.finish();
+                                                    Fragment oldLookRideFragment = getFragmentManager().findFragmentByTag(
+                                                            NavigationDrawer.Screen.DRIVER_LOOK_FOR_RIDE.name());
+
+                                                    final android.support.v4.app.FragmentManager fragMan = getFragmentManager();
+
+                                                    fragMan.beginTransaction()
+                                                            .remove(oldLookRideFragment)
+                                                        .commit();
+
+                                                    new Handler().post(new Runnable() {
+                                                        @Override
+                                                        public void run() {
+                                                            Fragment newLookRideFragment = new LookForRideFragment();
+                                                            fragMan
+                                                                .beginTransaction()
+                                                                .replace(R.id.main_fragment_container, newLookRideFragment,
+                                                                        NavigationDrawer.Screen.DRIVER_LOOK_FOR_RIDE.name())
+                                                                .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
+                                                                .commit();
+
+                                                            //todo call clear ride on Ride Manager
+                                                        }
+                                                    });
+
+
+
+
+
+
                                                 }
                                             })
+                                            .setCancelable(false)
                                             .create().show();
+
                                 }
                             });
                         }
 
                         @Override
                         public void onRideCompletedFailed() {
-                            //todo error
-                            //todo analytics
+                            Crashlytics.getInstance().logException(new RuntimeException("Lambda Complete Ride Call Failed."));
+
                         }
                     });
         }

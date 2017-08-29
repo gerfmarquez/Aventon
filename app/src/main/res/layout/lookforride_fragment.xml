@@ -44,7 +44,16 @@
         android:layout_height="wrap_content"
         android:text="@string/pickup_directions"
         android:layout_alignParentRight="true"
-        android:enabled="false"
+        android:textColor="@color/aventon_background_color"
+        android:visibility="gone"
+        android:layout_alignParentBottom="true"
+        />
+    <Button
+        android:id="@+id/cancel_ride_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/cancel"
+        android:layout_alignParentLeft="true"
         android:textColor="@color/aventon_background_color"
         android:visibility="gone"
         android:layout_alignParentBottom="true"

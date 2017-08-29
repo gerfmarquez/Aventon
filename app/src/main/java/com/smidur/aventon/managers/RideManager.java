@@ -76,15 +76,18 @@ public class RideManager {
     public boolean isDriverOnRide() {
         return isDriverOnRide;
     }
+    public boolean isDriverAvailable() {
+        return isDriverAvailable;
+    }
 
     /**
      * Register for  events
      */
     @MainThread
     public void startDriverShift() {
+        if(isDriverAvailable)return;//dont re-initialize
 
         isDriverAvailable = true;
-
 
         new Thread() {
             public void run() {

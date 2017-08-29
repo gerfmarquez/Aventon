@@ -89,6 +89,7 @@
     <string name="aventon">Aventon</string>
     <string name="incoming_ride_request">Incoming Ride Request</string>
     <string name="confirm">Confirm</string>
+    <string name="cancel">Cancel</string>
 
 
 </resources>
