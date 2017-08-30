@@ -16,8 +16,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.os.Handler;
-import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.widget.Toast;
@@ -28,12 +26,9 @@ import com.amazonaws.mobile.user.IdentityManager;
 import com.amazonaws.mobile.user.IdentityProvider;
 import com.smidur.aventon.cloud.ApiGatewayController;
 import com.smidur.aventon.managers.RideManager;
-import com.smidur.aventon.model.SyncRideSummary;
+import com.smidur.aventon.model.Config;
 
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-
-import static java.security.AccessController.getContext;
 
 /**
  * Splash Activity is the start-up activity that appears until a delay is expired
@@ -185,9 +180,87 @@ public class SplashActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
 
+        final ApiGatewayController.ApiGatewayResult pullConfigResultCallback = new ApiGatewayController.ApiGatewayResult() {
+            @Override
+            public void onSuccess(int code, String message) {
+                if(code == 200) {
+                    Config config = new Gson().fromJson(Config.class,message);
+                    if(config.isKillswitch()) {
+                        alertKillswitchOn();
+                        return;
+                    }
+                    if(BuildConfig.VERSION_CODE >= config.getMinimumRequiredVersion()) {
+                        //good
+                        redirectAccordingly();
 
+                    } else {
+                        //bad
+                        alertNotRequiredVersion();
 
+                    }
+                } else {
+                    alertSomethingWrong();
+                }
+            }
 
+            @Override
+            public void onError() {
+                alertSomethingWrong();
+            }
+        };
+
+        ApiGatewayController apiGatewayController = new ApiGatewayController();
+
+        apiGatewayController.pullConfig(pullConfigResultCallback);
+
+    }
+
+    private void alertKillswitchOn() {
+        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(this);
+
+        builder.setTitle(R.string.killswitch_title)
+                .setMessage(R.string.killswitch_message)
+                .setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        finish();
+                    }
+                })
+                .setCancelable(false)
+                .create().show();
+    }
+    private void alertNotRequiredVersion() {
+        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(this);
+
+        builder.setTitle(R.string.update_required_title)
+                .setMessage(R.string.update_required_message)
+                .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        //todo open market to download latest
+                        finish();
+                    }
+                })
+                .setCancelable(false)
+                .create().show();
+    }
+    private void alertSomethingWrong() {
+        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(this);
+
+        builder.setTitle(R.string.something_wrong_title)
+                .setMessage(R.string.something_wrong_title)
+                .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        //todo open market to download latest
+                        finish();
+                    }
+                })
+                .setCancelable(false)
+                .create().show();
+    }
+
+    private void redirectAccordingly() {
         final Thread thread = new Thread(new Runnable() {
             public void run() {
                 signInManager = SignInManager.getInstance(SplashActivity.this);
@@ -214,6 +287,7 @@ public class SplashActivity extends Activity {
             }
         });
         thread.start();
+
     }
 
     @Override

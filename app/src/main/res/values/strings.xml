@@ -90,6 +90,11 @@
     <string name="incoming_ride_request">Incoming Ride Request</string>
     <string name="confirm">Confirm</string>
     <string name="cancel">Cancel</string>
+    <string name="killswitch_title">Please try again later</string>
+    <string name="killswitch_message">App has been disabled temporarily</string>
+    <string name="update_required_title">Update Required</string>
+    <string name="update_required_message">An update of the app is required, go to the play store?</string>
+    <string name="something_wrong_title">Something Went Wrong</string>
 
 
 </resources>

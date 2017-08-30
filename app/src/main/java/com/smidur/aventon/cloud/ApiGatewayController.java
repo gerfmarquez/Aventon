@@ -100,6 +100,58 @@ public class ApiGatewayController {
 
     }
 
+    public void pullConfig(final ApiGatewayResult apiGatewayResult) {
+
+        String path = "/checkRegisteredDrivers";
+
+        // Set your request method, path, query string parameters, and request body
+        final String method = "GET";
+
+        final Map<String, String> headers = new HashMap<String, String>();
+
+//        final byte[] content = jsonBody.getBytes(StringUtils.UTF8);
+
+        // Create an instance of your custom SDK client
+        final AWSMobileClient mobileClient = AWSMobileClient.defaultMobileClient();
+        final CloudLogicAPI client = mobileClient.createAPIClient(LambdaMicroserviceClient.class);
+
+        // Construct the request
+        final ApiRequest request =
+                new ApiRequest(client.getClass().getSimpleName())
+                        .withPath(path)
+                        .withHttpMethod(HttpMethodName.valueOf(method))
+                        .withHeaders(headers)
+                ;
+
+
+        // Make network call on background thread
+        new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+                try {
+
+                    // Invoke the API
+                    final ApiResponse response = client.execute(request);
+
+                    final int statusCode = response.getStatusCode();
+                    final String statusText = response.getStatusText();
+
+                    Log.d(TAG, "Response Status: " + statusCode + " " + statusText);
+
+                    apiGatewayResult.onSuccess(statusCode,statusText);
+
+
+                } catch (final AmazonClientException exception) {
+                    Log.e(TAG, exception.getMessage(), exception);
+
+                    apiGatewayResult.onError();
+                }
+            }
+        }).start();
+
+    }
+
     public void completeRide(String driver, SyncRideSummary rideSummary
             ,final RideCompletedCallback rideCompletedCallback) {
 
@@ -191,7 +243,7 @@ public class ApiGatewayController {
         public void onError();
     }
 
-    interface ApiGatewayResult {
+    public interface ApiGatewayResult {
         void onSuccess(int code, String message);
         void onError();
     }
