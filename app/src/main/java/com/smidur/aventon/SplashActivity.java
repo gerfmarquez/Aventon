@@ -24,6 +24,7 @@ import com.amazonaws.mobile.user.signin.SignInManager;
 import com.amazonaws.mobile.user.signin.SignInProvider;
 import com.amazonaws.mobile.user.IdentityManager;
 import com.amazonaws.mobile.user.IdentityProvider;
+import com.google.gson.Gson;
 import com.smidur.aventon.cloud.ApiGatewayController;
 import com.smidur.aventon.managers.RideManager;
 import com.smidur.aventon.model.Config;
@@ -184,22 +185,43 @@ public class SplashActivity extends Activity {
             @Override
             public void onSuccess(int code, String message) {
                 if(code == 200) {
-                    Config config = new Gson().fromJson(Config.class,message);
+                    Config config = new Gson().fromJson(message,Config.class);
                     if(config.isKillswitch()) {
-                        alertKillswitchOn();
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                alertKillswitchOn();
+                            }
+                        });
                         return;
                     }
                     if(BuildConfig.VERSION_CODE >= config.getMinimumRequiredVersion()) {
                         //good
-                        redirectAccordingly();
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                redirectAccordingly();
+                            }
+                        });
 
                     } else {
                         //bad
-                        alertNotRequiredVersion();
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                alertNotRequiredVersion();
+                            }
+                        });
 
                     }
                 } else {
-                    alertSomethingWrong();
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            alertSomethingWrong();
+                        }
+                    });
+
                 }
             }
 

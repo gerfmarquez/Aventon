@@ -19,6 +19,7 @@ import java.util.*;
 
 
 
+
 @com.amazonaws.mobileconnectors.apigateway.annotation.Service(endpoint = "https://6ymccp9xqc.execute-api.us-east-1.amazonaws.com/production")
 public interface LambdaMicroserviceClient {
 
@@ -29,5 +30,30 @@ public interface LambdaMicroserviceClient {
      * @return ApiResponse
      */
     com.amazonaws.mobileconnectors.apigateway.ApiResponse execute(com.amazonaws.mobileconnectors.apigateway.ApiRequest request);
+
+    /**
+     *
+     *
+     * @return Empty
+     */
+    @com.amazonaws.mobileconnectors.apigateway.annotation.Operation(path = "/checkRegisteredDrivers", method = "POST")
+    Object checkRegisteredDriversPost();
+
+    /**
+     *
+     *
+     * @return Empty
+     */
+    @com.amazonaws.mobileconnectors.apigateway.annotation.Operation(path = "/completeride", method = "POST")
+    Object completeridePost();
+
+    /**
+     *
+     *
+     * @return Empty
+     */
+    @com.amazonaws.mobileconnectors.apigateway.annotation.Operation(path = "/config", method = "GET")
+    Object configGet();
+
 }
 

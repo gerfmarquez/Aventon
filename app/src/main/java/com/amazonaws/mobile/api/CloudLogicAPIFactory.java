@@ -26,13 +26,14 @@ public class CloudLogicAPIFactory {
     public static CloudLogicAPIConfiguration[] getAPIs() {
         final CloudLogicAPIConfiguration[] apis = new CloudLogicAPIConfiguration[] {
                 new CloudLogicAPIConfiguration("LambdaMicroservice",
-                                              "Created by AWS Lambda",
-                                              "https://6ymccp9xqc.execute-api.us-east-1.amazonaws.com/production",
-                                              new String[] {
-                                                  "/checkRegisteredDrivers",
-                                                  "/something",
-                                              },
-                                              com.amazonaws.mobile.api.id6ymccp9xqc.LambdaMicroserviceClient.class),
+                        "Created by AWS Lambda",
+                        "https://6ymccp9xqc.execute-api.us-east-1.amazonaws.com/production",
+                        new String[] {
+                                "/checkRegisteredDrivers",
+                                "/config",
+                                "/completeride",
+                        },
+                        com.amazonaws.mobile.api.id6ymccp9xqc.LambdaMicroserviceClient.class),
         };
 
         return apis;

@@ -12,9 +12,13 @@ import com.amazonaws.mobile.user.IdentityManager;
 import com.amazonaws.mobileconnectors.apigateway.ApiRequest;
 import com.amazonaws.mobileconnectors.apigateway.ApiResponse;
 import com.amazonaws.util.StringUtils;
+import com.crashlytics.android.Crashlytics;
 import com.google.gson.Gson;
 import com.smidur.aventon.model.SyncRideSummary;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -102,7 +106,7 @@ public class ApiGatewayController {
 
     public void pullConfig(final ApiGatewayResult apiGatewayResult) {
 
-        String path = "/checkRegisteredDrivers";
+        String path = "/config";
 
         // Set your request method, path, query string parameters, and request body
         final String method = "GET";
@@ -121,6 +125,7 @@ public class ApiGatewayController {
                         .withPath(path)
                         .withHttpMethod(HttpMethodName.valueOf(method))
                         .withHeaders(headers)
+
                 ;
 
 
@@ -137,9 +142,22 @@ public class ApiGatewayController {
                     final int statusCode = response.getStatusCode();
                     final String statusText = response.getStatusText();
 
+                    String responseBody = "";
+                    try {
+                        BufferedReader bufferedReader = new BufferedReader(
+                                new InputStreamReader(response.getContent()));
+
+                        responseBody = bufferedReader.readLine();
+
+                        bufferedReader.close();
+
+                    } catch(IOException ioe) {
+                        Crashlytics.logException(ioe);
+                    }
+
                     Log.d(TAG, "Response Status: " + statusCode + " " + statusText);
 
-                    apiGatewayResult.onSuccess(statusCode,statusText);
+                    apiGatewayResult.onSuccess(statusCode,responseBody);
 
 
                 } catch (final AmazonClientException exception) {
