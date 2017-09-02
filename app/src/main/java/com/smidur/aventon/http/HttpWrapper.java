@@ -62,8 +62,9 @@ public class HttpWrapper {
 
 
 
-//    private String rootUrl = "http://custom-env.ewpmtrqu8z.us-east-1.elasticbeanstalk.com/";
+
     private String rootUrl = "http://aventonserver-env.xkbcifpaim.us-east-1.elasticbeanstalk.com/";
+
     private int read_timeout = 240 * 1000;
     private final static int connect_timeout = 30 * 1000;
 
@@ -141,7 +142,6 @@ public class HttpWrapper {
 
                 response.code = connection.getResponseCode();
             } catch(IOException ioe ) {
-                Log.w(TAG,ioe);
                 response.code = connection.getResponseCode();
             }
 //            if(response.code==200) {

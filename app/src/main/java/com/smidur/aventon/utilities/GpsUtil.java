@@ -25,6 +25,8 @@ public class GpsUtil {
 
     private static Location requestedLocation;
 
+    public static Location lastKnownLocation;
+
     @WorkerThread
     public static Location getUserLocation(Context context) throws SecurityException {
 
@@ -39,6 +41,7 @@ public class GpsUtil {
             @Override
             public void onLocationChanged(Location location) {
                 requestedLocation = location;
+                lastKnownLocation = location;
                 latch.countDown();
             }
 
@@ -66,9 +69,8 @@ public class GpsUtil {
         return requestedLocation;
     }
 
-    public static Location getLastKnownLocation(Context context) throws SecurityException {
-        LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
-        Location lastKnownLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+    public static Location getLastKnownLocation() throws SecurityException {
+
         return lastKnownLocation;
     }
     public static LatLng getLatLng(Location location) {

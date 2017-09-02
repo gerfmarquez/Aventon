@@ -78,6 +78,7 @@ public class Sync {
     public void startSyncRideInfo(SyncDriver syncDriver) {
         this.syncDriver = syncDriver;
         //sync rides info
+        handler.removeCallbacks(syncAvailableRides);
         handler.post(syncAvailableRides);
 
     }
@@ -95,8 +96,9 @@ public class Sync {
     }
     public void startSyncDriverLocation() {
         //sync location
-        Location location = GpsUtil.getUserLocation(context);
-        pushDriverLocationToSync(location);
+        if(GpsUtil.getLastKnownLocation()!=null) {
+            pushDriverLocationToSync(GpsUtil.getLastKnownLocation());
+        }
         handler.post(syncDriverLocation);
     }
     public void stopSyncDriverLocation() {
@@ -184,11 +186,12 @@ public class Sync {
 
                         }  catch(SocketException se) {
                             //when disconnect to the connection gets called from other place like a button
-                            se.printStackTrace();
+
                             handler.removeCallbacks(syncAvailableRides);
                             closeConnectionIfOpen();
 
                             Log.e(TAG,"SocketException Sync Available Rides",se);
+                            return;
 
                         } catch (InterruptedIOException iioe) {
 
@@ -200,7 +203,7 @@ public class Sync {
                             //don't schedule next attempt
                             return;
 
-                        } catch(IOException ioe) {
+                        } catch (IOException ioe) {
 
 //                            handler.removeCallbacks(syncAvailableRides);
 //                            RideManager.i(context).postLookForRideConnectionErrorCallback();

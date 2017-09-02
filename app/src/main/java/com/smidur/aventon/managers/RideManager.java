@@ -311,7 +311,6 @@ public class RideManager {
                 try {
                     HttpController controller = new HttpController(context);
                     controller.completeRide(syncRideSummary);
-                    RideManager.dispose();
 
                 } catch(TokenInvalidException tokenInvalid) {
                     //todo refresh and try again.

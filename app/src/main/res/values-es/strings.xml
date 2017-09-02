@@ -54,6 +54,7 @@
     <string name="connection_error">Error de conexion.</string>
     <string name="sorry_connection_error">Lo siento, error de conexion.</string>
     <string name="pickup_confirmed">El conductor viene en camino. El conduce un ss y sus placas son: ss</string>
+    <string name="schedule_pickup_button">Agendar Recorrido</string>
     <string name="pickup_confirmed_title">Recorrido Agendado</string>
     <string name="drivers_not_found_nearby">Lo siento, no se encontraron conductores cercanos.</string>
     <string name="confirm_ride">Confirmar Recorrido?</string>

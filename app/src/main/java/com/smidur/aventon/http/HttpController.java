@@ -68,7 +68,6 @@ public class HttpController {
             throw new TokenInvalidException();
         }
 
-
     }
 
     public void updateDriverLocation(SyncLocation driverLocation) throws IOException, TokenInvalidException {

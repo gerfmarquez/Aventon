@@ -33,7 +33,7 @@
         android:id="@+id/schedule_pickup"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Schedule Pickup"
+        android:text="@string/schedule_pickup_button"
         android:layout_centerHorizontal="true"
         android:layout_marginBottom="48dp"
         android:enabled="false"
