@@ -126,7 +126,8 @@ public class RideManager {
 
         isDriverOnRide = false;
         isDriverAvailable = true;
-        Sync.i(context).startSyncRideInfo(syncDriver);
+        //Deprecated -- Server knows driver is busy with a ride so it's not necessary to pause below servie
+//        Sync.i(context).startSyncRideInfo(syncDriver);
     }
     @MainThread
     public void endDriverShift() {
@@ -167,11 +168,14 @@ public class RideManager {
         });
         TaxiMeterManager.i(context).init();
         TaxiMeterManager.i(context).resetSegment(0);
+        TaxiMeterManager.i(context).showInitialRideNotification();
+
 
 
     }
     public void stopTaxiMeter() {
         TaxiMeterManager.i(context).stopTaximeter();
+
     }
 
     public void setDriverInfo(String makeModel, String plates) {

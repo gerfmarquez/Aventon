@@ -115,7 +115,6 @@ public class NotificationUtil {
     }
     public void createNewArrivedDestinationNotification(String title, String text) {
 
-        turnDisplayOn();
         chime();
         newAvailableRide++;
 
@@ -132,15 +131,6 @@ public class NotificationUtil {
                 build();
 
         notifMan.notify(newAvailableRide, notif);
-
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                notifMan.cancel(newAvailableRide);
-                releaseWakeLock();
-            }
-        },30 * 1000);
-        //todo move to constants class with time outs
 
 
     }

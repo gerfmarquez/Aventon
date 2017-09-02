@@ -553,6 +553,7 @@ public class LookForRideFragment extends Fragment {
                             new Handler(getContext().getMainLooper()).post(new Runnable() {
                                 @Override
                                 public void run() {
+                                    NotificationUtil.i(getContext()).endOngoingRideNotification();
                                     //todo dont kill activity and handle end of ride well
                                     RideManager.i(getContext()).resumeDriverShiftAndEndRide();
 

@@ -43,6 +43,8 @@ public class TaxiMeterManager {
 
     private boolean inVehicle = false;
 
+    private boolean taxiMeterOn = false;
+
     private long timeTaxiMeterStarted;
     private long totalRideDistance;
 
@@ -61,6 +63,10 @@ public class TaxiMeterManager {
         likelyDistanceSegment = 0;
         timeTaxiMeterStarted = System.currentTimeMillis();
         totalRideDistance = 0;
+
+    }
+    public void showInitialRideNotification() {
+        taxiMeterOn = true;
         NotificationUtil.i(context).updateOngoingRideNotification(currentPrice, (int)totalRideDistance);
     }
     public synchronized void resetSegment(int rolloverMeters) {
@@ -87,7 +93,7 @@ public class TaxiMeterManager {
     public void stopTaximeter() {
         init();
         clearLocations();
-        NotificationUtil.i(context).endOngoingRideNotification();
+        taxiMeterOn = false;
 
     }
 
@@ -268,6 +274,7 @@ public class TaxiMeterManager {
     class checkPriceIncreaseSegmentTask extends TimerTask {
         @Override
         public void run() {
+            if(!taxiMeterOn)return;
             // still keep 45 second rate steady independently of calculation of new segment
             resetSegment(0);
             clearLocations();

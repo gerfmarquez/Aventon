@@ -210,7 +210,7 @@ public class ApiGatewayController {
                         .withHeaders(headers)
                         .withParameter("completed_ride_time", Long.toString(rideSummary.getTimeCompleted()))
                         .withParameter("driver",driver)
-                        .withParameter("passengerId","passengerId")//todo extract email?
+                        .withParameter("passengerId",rideSummary.getPassengerId())
                         .withParameter("totalCost", String.format("%.2f",rideSummary.getTotalCost()))
                         .withParameter("distance", String.format("%.2f",rideSummary.getDistance()))
                         .withParameter("duration", String.format("%.2f",rideSummary.getDuration()))
