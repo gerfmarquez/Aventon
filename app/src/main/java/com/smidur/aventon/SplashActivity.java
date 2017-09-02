@@ -362,7 +362,7 @@ public class SplashActivity extends Activity {
 
         Log.d(LOG_TAG, "Launching Main Activity...");
         Intent intent = new Intent(this, MainActivity.class);
-        
+
         intent.putExtra("mode",mode);
         goAfterSplashTimeout(intent);
     }
