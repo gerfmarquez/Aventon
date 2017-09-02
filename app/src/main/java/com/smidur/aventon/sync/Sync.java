@@ -20,6 +20,7 @@ import com.smidur.aventon.model.SyncPassenger;
 import com.smidur.aventon.utilities.GpsUtil;
 
 import java.io.IOException;
+import java.io.InterruptedIOException;
 import java.net.ConnectException;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
@@ -189,6 +190,16 @@ public class Sync {
 
                             Log.e(TAG,"SocketException Sync Available Rides",se);
 
+                        } catch (InterruptedIOException iioe) {
+
+                            handler.removeCallbacks(syncAvailableRides);
+
+                            iioe.printStackTrace();
+                            closeConnectionIfOpen();
+                            //post callback of server down
+                            //don't schedule next attempt
+                            return;
+
                         } catch(IOException ioe) {
 
 //                            handler.removeCallbacks(syncAvailableRides);
@@ -312,6 +323,16 @@ public class Sync {
                             closeConnectionIfOpen();
 
                             Log.e(TAG,"SocketException Sync Schedule Pickup",se);
+
+                        } catch (InterruptedIOException iioe) {
+
+                            handler.removeCallbacks(syncSchedulePickup);
+
+                            iioe.printStackTrace();
+                            closeConnectionIfOpen();
+
+                            //don't schedule next attempt
+                            return;
 
                         } catch(IOException ioe) {
 
