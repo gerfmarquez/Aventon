@@ -231,6 +231,7 @@ public class LookForRideFragment extends Fragment {
 
         Bundle extras = getActivity().getIntent().getExtras();
         if(extras!= null && extras.containsKey("confirm_ride")) {
+            getActivity().getIntent().removeExtra("confirm_ride");
             NotificationUtil.i(getContext()).cancelIncomingRideRequestNotification();
             RideManager.i(activity).confirmPassengerPickup(temporaryPassengerVariable);
             return;
