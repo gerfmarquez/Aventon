@@ -187,7 +187,7 @@ public class LookForRideFragment extends Fragment {
                                     public void onClick(View v) {
                                         final SyncRideSummary rideSummary = TaxiMeterManager.i(getContext()).getRideSummary();
 
-                                        String passengerId = RideManager.i(getContext()).getSyncPassenger().getPassengerId();
+                                        String passengerId = temporaryPassengerVariable.getPassengerId();
                                         rideSummary.setPassengerId(passengerId);
 
                                         RideManager.i(getContext()).completeRide(rideSummary);
@@ -213,7 +213,7 @@ public class LookForRideFragment extends Fragment {
             }
         });
 
-
+        temporaryPassengerVariable = null;
 
         return mFragmentView;
     }
