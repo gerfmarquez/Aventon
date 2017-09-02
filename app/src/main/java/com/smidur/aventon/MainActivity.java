@@ -134,7 +134,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
         if(intent.hasExtra("confirm_ride")) {
-//            intent.removeExtra("confirm_ride");
             this.getIntent().putExtra("confirm_ride",true);
         }
         if(intent.hasExtra("reject_ride")) {

@@ -205,9 +205,6 @@ public class Sync {
 
                         } catch (IOException ioe) {
 
-//                            handler.removeCallbacks(syncAvailableRides);
-//                            RideManager.i(context).postLookForRideConnectionErrorCallback();
-
                             ioe.printStackTrace();
 
                             closeConnectionIfOpen();
