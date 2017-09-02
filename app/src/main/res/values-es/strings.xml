@@ -1,0 +1,102 @@
+<resources>
+    <string name="app_name">Aventon</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+
+    <string name="action_settings">Settings</string>
+
+    <!-- CUSTOMIZE THESE FOR YOUR APP -->
+
+    <string name="facebook_app_id">236891180069922</string>
+
+    <!-- REQUIRED FOR GENERAL APP FUNCTIONALITY - YOU MAY WANT TO KEEP THESE -->
+
+    <string name="main_nav_menu_item_home">Home</string>
+    <string name="title_activity_item_detail">Item Detail</string>
+    <string name="title_activity_item_list">Item List</string>
+    <string name="title_activity_main">@string/app_name</string>
+    <string name="title_activity_sign_in">Sign-in</string>
+    <string name="button_text_sign_in">SIGN IN</string>
+    <string name="button_text_sign_out">SIGN OUT</string>
+    <string name="main_nav_menu_default_user_text">\u0020\u0020\u0020\u0020\u0020\u0020\u0020\u0020\u0020\u0020\u0020\u0020\u0020\u0020\u0020\u0020\u0020\u0020</string>
+
+    <!-- USED BY DEMO FEATURES ONLY - YOU CAN DISCARD THESE WITH THE DEMO FOLDER -->
+
+    <string name="fragment_demo_instruction_overview_header">Overview</string>
+    <string name="fragment_demo_instruction_description_header">Sample App Features</string>
+
+
+
+
+
+    <string name="main_fragment_title_user_identity">User Identity</string>
+    <string name="main_fragment_subtitle_user_identity">Keep track of users</string>
+    <string name="identity_demo_text_view_description">Displays the user identity.</string>
+    <string name="unknown_user">Guest User</string>
+    <string name="user_id">USER IDENTIFIER</string>
+    <string name="identity_demo_textview_username_description">User\'s name</string>
+    <string name="identity_demo_textview_userid_description">User\'s unique identifier</string>
+    <string name="identity_demo_unknown_identity_text">&lt;UNKNOWN IDENTITY&gt;</string>
+    <string name="identity_demo_dialog_dismiss_text">DISMISS</string>
+    <string name="identity_demo_error_dialog_title">Failed Identity Retrieval</string>
+    <string name="identity_demo_error_message_failed_get_identity">Could not retrieve the user identity:\u0020</string>
+
+
+    <string name="choose_valid_address">Please select a valid destination.</string>
+    <string name="ok">OK</string>
+    <string name="destination_too_far">Destination is too far!</string>
+
+    <string name="passenger_schedule">Modo Pasajero</string>
+    <string name="driver_look_ride">Modo Conductor</string>
+    <string name="ride_from_to"><![CDATA["<html><big>Pasaje de </big> <small> ss </small> <br><big> a </big>  <small> ss </small></html>"]]></string>
+    <string name="select_destination">A donde te diriges?</string>
+    <string name="connection_error">Error de conexion.</string>
+    <string name="sorry_connection_error">Lo siento, error de conexion.</string>
+    <string name="pickup_confirmed">El conductor viene en camino. El conduce un ss y sus placas son: ss</string>
+    <string name="pickup_confirmed_title">Recorrido Agendado</string>
+    <string name="drivers_not_found_nearby">Lo siento, no se encontraron conductores cercanos.</string>
+    <string name="confirm_ride">Confirmar Recorrido?</string>
+    <string name="confirm_button">Confirmar</string>
+    <string name="pickup_address_at">"Ubicacion de comienzo : "</string>
+    <string name="reject">Rechazar</string>
+    <string name="submit">Enviar</string>
+    <string name="enter_make_plates">Por favor ingresa modelo y placas de tu auto.</string>
+    <string name="required_info">Informacion Requerida</string>
+    <string name="make_model">Modelo</string>
+    <string name="plates">Placas</string>
+    <string name="picked_up_passenger_button">Iniciar Recorrido</string>
+    <string name="title_ride_confirmed">Recorrido Confirmado</string>
+    <string name="message_ride_confirmed">Ahora puedes recoger al usuario.</string>
+    <string name="great">Genial</string>
+    <string name="ride_accept_failed">Agendar Recorrido fallo!</string>
+    <string name="pickup_directions">Direcciones</string>
+    <string name="driver_available">Disponible</string>
+    <string name="destination_directions">Destino</string>
+    <string name="reached_destination">Llegue al Destino</string>
+    <string name="total_cost">Costo total del Recorrido.</string>
+    <string name="total_cost_message">"Costo total es: "</string>
+    <string name="enter_model">Por favor ingresa el modelo correcto.</string>
+    <string name="enter_plates_error">Por favor ingresa placas correctas.</string>
+    <string name="passenger_taken">Recorrido ya no esta disponible.</string>
+    <string name="accept_permission">Debes aceptar el permiso</string>
+    <string name="driver_mode">Da un Aventon</string>
+    <string name="passenger_mode">Encuentra un Aventon</string>
+    <string name="arrived_destination">Se llego al Destino</string>
+    <string name="total_cost_label">"Costo total: "</string>
+    <string name="ride_summary">Actual Distancia Total: ddd Costo Actual: $fff</string>
+    <string name="ride_summary_title">Detalles del Recorrido</string>
+    <string name="aventon">Aventon</string>
+    <string name="incoming_ride_request">Nueva Solicitud de Recorrido</string>
+    <string name="confirm">Confirmar</string>
+    <string name="cancel">Cancelar</string>
+    <string name="killswitch_title">Intenta de nuevo mas tarde</string>
+    <string name="killswitch_message">La aplicacion se ha deshabilitado temporalmente</string>
+    <string name="update_required_title">Actualizacion Requerida.</string>
+    <string name="update_required_message">Se necesita una actualizacion, ir a la tienda?</string>
+    <string name="something_wrong_title">Algo salio mal.</string>
+
+
+
+
+</resources>
