@@ -422,6 +422,7 @@ public class SchedulePickupFragment extends Fragment implements PlaceSelectionLi
                                     //todo save on shared preferences or notify api gateway for historical record?
                                     //analytics
                                     getActivity().finish();
+
                                 }
                             })
                             .setCancelable(false)

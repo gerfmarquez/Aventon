@@ -72,6 +72,9 @@ public class RideManager {
         }
         return instance;
     }
+    public static void dispose() {
+        instance = null;
+    }
 
     public boolean isDriverOnRide() {
         return isDriverOnRide;
@@ -308,6 +311,7 @@ public class RideManager {
                 try {
                     HttpController controller = new HttpController(context);
                     controller.completeRide(syncRideSummary);
+                    RideManager.dispose();
 
                 } catch(TokenInvalidException tokenInvalid) {
                     //todo refresh and try again.
@@ -453,6 +457,7 @@ public class RideManager {
                         @Override
                         public void run() {
                             listener.onDriverArrived(syncRideSummary);
+                            RideManager.dispose();
                         }
                     }).start();
 
