@@ -29,6 +29,9 @@ import com.smidur.aventon.cloud.ApiGatewayController;
 import com.smidur.aventon.managers.RideManager;
 import com.smidur.aventon.model.Config;
 
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.TimeZone;
 import java.util.concurrent.CountDownLatch;
 
 /**
@@ -177,6 +180,8 @@ public class SplashActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Log.d(LOG_TAG, "onCreate");
+
+
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
@@ -362,7 +367,7 @@ public class SplashActivity extends Activity {
 
         Log.d(LOG_TAG, "Launching Main Activity...");
         Intent intent = new Intent(this, MainActivity.class);
-
+        mode = "passenger";
         intent.putExtra("mode",mode);
         goAfterSplashTimeout(intent);
     }

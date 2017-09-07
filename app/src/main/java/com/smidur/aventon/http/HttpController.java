@@ -24,8 +24,10 @@ import com.smidur.aventon.utilities.GoogleMapRouteRequestBuilder;
 import com.smidur.aventon.utilities.GoogleMapsModelRequestBuilder;
 
 import java.io.IOException;
+import java.util.Calendar;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.TimeZone;
 
 /**
  * Created by marqueg on 4/16/17.
@@ -134,11 +136,14 @@ public class HttpController {
     }
 
     public GoogleApiDirections requestDirections(@NonNull double[][] startAndEnd, Context context) throws IOException {
+        Calendar time = Calendar.getInstance();
+        time.setTimeZone(TimeZone.getTimeZone("GMT"));
+
         HttpWrapper wrapper = new HttpWrapper("https://maps.googleapis.com/");
         HttpResponse response = wrapper.httpGET(
                 String.format("maps/api/directions/json?%s%s",
                         GoogleMapRouteRequestBuilder.buildRequest(startAndEnd),
-                        "&units=metric&key="+context.getString(R.string.directions_key)), context);
+                        "&units=metric&mode=driving&departure_time="+time.getTimeInMillis()+"&key="+context.getString(R.string.directions_key)), context);
 
         if (response.code == 200) {
             return new Gson().fromJson(response.message, GoogleApiDirections.class);

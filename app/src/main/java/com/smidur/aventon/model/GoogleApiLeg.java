@@ -6,7 +6,7 @@ package com.smidur.aventon.model;
 
 public class GoogleApiLeg {
     GoogleEstimate distance;
-    GoogleEstimate duration;
+    GoogleEstimate duration_in_traffic;
 
     public GoogleEstimate getDistance() {
         return distance;
@@ -16,11 +16,11 @@ public class GoogleApiLeg {
         this.distance = distance;
     }
 
-    public GoogleEstimate getDuration() {
-        return duration;
+    public GoogleEstimate getDurationInTraffic() {
+        return duration_in_traffic;
     }
 
-    public void setDuration(GoogleEstimate duration) {
-        this.duration = duration;
+    public void setDurationInTraffic(GoogleEstimate duration_in_traffic) {
+        this.duration_in_traffic = duration_in_traffic;
     }
 }

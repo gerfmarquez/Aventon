@@ -216,7 +216,7 @@ public class TaxiMeterManager {
                     //interrupt current ongoing gps rate to start over as soon as possible.
                     RideManager.i(context).reAcquireGpsSignal();
 
-                    float calculateFareDistance = FareUtil.calculateFareMexNoFee(distanceSinceLastSegment,0);
+                    float calculateFareDistance = FareUtil.calculateFareMexNoFee(context,distanceSinceLastSegment,0);
                     currentPrice += calculateFareDistance;
 
                     NotificationUtil.i(context).updateOngoingRideNotification(currentPrice, (int)totalRideDistance);
@@ -239,12 +239,7 @@ public class TaxiMeterManager {
         rideSummary.setTimeCompleted(System.currentTimeMillis());
         rideSummary.setTotalCost(currentPrice);
         rideSummary.setDateTimeCompleted(simpleDateFormat.format(Calendar.getInstance().getTime()));
-//        summary.setDateTimeCompleted("asdf");
-//        summary.setPassengerId("asdf");
-//        summary.setTotalCost(33.33f);
-//        summary.setDuration(33.33f);
-//        summary.setDistance(33.33f);
-//        summary.setTimeCompleted(3333);
+
         return rideSummary;
     }
 
@@ -280,7 +275,7 @@ public class TaxiMeterManager {
             clearLocations();
 
 
-            float calculateFareDuration = FareUtil.calculateFareMexNoFee(0,45);
+            float calculateFareDuration = FareUtil.calculateFareMexNoFee(context,0,45);
             currentPrice += calculateFareDuration;
 
             //interrupt current ongoing gps rate to start over as soon as possible.

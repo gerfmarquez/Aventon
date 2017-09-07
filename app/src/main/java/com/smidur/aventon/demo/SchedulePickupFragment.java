@@ -5,7 +5,6 @@ import android.app.AlertDialog;
 import android.app.FragmentManager;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.graphics.drawable.ColorDrawable;
 
 import android.location.Location;
@@ -13,7 +12,6 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Vibrator;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,11 +20,8 @@ import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
-import com.google.android.gms.common.GooglePlayServicesRepairableException;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.places.Place;
-import com.google.android.gms.location.places.ui.PlaceAutocomplete;
 import com.google.android.gms.location.places.ui.PlaceAutocompleteFragment;
 import com.google.android.gms.location.places.ui.PlaceSelectionListener;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -40,7 +35,6 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
-import com.smidur.aventon.MainActivity;
 import com.smidur.aventon.R;
 import com.smidur.aventon.managers.RideManager;
 import com.smidur.aventon.model.GoogleApiLeg;
@@ -53,8 +47,6 @@ import com.smidur.aventon.utilities.GpsUtil;
 import com.smidur.aventon.utilities.MapUtil;
 import com.smidur.aventon.utilities.NotificationUtil;
 
-import static android.app.Activity.RESULT_CANCELED;
-import static android.app.Activity.RESULT_OK;
 import static com.amazonaws.mobile.util.ThreadUtils.runOnUiThread;
 
 /**
@@ -575,7 +567,7 @@ public class SchedulePickupFragment extends Fragment implements PlaceSelectionLi
             );
             durationEstimate.setText(
 //                                        getString(R.string.duration_label)+" "+
-                    leg.getDuration().getText());
+                    leg.getDurationInTraffic().getText());
             distanceEstimate.setText(
 //                                        getString(R.string.distance_label)+" "+
                     leg.getDistance().getText());

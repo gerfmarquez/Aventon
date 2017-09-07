@@ -1,14 +1,9 @@
 package com.smidur.aventon.utilities;
 
 import android.app.Activity;
-import android.app.AlertDialog;
-import android.content.Context;
 import android.location.Location;
-import android.os.Vibrator;
 import android.support.annotation.MainThread;
-import android.view.View;
 
-import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.smidur.aventon.R;
@@ -59,8 +54,8 @@ public class MapUtil {
                             final PolylineOptions options = getPolylineOptions(googlePolyLine,activity);
 
                             //todo make price estimate calculation
-                            Float price = FareUtil.calculateFareMex(
-                                    leg.getDistance().getValue(),leg.getDuration().getValue());
+                            Float price = FareUtil.calculateFareMex(activity.getApplicationContext(),
+                                    leg.getDistance().getValue(),leg.getDurationInTraffic().getValue());
 
                             final String formattedPrice = String.format("$%.2f",price);
 
