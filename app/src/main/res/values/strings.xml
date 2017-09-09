@@ -49,6 +49,7 @@
 
     <string name="passenger_schedule">Passenger Mode</string>
     <string name="driver_look_ride">Driver Mode</string>
+    <string name="schedule_pickup_button">Schedule a Ride</string>
     <string name="ride_from_to"><![CDATA["<html><big>Ride from </big> <small> ss </small> <br><big> To </big>  <small> ss </small></html>"]]></string>
     <string name="select_destination">Where are you headed?</string>
     <string name="connection_error">Connection Error</string>
