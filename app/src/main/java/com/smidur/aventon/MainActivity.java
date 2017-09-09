@@ -321,7 +321,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
                 } else {
-                    Toast.makeText(MainActivity.this, R.string.accept_permission, Toast.LENGTH_LONG).show();
+//                    Toast.makeText(MainActivity.this, R.string.accept_permission, Toast.LENGTH_LONG).show();
                     finish();
                 }
                 return;

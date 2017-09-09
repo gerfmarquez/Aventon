@@ -254,7 +254,7 @@ public class LookForRideFragment extends Fragment {
                             String makeModel =  makeModelView.getText().toString();
 
                             if(plates.trim().isEmpty() || plates.trim().length() < 4) {
-                                Toast.makeText(getContext(), R.string.enter_plates_error,Toast.LENGTH_LONG).show();
+//                                Toast.makeText(getContext(), R.string.enter_plates_error,Toast.LENGTH_LONG).show();
                                 getActivity().runOnUiThread(new Runnable() {
                                     @Override
                                     public void run() {
@@ -265,7 +265,7 @@ public class LookForRideFragment extends Fragment {
                                 return;
                             }
                             if(makeModel.trim().isEmpty() || makeModel.trim().length() < 4) {
-                                Toast.makeText(getContext(), R.string.enter_model,Toast.LENGTH_LONG).show();
+//                                Toast.makeText(getContext(), R.string.enter_model,Toast.LENGTH_LONG).show();
                                 getActivity().runOnUiThread(new Runnable() {
                                     @Override
                                     public void run() {

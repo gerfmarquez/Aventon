@@ -43,8 +43,8 @@ public class SignInActivity extends Activity {
             // The sign-in manager is no longer needed once signed in.
             SignInManager.dispose();
 
-            Toast.makeText(SignInActivity.this, String.format("Sign-in with %s succeeded.",
-                    provider.getDisplayName()), Toast.LENGTH_LONG).show();
+//            Toast.makeText(SignInActivity.this, String.format("Sign-in with %s succeeded.",
+//                    provider.getDisplayName()), Toast.LENGTH_LONG).show();
 
             // Load user name and image.
             AWSMobileClient.defaultMobileClient()
@@ -69,8 +69,8 @@ public class SignInActivity extends Activity {
             Log.d(LOG_TAG, String.format("User sign-in with %s canceled.",
                     provider.getDisplayName()));
 
-            Toast.makeText(SignInActivity.this, String.format("Sign-in with %s canceled.",
-                    provider.getDisplayName()), Toast.LENGTH_LONG).show();
+//            Toast.makeText(SignInActivity.this, String.format("Sign-in with %s canceled.",
+//                    provider.getDisplayName()), Toast.LENGTH_LONG).show();
         }
 
         /**

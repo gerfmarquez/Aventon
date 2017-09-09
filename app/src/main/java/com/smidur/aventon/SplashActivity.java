@@ -131,7 +131,7 @@ public class SplashActivity extends AppCompatActivity {
 
                                        @Override
                                        public void onError() {
-                                           Toast.makeText(SplashActivity.this, getString(R.string.connection_error), Toast.LENGTH_LONG).show();
+//                                           Toast.makeText(SplashActivity.this, getString(R.string.connection_error), Toast.LENGTH_LONG).show();
                                            runOnUiThread(new Runnable() {
                                                @Override
                                                public void run() {
@@ -173,8 +173,8 @@ public class SplashActivity extends AppCompatActivity {
                     String.format("Cognito credentials refresh with %s provider failed. Error: %s",
                             provider.getDisplayName(), ex.getMessage()), ex);
 
-            Toast.makeText(SplashActivity.this, String.format("Sign-in with %s failed.",
-                    provider.getDisplayName()), Toast.LENGTH_LONG).show();
+//            Toast.makeText(SplashActivity.this, String.format("Sign-in with %s failed.",
+//                    provider.getDisplayName()), Toast.LENGTH_LONG).show();
             goSignIn();
 
         }
@@ -358,7 +358,7 @@ public class SplashActivity extends AppCompatActivity {
         if (requestCode==5 && grantResults.length > 0
                 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
         } else {
-            Toast.makeText(SplashActivity.this, R.string.accept_permission, Toast.LENGTH_LONG).show();
+//            Toast.makeText(SplashActivity.this, R.string.accept_permission, Toast.LENGTH_LONG).show();
             finish();
         }
     }
