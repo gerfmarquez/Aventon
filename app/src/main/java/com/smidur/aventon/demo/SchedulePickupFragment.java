@@ -11,6 +11,7 @@ import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Vibrator;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -152,7 +153,8 @@ public class SchedulePickupFragment extends Fragment implements PlaceSelectionLi
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            requestPermissions(new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},0);
+                            ActivityCompat.requestPermissions(getActivity(),
+                                    new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},0);
                         }
                     });
 
@@ -192,7 +194,8 @@ public class SchedulePickupFragment extends Fragment implements PlaceSelectionLi
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
-                                    requestPermissions(new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},0);
+                                    ActivityCompat.requestPermissions(getActivity(),
+                                            new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},0);
                                 }
                             });
 

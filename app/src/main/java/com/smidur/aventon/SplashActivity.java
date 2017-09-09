@@ -16,6 +16,8 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.support.v4.app.ActivityCompat;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.widget.Toast;
@@ -39,7 +41,7 @@ import java.util.concurrent.CountDownLatch;
  * or the user taps the screen.  When the splash activity starts, various app
  * initialization operations are performed.
  */
-public class SplashActivity extends Activity {
+public class SplashActivity extends AppCompatActivity {
     private static final String LOG_TAG = SplashActivity.class.getSimpleName();
     private final CountDownLatch timeoutLatch = new CountDownLatch(1);
     private SignInManager signInManager;
@@ -75,7 +77,8 @@ public class SplashActivity extends Activity {
                                public void run() {
 
 
-                                   requestPermissions(new String[]{"android.permission.GET_ACCOUNTS"},5);
+                                   ActivityCompat.requestPermissions(SplashActivity.this,
+                                           new String[]{"android.permission.GET_ACCOUNTS"},5);
 
                                    try {
                                        //if user denies the permission countdown latch is still released but security exception
@@ -367,7 +370,7 @@ public class SplashActivity extends Activity {
 
         Log.d(LOG_TAG, "Launching Main Activity...");
         Intent intent = new Intent(this, MainActivity.class);
-        mode = "passenger";
+        mode = "driver";
         intent.putExtra("mode",mode);
         goAfterSplashTimeout(intent);
     }
