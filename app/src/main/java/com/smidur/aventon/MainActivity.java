@@ -69,7 +69,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private Button   signOutButton;
 
-    private static final int MY_PERMISSIONS_REQUEST_LOCATION = 89103571;
+    private static final int MY_PERMISSIONS_REQUEST_LOCATION = 8910;
 
     private CountDownLatch permissionLatch = new CountDownLatch(1);
 
