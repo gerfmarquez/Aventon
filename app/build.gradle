@@ -23,6 +23,7 @@ repositories {
 android {
     compileSdkVersion 25
     buildToolsVersion "25.0.2"
+
     defaultConfig {
         applicationId "com.smidur.aventon"
         minSdkVersion 19
@@ -36,6 +37,7 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+//            signingConfig signingConfigs.release
         }
         debug {
             ext.enableCrashlytics = true
