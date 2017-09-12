@@ -355,7 +355,7 @@ public class SplashActivity extends AppCompatActivity {
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         latchPermission.countDown();
-        if (requestCode==58765 && grantResults.length > 0
+        if (requestCode==8765 && grantResults.length > 0
                 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
         } else {
 //            Toast.makeText(SplashActivity.this, R.string.accept_permission, Toast.LENGTH_LONG).show();
