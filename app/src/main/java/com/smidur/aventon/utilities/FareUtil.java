@@ -16,7 +16,9 @@ public class FareUtil {
         int hourOfDay = time.get(Calendar.HOUR_OF_DAY);
 
         float banderazo = 9.0f;
+        banderazo *= 1.20;//add 20 percent more
         float perEach = 1.07f;
+        perEach *= 1.20;
         float durationPrice = (duration/45) * perEach;
         float distancePrice = (distance/250.0f) * perEach;
 
@@ -40,6 +42,7 @@ public class FareUtil {
 
 
         float perEach = 1.07f;
+        perEach *= 1.20;
         float durationPrice = (duration/45) * perEach;
         float distancePrice = (distance/250.0f) * perEach;
 
