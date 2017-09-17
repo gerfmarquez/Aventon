@@ -32,12 +32,11 @@ public class GpsUtil {
 
         LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
 
-        Criteria minimumCriteria = new Criteria();
-        minimumCriteria.setAccuracy(Criteria.ACCURACY_FINE);
 
         final CountDownLatch latch = new CountDownLatch(1);
 
-        locationManager.requestSingleUpdate(minimumCriteria, new LocationListener() {
+
+        locationManager.requestSingleUpdate(LocationManager.GPS_PROVIDER, new LocationListener() {
             @Override
             public void onLocationChanged(Location location) {
                 requestedLocation = location;

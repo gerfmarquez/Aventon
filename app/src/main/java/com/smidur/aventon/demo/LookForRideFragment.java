@@ -16,6 +16,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.widget.Toolbar;
 import android.text.Html;
+import android.view.Display;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -659,9 +660,13 @@ public class LookForRideFragment extends Fragment {
         options.icon(BitmapDescriptorFactory.fromResource(R.drawable.reddot))
                 .position(destLatLng);
 
+        Display display = getActivity().getWindowManager().getDefaultDisplay();
+        int width = display.getWidth();
+        int height = display.getHeight();
+
         LatLngBounds bounds = LatLngBounds.builder().include(destLatLng).include(userLatLng).build();
         mDriverGoogleMap.animateCamera(
-                CameraUpdateFactory.newLatLngBounds(bounds, 100));
+                CameraUpdateFactory.newLatLngBounds(bounds, width,((int)(height*.70f)),500));
 
 //        mDriverGoogleMap.addGroundOverlay(options);
         if(destinationMarker==null) {

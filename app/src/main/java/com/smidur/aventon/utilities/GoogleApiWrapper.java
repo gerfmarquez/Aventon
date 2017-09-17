@@ -88,6 +88,7 @@ public class GoogleApiWrapper implements GoogleApiClient.ConnectionCallbacks, Go
             LocationManager locationManager = (LocationManager)mContext.getSystemService(Context.LOCATION_SERVICE);
             //gps locations actual rate seem to average 12 seconds, does this depend on manufacturer? or road/gps satellite conditions?
             locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,7 * 1000,0,locationListener);
+
 //            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,5000,0,locationListener);
         } catch(SecurityException se) {
             throw new IllegalStateException("This shouldn't happen");

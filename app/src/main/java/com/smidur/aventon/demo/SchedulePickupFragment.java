@@ -7,12 +7,14 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.drawable.ColorDrawable;
 
+import android.hardware.display.DisplayManager;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Vibrator;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
+import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -504,9 +506,14 @@ public class SchedulePickupFragment extends Fragment implements PlaceSelectionLi
         options.icon(BitmapDescriptorFactory.fromResource(R.drawable.reddot))
                 .position(driverLatLng);
 
+        Display display = getActivity().getWindowManager().getDefaultDisplay();
+        int width = display.getWidth();
+        int height = display.getHeight();
+
+
         LatLngBounds bounds = LatLngBounds.builder().include(driverLatLng).include(userLatLng).build();
         mPassengerGoogleMap.animateCamera(
-                CameraUpdateFactory.newLatLngBounds(bounds, 100));
+                CameraUpdateFactory.newLatLngBounds(bounds, width,(int)(height*.70f),100));
 
 //        mDriverGoogleMap.addGroundOverlay(options);
         if(driverMarker==null) {
@@ -541,9 +548,13 @@ public class SchedulePickupFragment extends Fragment implements PlaceSelectionLi
         options.icon(BitmapDescriptorFactory.fromResource(R.drawable.reddot))
                 .position(destLatLng);
 
+        Display display = getActivity().getWindowManager().getDefaultDisplay();
+        int width = display.getWidth();
+        int height = display.getHeight();
+
         LatLngBounds bounds = LatLngBounds.builder().include(destLatLng).include(userLatLng).build();
         mPassengerGoogleMap.animateCamera(
-                CameraUpdateFactory.newLatLngBounds(bounds, 100));
+                CameraUpdateFactory.newLatLngBounds(bounds, width,(int)(height*.70f),100));
 
 //        mDriverGoogleMap.addGroundOverlay(options);
         if(destinationMarker==null) {

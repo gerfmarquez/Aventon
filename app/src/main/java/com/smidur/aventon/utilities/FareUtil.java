@@ -11,17 +11,16 @@ import java.util.Calendar;
  */
 
 public class FareUtil {
+
+    private static final float MINUTE = 1.80F;
+    private static final float KM = 1.80F;
+
     public static float calculateFareMex(Context context, float distance, float duration) {
-        Calendar time = Calendar.getInstance();
-        int hourOfDay = time.get(Calendar.HOUR_OF_DAY);
 
-        float banderazo = 9.0f;
-        banderazo *= 1.20;//add 20 percent more
-        float perEach = 1.07f;
-        perEach *= 1.20;
-        float durationPrice = (duration/45) * perEach;
-        float distancePrice = (distance/250.0f) * perEach;
+        float durationPrice = (duration/60) * MINUTE;
+        float distancePrice = (distance/1000.0f) * KM;
 
+        float banderazo = 7.0f;
         float totalPrice = 0.0f;
         if(distancePrice > durationPrice) {
             totalPrice = distancePrice+banderazo;
@@ -29,6 +28,8 @@ public class FareUtil {
             totalPrice =  durationPrice+banderazo;
         }
 
+        Calendar time = Calendar.getInstance();
+        int hourOfDay = time.get(Calendar.HOUR_OF_DAY);
         if(isTimeAutomatic(context) && hourOfDay > 22 && hourOfDay < 6) {
             totalPrice *= 1.20f;
         }
@@ -38,13 +39,10 @@ public class FareUtil {
     public static float calculateFareMexNoFee(Context context,float distance, float duration) {
         Calendar time = Calendar.getInstance();
 
-        int hourOfDay = time.get(Calendar.HOUR_OF_DAY);
 
 
-        float perEach = 1.07f;
-        perEach *= 1.20;
-        float durationPrice = (duration/45) * perEach;
-        float distancePrice = (distance/250.0f) * perEach;
+        float durationPrice = (duration/60) * MINUTE;
+        float distancePrice = (distance/1000.0f) * KM;
 
         float totalPrice = 0.0f;
         if(distancePrice > durationPrice) {
@@ -52,6 +50,8 @@ public class FareUtil {
         } else {
             totalPrice =  durationPrice;
         }
+
+        int hourOfDay = time.get(Calendar.HOUR_OF_DAY);
 
         if(isTimeAutomatic(context) && hourOfDay > 22 && hourOfDay < 6) {
             totalPrice *= 1.20f;

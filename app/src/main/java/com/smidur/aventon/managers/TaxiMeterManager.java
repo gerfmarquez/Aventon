@@ -37,9 +37,11 @@ public class TaxiMeterManager {
         return instance;
     }
 
-    private static final int INCREASE_PRICE_TIME = 45 * 1000; //milliseconds
-    private static final int DISTANCE_SEGMENT_THRESHOLD = 250;
-    private static final int LOWEST_ALLOWED_ACCURACY = 80;//METERS
+    private static final int INCREASE_PRICE_TIME = 60 * 1000; //milliseconds
+    private static final int DISTANCE_SEGMENT_THRESHOLD = 1000;//meters
+    private static final int MAX_CACHE_GPS_LOCATION_TIME = 7000;//7 seconds
+
+    private static final int MINIMUM_ACCURACY_ALLOWED = 65;//meters
 
     private boolean inVehicle = false;
 
@@ -83,7 +85,7 @@ public class TaxiMeterManager {
             long lastLocationTime  = lastLocation.getTime();
             long currentTime = System.currentTimeMillis();
             //if the last location's time was less than 10 seconds ago keep it
-            if((currentTime - lastLocationTime) < 7000){
+            if((currentTime - lastLocationTime) < MAX_CACHE_GPS_LOCATION_TIME){
                 newLocationsSegment.add(lastLocation);
             }
         }
@@ -100,7 +102,7 @@ public class TaxiMeterManager {
 
 
     public void startActivityDetectionForTaxiMeter() {
-        GoogleApiWrapper.getInstance(context).requestDriverActivityUpdates(7000, new GoogleApiWrapper.DetectedActivityCallback() {
+        GoogleApiWrapper.getInstance(context).requestDriverActivityUpdates(MAX_CACHE_GPS_LOCATION_TIME, new GoogleApiWrapper.DetectedActivityCallback() {
             @Override
             public void onDetectedActivity(List<DetectedActivity> detectedActivityList) {
                 for(DetectedActivity detectedActivity: detectedActivityList) {
@@ -140,7 +142,7 @@ public class TaxiMeterManager {
         if(!RideManager.i(context).isDriverOnRide())return;
 
         //accuracy might be real bad
-        if(location.getAccuracy() < 65 && inVehicle) {
+        if(location.getAccuracy() < MINIMUM_ACCURACY_ALLOWED && inVehicle) {
             if(lastLocation!=null) {
 
                 //method to subtract accuracies from distance
@@ -151,7 +153,7 @@ public class TaxiMeterManager {
                     segmentLocations.add(location);
                     likelyDistanceSegment += minimumDistanceSoFar;
                     //add a 10 meter margin of error before submitting to snap to road service
-                    if(likelyDistanceSegment > DISTANCE_SEGMENT_THRESHOLD-10) {
+                    if(likelyDistanceSegment > DISTANCE_SEGMENT_THRESHOLD-(DISTANCE_SEGMENT_THRESHOLD*.75f)) {
                         likelyMetThresholdDistance(segmentLocations);
                     }
                 }
@@ -275,7 +277,7 @@ public class TaxiMeterManager {
             clearLocations();
 
 
-            float calculateFareDuration = FareUtil.calculateFareMexNoFee(context,0,45);
+            float calculateFareDuration = FareUtil.calculateFareMexNoFee(context,0,60);
             currentPrice += calculateFareDuration;
 
             //interrupt current ongoing gps rate to start over as soon as possible.
