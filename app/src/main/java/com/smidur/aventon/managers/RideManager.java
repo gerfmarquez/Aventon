@@ -53,6 +53,8 @@ public class RideManager {
     SyncPassenger syncPassenger;
     SyncRideSummary syncRideSummary;
 
+    private static final int LOCATION_UPDATE_RATE = 7 * 1000;//7 seconds
+
     /**
      *  Start - Singleton
      */
@@ -101,7 +103,7 @@ public class RideManager {
         }.start();
 
 
-        GoogleApiWrapper.getInstance(context).requestAndroidLocationUpdates(driverLocationListener);
+        GoogleApiWrapper.getInstance(context).requestAndroidLocationUpdates(driverLocationListener,LOCATION_UPDATE_RATE);
 
 
     }
@@ -110,8 +112,11 @@ public class RideManager {
      * mainly start taxi meter.
      */
     public void pauseDriverShiftAndStartRide() {
+
         isDriverOnRide = true;
         isDriverAvailable = false;
+
+        reAcquireGpsSignal(3000);
         //DEPRECATED--By closing connection we let the service know that driver is on a ride or not available.
         //Server will keep track of what drivers have Passengers assigned (Are on a ride) and avoid forwarding ride requests.
         //this way we can still communicate with driver through the long-polling commands for future enhancements
@@ -124,6 +129,7 @@ public class RideManager {
 
         stopTaxiMeter();//create callback to let activity know about the total price.
         //also move the above line and separate it from resuming shift until after driver clicks a dialog ok.
+        reAcquireGpsSignal(LOCATION_UPDATE_RATE);
 
         syncPassenger = null;
 
@@ -145,12 +151,12 @@ public class RideManager {
 
     }
 
-    public void reAcquireGpsSignal() {
+    public void reAcquireGpsSignal(final int newLocationUpdateRate) {
         new Handler(context.getMainLooper()).post(new Runnable() {
             @Override
             public void run() {
                 GoogleApiWrapper.getInstance(context).stopAndroidLocationUpdates(driverLocationListener);
-                GoogleApiWrapper.getInstance(context).requestAndroidLocationUpdates(driverLocationListener);
+                GoogleApiWrapper.getInstance(context).requestAndroidLocationUpdates(driverLocationListener,newLocationUpdateRate);
             }
         });
     }
