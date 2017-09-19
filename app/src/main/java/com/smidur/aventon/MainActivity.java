@@ -69,9 +69,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private Button   signOutButton;
 
-    private static final int MY_PERMISSIONS_REQUEST_LOCATION = 8910;
 
-    private CountDownLatch permissionLatch = new CountDownLatch(1);
 
     /**
      * Initializes the Toolbar for use with the activity.
@@ -154,37 +152,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-
-        new Thread() {
-            public void run() {
-
-                ActivityCompat.requestPermissions(MainActivity.this,
-                        new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},MY_PERMISSIONS_REQUEST_LOCATION);
-                try{
-                    permissionLatch.await();
-                }catch(InterruptedException ie) {
-                    //todo analytics
-                }
-                try {
-                    GpsUtil.getLatLng(GpsUtil.getUserLocation(MainActivity.this));
-
-                } catch(SecurityException se) {
-                    //todo analytics
-                    //todo retry or check before attempting so that we know permission is there.
-                    return;
-
-                }
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        onContinueOnCreate(savedInstanceState);
-                    }
-                });
-
-
-            }
-        }.start();
-
+        onContinueOnCreate(savedInstanceState);
 
     }
     private void onContinueOnCreate(final Bundle savedInstanceState) {
@@ -211,30 +179,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onResume() {
         super.onResume();
 
-        new Thread() {
-            public void run() {
-                try{
-                    permissionLatch.await();
-                }catch(InterruptedException ie) {
-                    //todo analytics
-                }
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (!AWSMobileClient.defaultMobileClient().getIdentityManager().isUserSignedIn()) {
-                            // In the case that the activity is restarted by the OS after the application
-                            // is killed we must redirect to the splash activity to handle the sign-in flow.
-                            Intent intent = new Intent(MainActivity.this, SplashActivity.class);
-                            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                            startActivity(intent);
-                            return;
-                        }
-
-
-                    }
-                });
-            }
-        }.start();
+        if (!AWSMobileClient.defaultMobileClient().getIdentityManager().isUserSignedIn()) {
+            // In the case that the activity is restarted by the OS after the application
+            // is killed we must redirect to the splash activity to handle the sign-in flow.
+            Intent intent = new Intent(MainActivity.this, SplashActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            startActivity(intent);
+            return;
+        }
 
     }
 
@@ -308,29 +260,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onBackPressed();
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode,
-                                           String permissions[], int[] grantResults) {
-        permissionLatch.countDown();
-
-        switch (requestCode) {
-            case MY_PERMISSIONS_REQUEST_LOCATION: {
-                // If request is cancelled, the result arrays are empty.
-                if (grantResults.length > 0
-                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-
-
-                } else {
-//                    Toast.makeText(MainActivity.this, R.string.accept_permission, Toast.LENGTH_LONG).show();
-                    finish();
-                }
-                return;
-            }
-
-            // other 'case' lines to check for other
-            // permissions this app might request
-        }
-    }
 
 
     /**

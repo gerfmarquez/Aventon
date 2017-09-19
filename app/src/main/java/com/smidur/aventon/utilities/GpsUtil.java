@@ -67,6 +67,46 @@ public class GpsUtil {
 
         return requestedLocation;
     }
+    @WorkerThread
+    public static Location getNetworkUserLocation(Context context) throws SecurityException {
+
+        LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+
+
+        final CountDownLatch latch = new CountDownLatch(1);
+
+
+        locationManager.requestSingleUpdate(LocationManager.NETWORK_PROVIDER, new LocationListener() {
+            @Override
+            public void onLocationChanged(Location location) {
+                requestedLocation = location;
+                lastKnownLocation = location;
+                latch.countDown();
+            }
+
+            @Override
+            public void onStatusChanged(String provider, int status, Bundle extras) {
+
+            }
+
+            @Override
+            public void onProviderEnabled(String provider) {
+
+            }
+
+            @Override
+            public void onProviderDisabled(String provider) {
+
+            }
+        },context.getMainLooper());
+
+        try {
+            latch.await();
+
+        } catch(InterruptedException ie){}
+
+        return requestedLocation;
+    }
 
     public static Location getLastKnownLocation() throws SecurityException {
 

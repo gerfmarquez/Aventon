@@ -178,15 +178,13 @@ public class SchedulePickupFragment extends Fragment implements PlaceSelectionLi
                 new Thread() {
                     public void run() {
                         try {
-                            final LatLng lastLatLng = GpsUtil.getLatLng(GpsUtil.getUserLocation(getContext()));
+                            final LatLng lastLatLng = GpsUtil.getLatLng(GpsUtil.getLastKnownLocation());
 
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
-                                    mPassengerGoogleMap.animateCamera(
-                                            CameraUpdateFactory.newLatLngZoom(
-                                                    lastLatLng,
-                                                    Constants.PICKUP_MAP_ZOOM));
+                                    mPassengerGoogleMap.setLatLngBoundsForCameraTarget(
+                                            LatLngBounds.builder().include(lastLatLng).build());
                                 }
                             });
 

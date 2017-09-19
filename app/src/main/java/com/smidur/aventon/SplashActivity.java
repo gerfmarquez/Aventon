@@ -30,6 +30,7 @@ import com.google.gson.Gson;
 import com.smidur.aventon.cloud.ApiGatewayController;
 import com.smidur.aventon.managers.RideManager;
 import com.smidur.aventon.model.Config;
+import com.smidur.aventon.utilities.GpsUtil;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -46,7 +47,9 @@ public class SplashActivity extends AppCompatActivity {
     private final CountDownLatch timeoutLatch = new CountDownLatch(1);
     private SignInManager signInManager;
 
+    private static final int MY_PERMISSIONS_REQUEST_LOCATION = 8910;
     private CountDownLatch latchPermission = new CountDownLatch(1);
+    private boolean permissionGrantedResult = false;
 
     /**
      * SignInResultsHandler handles the results from sign-in for a previously signed in user.
@@ -78,7 +81,7 @@ public class SplashActivity extends AppCompatActivity {
 
 
                                    ActivityCompat.requestPermissions(SplashActivity.this,
-                                           new String[]{"android.permission.GET_ACCOUNTS"},8765);
+                                           new String[]{"android.permission.GET_ACCOUNTS",android.Manifest.permission.ACCESS_FINE_LOCATION},MY_PERMISSIONS_REQUEST_LOCATION);
 
                                    try {
                                        //if user denies the permission countdown latch is still released but security exception
@@ -146,8 +149,6 @@ public class SplashActivity extends AppCompatActivity {
                     });
 
 
-
-
         }
 
         /**
@@ -209,8 +210,10 @@ public class SplashActivity extends AppCompatActivity {
                             @Override
                             public void run() {
                                 redirectAccordingly();
+
                             }
                         });
+
 
                     } else {
                         //bad
@@ -354,11 +357,27 @@ public class SplashActivity extends AppCompatActivity {
 
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-        latchPermission.countDown();
-        if (requestCode==8765 && grantResults.length > 0
-                && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+
+        if (requestCode==MY_PERMISSIONS_REQUEST_LOCATION && grantResults.length > 0) {
+            boolean grantedResults = true;
+
+            for(int grantResult: grantResults ) {
+                grantedResults &= (grantResult == PackageManager.PERMISSION_GRANTED);
+            }
+            if(grantedResults) {
+                permissionGrantedResult = true;
+
+                new Thread(){
+                    public void run() {
+                        //request location since we're gonna need it later.
+                        GpsUtil.getUserLocation(SplashActivity.this);
+                        latchPermission.countDown();
+                    }
+                }.start();
+            }
+
         } else {
-//            Toast.makeText(SplashActivity.this, R.string.accept_permission, Toast.LENGTH_LONG).show();
             finish();
         }
     }
@@ -370,7 +389,7 @@ public class SplashActivity extends AppCompatActivity {
 
         Log.d(LOG_TAG, "Launching Main Activity...");
         Intent intent = new Intent(this, MainActivity.class);
-        
+        mode = "passenger";
         intent.putExtra("mode",mode);
         goAfterSplashTimeout(intent);
     }
