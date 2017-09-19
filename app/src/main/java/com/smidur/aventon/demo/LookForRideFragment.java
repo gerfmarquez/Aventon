@@ -21,6 +21,7 @@ import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.EditText;
@@ -226,6 +227,8 @@ public class LookForRideFragment extends Fragment {
     public void onResume() {
         super.onResume();
 
+        getActivity().getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
         Bundle extras = getActivity().getIntent().getExtras();
         if(extras!= null && extras.containsKey("confirm_ride")) {
             getActivity().getIntent().removeExtra("confirm_ride");
@@ -302,6 +305,7 @@ public class LookForRideFragment extends Fragment {
     @Override
     public void onPause() {
         super.onPause();
+        getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         isActivityShowing  = false;
     }
 
