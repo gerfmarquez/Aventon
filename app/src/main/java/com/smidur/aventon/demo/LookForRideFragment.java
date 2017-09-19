@@ -117,7 +117,7 @@ public class LookForRideFragment extends Fragment {
 
                 new Thread() {
                     public void run() {
-                        Location userLocation = GpsUtil.getUserLocation(getContext());
+                        Location userLocation = GpsUtil.getLastKnownLocation();
                         final LatLng passengerLatLng = GpsUtil.getLatLng(userLocation);
                         //retrieving location might take a little while and by that time fragment might go away
                         if(activity!=null) {

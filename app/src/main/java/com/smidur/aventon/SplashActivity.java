@@ -26,6 +26,7 @@ import com.amazonaws.mobile.user.signin.SignInManager;
 import com.amazonaws.mobile.user.signin.SignInProvider;
 import com.amazonaws.mobile.user.IdentityManager;
 import com.amazonaws.mobile.user.IdentityProvider;
+import com.crashlytics.android.Crashlytics;
 import com.google.gson.Gson;
 import com.smidur.aventon.cloud.ApiGatewayController;
 import com.smidur.aventon.managers.RideManager;
@@ -36,6 +37,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.TimeZone;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Splash Activity is the start-up activity that appears until a delay is expired
@@ -87,11 +89,18 @@ public class SplashActivity extends AppCompatActivity {
                                        //if user denies the permission countdown latch is still released but security exception
                                        //will be thrown below.
                                        //next time however app will ask for permission again.
-                                       latchPermission.await();
+                                       latchPermission.await(10, TimeUnit.SECONDS);
                                    }
                                    catch(InterruptedException ie){
                                        //todo log analytics}
                                    }
+                                   if(GpsUtil.getLastKnownLocation()==null) {
+                                       Crashlytics.logException(new IllegalStateException("latch expired and still no location."));
+                                       Toast.makeText(SplashActivity.this, getString(R.string.something_wrong_title), Toast.LENGTH_LONG).show();
+                                       finish();
+                                       return;
+                                   }
+                                   if(!permissionGrantedResult)return;
 
                                    AccountManager accountManager = (AccountManager) getSystemService(Context.ACCOUNT_SERVICE);
 
@@ -134,7 +143,7 @@ public class SplashActivity extends AppCompatActivity {
 
                                        @Override
                                        public void onError() {
-//                                           Toast.makeText(SplashActivity.this, getString(R.string.connection_error), Toast.LENGTH_LONG).show();
+                                           Toast.makeText(SplashActivity.this, getString(R.string.connection_error), Toast.LENGTH_LONG).show();
                                            runOnUiThread(new Runnable() {
                                                @Override
                                                public void run() {
@@ -375,9 +384,13 @@ public class SplashActivity extends AppCompatActivity {
                         latchPermission.countDown();
                     }
                 }.start();
+            } else {
+                Toast.makeText(SplashActivity.this, getString(R.string.accept_permission), Toast.LENGTH_LONG).show();
+                finish();
             }
 
         } else {
+            Toast.makeText(SplashActivity.this, getString(R.string.accept_permission), Toast.LENGTH_LONG).show();
             finish();
         }
     }
@@ -389,7 +402,7 @@ public class SplashActivity extends AppCompatActivity {
 
         Log.d(LOG_TAG, "Launching Main Activity...");
         Intent intent = new Intent(this, MainActivity.class);
-        mode = "passenger";
+
         intent.putExtra("mode",mode);
         goAfterSplashTimeout(intent);
     }
