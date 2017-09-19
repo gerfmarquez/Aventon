@@ -96,8 +96,9 @@ public class Sync {
     }
     public void startSyncDriverLocation() {
         //sync location
-        if(GpsUtil.getLastKnownLocation()!=null) {
-            pushDriverLocationToSync(GpsUtil.getLastKnownLocation());
+        Location lastKnownLocation = GpsUtil.getLastKnownLocation(context);
+        if(lastKnownLocation!=null) {
+            pushDriverLocationToSync(lastKnownLocation);
         }
         handler.post(syncDriverLocation);
     }

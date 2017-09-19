@@ -108,9 +108,11 @@ public class GpsUtil {
         return requestedLocation;
     }
 
-    public static Location getLastKnownLocation() throws SecurityException {
+    public static Location getLastKnownLocation(Context context) throws SecurityException {
+        LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
 
-        return lastKnownLocation;
+
+        return locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
     }
     public static LatLng getLatLng(Location location) {
         return new LatLng(location.getLatitude(),location.getLongitude());

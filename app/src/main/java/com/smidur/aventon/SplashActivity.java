@@ -89,12 +89,12 @@ public class SplashActivity extends AppCompatActivity {
                                        //if user denies the permission countdown latch is still released but security exception
                                        //will be thrown below.
                                        //next time however app will ask for permission again.
-                                       latchPermission.await(10, TimeUnit.SECONDS);
+                                       latchPermission.await(15, TimeUnit.SECONDS);
                                    }
                                    catch(InterruptedException ie){
                                        //todo log analytics}
                                    }
-                                   if(GpsUtil.getLastKnownLocation()==null) {
+                                   if(GpsUtil.getLastKnownLocation(SplashActivity.this)==null) {
                                        Crashlytics.logException(new IllegalStateException("latch expired and still no location."));
                                        runOnUiThread(new Runnable() {
                                            @Override
@@ -383,13 +383,8 @@ public class SplashActivity extends AppCompatActivity {
             if(grantedResults) {
                 permissionGrantedResult = true;
 
-                new Thread(){
-                    public void run() {
-                        //request location since we're gonna need it later.
-                        GpsUtil.getUserLocation(SplashActivity.this);
-                        latchPermission.countDown();
-                    }
-                }.start();
+                latchPermission.countDown();
+
             } else {
                 Toast.makeText(SplashActivity.this, getString(R.string.accept_permission), Toast.LENGTH_LONG).show();
                 finish();
@@ -408,7 +403,7 @@ public class SplashActivity extends AppCompatActivity {
 
         Log.d(LOG_TAG, "Launching Main Activity...");
         Intent intent = new Intent(this, MainActivity.class);
-        
+
         intent.putExtra("mode",mode);
         goAfterSplashTimeout(intent);
     }

@@ -56,6 +56,8 @@ import com.smidur.aventon.utilities.GpsUtil;
 import com.smidur.aventon.utilities.MapUtil;
 import com.smidur.aventon.utilities.NotificationUtil;
 
+import static com.amazonaws.mobile.util.ThreadUtils.runOnUiThread;
+
 /**
  * Created by marqueg on 3/15/17.
  */
@@ -109,34 +111,29 @@ public class LookForRideFragment extends Fragment {
 
                 mDriverGoogleMap = googleMap;
 
+                final LatLng lastLatLng = GpsUtil.getLatLng(GpsUtil.getLastKnownLocation(getContext()));
+
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        mDriverGoogleMap.setLatLngBoundsForCameraTarget(
+                                LatLngBounds.builder().include(lastLatLng).build());
+                        mDriverGoogleMap.setMinZoomPreference(Constants.PICKUP_MAP_ZOOM);
+                    }
+                });
+
+                try {
+                    mDriverGoogleMap.setMyLocationEnabled(true);
+
+                } catch(SecurityException se) {
+                    Crashlytics.logException(se);
+                }
                 mDriverGoogleMap.getUiSettings().setMyLocationButtonEnabled(true);
                 mDriverGoogleMap.getUiSettings().setCompassEnabled(true);
                 mDriverGoogleMap.getUiSettings().setMapToolbarEnabled(true);
                 mDriverGoogleMap.getUiSettings().setRotateGesturesEnabled(false);
 
 
-                new Thread() {
-                    public void run() {
-                        Location userLocation = GpsUtil.getLastKnownLocation();
-                        final LatLng passengerLatLng = GpsUtil.getLatLng(userLocation);
-                        //retrieving location might take a little while and by that time fragment might go away
-                        if(activity!=null) {
-                            activity.runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-
-                                    showUserLocationOnMap(passengerLatLng);
-
-                                    mDriverGoogleMap.animateCamera(
-                                            CameraUpdateFactory.newLatLngZoom(
-                                                    passengerLatLng,
-                                                    Constants.PICKUP_MAP_ZOOM));
-                                }
-                            });
-                        }
-
-                    }
-                }.start();
             }
         });
 
@@ -634,23 +631,6 @@ public class LookForRideFragment extends Fragment {
         Intent directionsIntent = new Intent(Intent.ACTION_VIEW, directionsUri);
         directionsIntent.setPackage("com.google.android.apps.maps");
         startActivity(directionsIntent);
-    }
-    private void showUserLocationOnMap(LatLng latLng) {
-
-        MarkerOptions options = new MarkerOptions();
-        options.icon(BitmapDescriptorFactory.fromResource(R.drawable.bluedot))
-                .position(latLng);
-
-
-        mDriverGoogleMap.animateCamera(
-                CameraUpdateFactory.newLatLngZoom(
-                        latLng, Constants.PICKUP_MAP_ZOOM));
-
-
-        if(driverMarker ==null) {
-            driverMarker = mDriverGoogleMap.addMarker(options);
-        }
-        driverMarker.setPosition(latLng);
     }
 
     private void updateDestinationLocationOnMap(LatLng userLatLng, LatLng destLatLng) {
