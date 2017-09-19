@@ -39,7 +39,7 @@ public class Sync {
 
     private static final int RETRY_SYNC_AVAILABLE_RIDES = 500;//half sec
     //todo update faster when driver is picking up somebody
-    private static final int SYNC_DRIVER_LOCATION_RATE = 5 * 1000;//40 sec
+    private static final int SYNC_DRIVER_LOCATION_RATE = 3 * 1000;//3 sec
 
 
     Thread syncAvailableRidesThread;
