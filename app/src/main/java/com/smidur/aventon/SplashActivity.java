@@ -408,7 +408,7 @@ public class SplashActivity extends AppCompatActivity {
 
         Log.d(LOG_TAG, "Launching Main Activity...");
         Intent intent = new Intent(this, MainActivity.class);
-
+        
         intent.putExtra("mode",mode);
         goAfterSplashTimeout(intent);
     }

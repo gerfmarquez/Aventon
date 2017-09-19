@@ -23,6 +23,7 @@ import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.crashlytics.android.Crashlytics;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.ui.PlaceAutocompleteFragment;
@@ -204,11 +205,19 @@ public class SchedulePickupFragment extends Fragment implements PlaceSelectionLi
                     }
                 }.start();
 
+                try {
+                    mPassengerGoogleMap.setMyLocationEnabled(true);
 
-                mPassengerGoogleMap.getUiSettings().setMyLocationButtonEnabled(true);
+                } catch(SecurityException se) {
+                    Crashlytics.logException(se);
+                }
+
                 mPassengerGoogleMap.getUiSettings().setCompassEnabled(true);
                 mPassengerGoogleMap.getUiSettings().setMapToolbarEnabled(true);
                 mPassengerGoogleMap.getUiSettings().setRotateGesturesEnabled(false);
+                mPassengerGoogleMap.getUiSettings().setMyLocationButtonEnabled(true);
+
+
 
                 mPassengerGoogleMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
                     @Override
@@ -244,22 +253,6 @@ public class SchedulePickupFragment extends Fragment implements PlaceSelectionLi
                     }
                 });
 
-                new Thread() {
-                    public void run() {
-                        final LatLng passengerLatLng = GpsUtil.getLatLng(
-                                GpsUtil.getUserLocation(getActivity()));
-                        //retrieving location might take a little while and by that time fragment might go away
-                        if(activity!=null) {
-                            activity.runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    showUserLocationOnMap(passengerLatLng);
-                                }
-                            });
-                        }
-
-                    }
-                }.start();
 
 
             }
@@ -520,24 +513,6 @@ public class SchedulePickupFragment extends Fragment implements PlaceSelectionLi
         driverMarker.setPosition(driverLatLng);
     }
 
-    private void showUserLocationOnMap(LatLng latLng) {
-
-        MarkerOptions options = new MarkerOptions();
-        options.icon(BitmapDescriptorFactory.fromResource(R.drawable.bluedot))
-                .position(latLng);
-
-
-        mPassengerGoogleMap.animateCamera(
-                CameraUpdateFactory.newLatLngZoom(
-                        latLng, Constants.PICKUP_MAP_ZOOM));
-
-
-//        mDriverGoogleMap.addGroundOverlay(options);
-        if(passengerMarker==null) {
-            passengerMarker = mPassengerGoogleMap.addMarker(options);
-        }
-        passengerMarker.setPosition(latLng);
-    }
 
     private void updateDestinationLocationOnMap(LatLng userLatLng, LatLng destLatLng) {
 
