@@ -28,8 +28,8 @@ android {
         applicationId "com.smidur.aventon"
         minSdkVersion 19
         targetSdkVersion 25
-        versionCode 5
-        versionName "1.5"
+        versionCode 6
+        versionName "1.6"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         multiDexEnabled true
     }
