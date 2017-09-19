@@ -245,10 +245,15 @@ public class TaxiMeterManager {
         return rideSummary;
     }
 
-
+    /**
+     * This method returns a distance of zero if there is any connection issue.
+     * @param snapshotLocations
+     * @return
+     */
     private float snapLocationsBatchAndCalcDistance(List<Location> snapshotLocations) {
         HttpController controller = new HttpController(context);
         SnapToRoadService snapToRoadService = controller.requestSnapToRoad(snapshotLocations);
+        if(snapToRoadService == null) return 0;
         List<SnappedPoints> snappedPoints = Arrays.asList(snapToRoadService.getSnappedPoints());
 
         float distanceInMeters = 0;
