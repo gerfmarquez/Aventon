@@ -53,7 +53,8 @@ public class RideManager {
     SyncPassenger syncPassenger;
     SyncRideSummary syncRideSummary;
 
-    private static final int LOCATION_UPDATE_RATE = 7 * 1000;//7 seconds
+    public static final int LOCATION_UPDATE_RATE = 7 * 1000;//7 seconds
+    public static final int FAST_LOCATION_UPDATE_RATE = 3 * 1000;//7 seconds
 
     /**
      *  Start - Singleton
@@ -116,7 +117,7 @@ public class RideManager {
         isDriverOnRide = true;
         isDriverAvailable = false;
 
-        reAcquireGpsSignal(3000);
+        reAcquireGpsSignal(FAST_LOCATION_UPDATE_RATE);
         //DEPRECATED--By closing connection we let the service know that driver is on a ride or not available.
         //Server will keep track of what drivers have Passengers assigned (Are on a ride) and avoid forwarding ride requests.
         //this way we can still communicate with driver through the long-polling commands for future enhancements

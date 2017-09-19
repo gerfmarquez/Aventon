@@ -184,10 +184,7 @@ public class SchedulePickupFragment extends Fragment implements PlaceSelectionLi
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
-                                    mPassengerGoogleMap.setLatLngBoundsForCameraTarget(
-                                            LatLngBounds.builder().include(lastLatLng).build());
-                                    mPassengerGoogleMap.setMinZoomPreference(Constants.PICKUP_MAP_ZOOM);
-
+                                    mPassengerGoogleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(lastLatLng,Constants.PICKUP_MAP_ZOOM));
                                 }
                             });
 

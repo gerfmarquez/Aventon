@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import static com.smidur.aventon.managers.RideManager.FAST_LOCATION_UPDATE_RATE;
 import static com.smidur.aventon.utilities.FareUtil.MINIMUM_FARE;
 
 /**
@@ -124,6 +125,7 @@ public class TaxiMeterManager {
                             } else {
                                 inVehicle = false;
                             }
+                            
                             break;
                         case DetectedActivity.ON_BICYCLE:
                             break;
@@ -218,7 +220,7 @@ public class TaxiMeterManager {
                     clearLocations();
 
                     //interrupt current ongoing gps rate to start over as soon as possible.
-                    RideManager.i(context).reAcquireGpsSignal();
+                    RideManager.i(context).reAcquireGpsSignal(FAST_LOCATION_UPDATE_RATE);
 
                     float calculateFareDistance = FareUtil.calculateFareMexNoFee(context,distanceSinceLastSegment,0);
                     currentPrice += calculateFareDistance;
@@ -289,7 +291,7 @@ public class TaxiMeterManager {
             currentPrice += calculateFareDuration;
 
             //interrupt current ongoing gps rate to start over as soon as possible.
-            RideManager.i(context).reAcquireGpsSignal();
+            RideManager.i(context).reAcquireGpsSignal(FAST_LOCATION_UPDATE_RATE);
 
             NotificationUtil.i(context).updateOngoingRideNotification(currentPrice,(int)totalRideDistance);
 

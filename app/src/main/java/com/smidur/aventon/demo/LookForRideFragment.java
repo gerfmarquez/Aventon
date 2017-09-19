@@ -116,9 +116,8 @@ public class LookForRideFragment extends Fragment {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        mDriverGoogleMap.setLatLngBoundsForCameraTarget(
-                                LatLngBounds.builder().include(lastLatLng).build());
-                        mDriverGoogleMap.setMinZoomPreference(Constants.PICKUP_MAP_ZOOM);
+
+                        mDriverGoogleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(lastLatLng,Constants.PICKUP_MAP_ZOOM));
                     }
                 });
 
