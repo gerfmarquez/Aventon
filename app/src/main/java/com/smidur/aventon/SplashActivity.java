@@ -96,8 +96,14 @@ public class SplashActivity extends AppCompatActivity {
                                    }
                                    if(GpsUtil.getLastKnownLocation()==null) {
                                        Crashlytics.logException(new IllegalStateException("latch expired and still no location."));
-                                       Toast.makeText(SplashActivity.this, getString(R.string.something_wrong_title), Toast.LENGTH_LONG).show();
-                                       finish();
+                                       runOnUiThread(new Runnable() {
+                                           @Override
+                                           public void run() {
+                                               Toast.makeText(SplashActivity.this, getString(R.string.something_wrong_title), Toast.LENGTH_LONG).show();
+
+                                                finish();
+                                           }
+                                       });
                                        return;
                                    }
                                    if(!permissionGrantedResult)return;
@@ -143,10 +149,10 @@ public class SplashActivity extends AppCompatActivity {
 
                                        @Override
                                        public void onError() {
-                                           Toast.makeText(SplashActivity.this, getString(R.string.connection_error), Toast.LENGTH_LONG).show();
                                            runOnUiThread(new Runnable() {
                                                @Override
                                                public void run() {
+                                                   Toast.makeText(SplashActivity.this, getString(R.string.connection_error), Toast.LENGTH_LONG).show();
                                                    finish();
                                                }
                                            });
