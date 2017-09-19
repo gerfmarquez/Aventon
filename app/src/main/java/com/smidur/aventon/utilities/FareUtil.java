@@ -15,7 +15,9 @@ public class FareUtil {
     private static final float MINUTE = 1.80F;
     private static final float KM = 1.80F;
 
-    public static float calculateFareMex(Context context, float distance, float duration) {
+    public static final float MINIMUM_FARE = 35.0F;
+
+    public static float calculateInitialFareMex(Context context, float distance, float duration) {
 
         float durationPrice = (duration/60) * MINUTE;
         float distancePrice = (distance/1000.0f) * KM;

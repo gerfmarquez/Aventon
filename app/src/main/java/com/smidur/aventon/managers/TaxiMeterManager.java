@@ -20,6 +20,8 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import static com.smidur.aventon.utilities.FareUtil.MINIMUM_FARE;
+
 /**
  * Created by marqueg on 7/9/17.
  */
@@ -239,6 +241,7 @@ public class TaxiMeterManager {
         rideSummary.setDuration(rideDuration);
         rideSummary.setDistance(totalRideDistance);
         rideSummary.setTimeCompleted(System.currentTimeMillis());
+        if(currentPrice < MINIMUM_FARE) currentPrice = MINIMUM_FARE;
         rideSummary.setTotalCost(currentPrice);
         rideSummary.setDateTimeCompleted(simpleDateFormat.format(Calendar.getInstance().getTime()));
 

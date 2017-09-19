@@ -54,7 +54,7 @@ public class MapUtil {
                             final PolylineOptions options = getPolylineOptions(googlePolyLine,activity);
 
                             //todo make price estimate calculation
-                            Float price = FareUtil.calculateFareMex(activity.getApplicationContext(),
+                            Float price = FareUtil.calculateInitialFareMex(activity.getApplicationContext(),
                                     leg.getDistance().getValue(),leg.getDurationInTraffic().getValue());
 
                             final String formattedPrice = String.format("$%.2f",price);
