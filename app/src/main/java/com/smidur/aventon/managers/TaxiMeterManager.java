@@ -125,7 +125,7 @@ public class TaxiMeterManager {
                             } else {
                                 inVehicle = false;
                             }
-                            
+
                             break;
                         case DetectedActivity.ON_BICYCLE:
                             break;
