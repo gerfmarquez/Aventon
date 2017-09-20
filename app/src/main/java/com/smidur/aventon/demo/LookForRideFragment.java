@@ -145,8 +145,18 @@ public class LookForRideFragment extends Fragment {
             @Override
             public void onClick(View v) {
 
+
                 new Thread() {
                     public void run() {
+                        new Handler(getContext().getMainLooper()).post(new Runnable() {
+                            @Override
+                            public void run() {
+                                mPickedUpPassengerButton.setEnabled(false);
+                                driverProgress.setVisibility(View.VISIBLE);
+
+                            }
+                        });
+
                         final Location driverCurrentLocation = GpsUtil.getUserLocation(getContext());
 
                         new Handler(getContext().getMainLooper()).post(new Runnable() {
@@ -155,7 +165,7 @@ public class LookForRideFragment extends Fragment {
                                 //enable taximeter
                                 RideManager.i(getContext()).pauseDriverShiftAndStartRide();
 
-                                driverProgress.setVisibility(View.VISIBLE);
+
 
                                 final SyncLocation destSyncLocation = temporaryPassengerVariable.getSyncDestination().getDestinationLocation();
 
@@ -178,6 +188,7 @@ public class LookForRideFragment extends Fragment {
                                                 destination.getSyncLocationLongitude());
                                     }
                                 });
+                                mPickedUpPassengerButton.setEnabled(true);
                                 //show reached destination button
                                 mPickedUpPassengerButton.setText(R.string.reached_destination);
                                 mPickedUpPassengerButton.setOnClickListener(new View.OnClickListener() {
@@ -423,6 +434,13 @@ public class LookForRideFragment extends Fragment {
         @Override
         public void onRideConfirmAccepted(final SyncPassenger passenger) {
 
+            activity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    driverProgress.setVisibility(View.VISIBLE);//show progress until we show map on map
+                }
+            });
+
             final Location driverCurrentLocation = GpsUtil.getUserLocation(getContext());
 
             activity.runOnUiThread(new Runnable() {
@@ -444,8 +462,6 @@ public class LookForRideFragment extends Fragment {
 
                     mPickedUpPassengerButton.setVisibility(View.VISIBLE);
                     mPickupDirectionsButton.setVisibility(View.VISIBLE);
-                    driverProgress.setVisibility(View.VISIBLE);//show progress until we show map on map
-
 
 
                     driverSwitch.setEnabled(false);

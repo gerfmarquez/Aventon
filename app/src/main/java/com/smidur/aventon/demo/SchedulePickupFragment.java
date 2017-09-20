@@ -138,7 +138,7 @@ public class SchedulePickupFragment extends Fragment implements PlaceSelectionLi
         new Thread() {
             public void run() {
                 try {
-                    final LatLng lastLatLng = GpsUtil.getLatLng(GpsUtil.getUserLocation(getContext()));
+                    final LatLng lastLatLng = GpsUtil.getLatLng(GpsUtil.getLastKnownLocation(getContext()));
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
@@ -377,11 +377,10 @@ public class SchedulePickupFragment extends Fragment implements PlaceSelectionLi
         @Override
         public void onDriverApproaching(final SyncLocation driverNewLocation) {
 
-
             final LatLng driverLatLng = new LatLng(
                     driverNewLocation.getSyncLocationLatitude()
                     ,driverNewLocation.getSyncLocationLongitude());
-            final LatLng userLatLng = GpsUtil.getLatLng(GpsUtil.getUserLocation(getContext()));
+            final LatLng userLatLng = GpsUtil.getLatLng(GpsUtil.getLastKnownLocation(getContext()));
 
             activity.runOnUiThread(new Runnable() {
                 @Override
@@ -465,7 +464,7 @@ public class SchedulePickupFragment extends Fragment implements PlaceSelectionLi
 
         new Thread() {
             public void run() {
-                final Location passengerLocation = GpsUtil.getUserLocation(activity);
+                final Location passengerLocation = GpsUtil.getLastKnownLocation(activity);
                 activity.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
@@ -502,7 +501,7 @@ public class SchedulePickupFragment extends Fragment implements PlaceSelectionLi
 
 
         LatLngBounds bounds = LatLngBounds.builder().include(driverLatLng).include(userLatLng).build();
-        mPassengerGoogleMap.animateCamera(
+        mPassengerGoogleMap.moveCamera(
                 CameraUpdateFactory.newLatLngBounds(bounds, width,(int)(height*.70f),100));
 
 //        mDriverGoogleMap.addGroundOverlay(options);

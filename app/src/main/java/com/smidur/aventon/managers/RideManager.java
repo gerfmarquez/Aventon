@@ -8,6 +8,7 @@ import android.os.Handler;
 import android.support.annotation.MainThread;
 import android.support.annotation.WorkerThread;
 
+import com.crashlytics.android.Crashlytics;
 import com.google.gson.Gson;
 import com.smidur.aventon.exceptions.TokenInvalidException;
 import com.smidur.aventon.http.HttpController;
@@ -213,7 +214,7 @@ public class RideManager {
 
         Location passengerLocation = GpsUtil.getUserLocation(context);
         if(passengerLocation == null) {
-            //todo anaylytics error
+            Crashlytics.logException(new RuntimeException("Gps Location couldn't be retrieved for scheduling ride."));
             return;
         }
 

@@ -69,9 +69,14 @@ public class GpsUtil {
     }
 
 
-    public static Location getLastKnownLocation(Context context) throws SecurityException {
+    public static Location getLastKnownLocation(final Context context) throws SecurityException {
         LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
-
+        new Thread() {
+            public void run() {
+                //run a location request in the background for next time that is needed.
+                getUserLocation(context);
+            }
+        }.start();
 
         return locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
     }

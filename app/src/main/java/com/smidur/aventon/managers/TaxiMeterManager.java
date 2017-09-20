@@ -157,7 +157,7 @@ public class TaxiMeterManager {
                     segmentLocations.add(location);
                     likelyDistanceSegment += minimumDistanceSoFar;
                     //add a 10 meter margin of error before submitting to snap to road service
-                    if(likelyDistanceSegment > DISTANCE_SEGMENT_THRESHOLD-(DISTANCE_SEGMENT_THRESHOLD*.75f)) {
+                    if(likelyDistanceSegment > DISTANCE_SEGMENT_THRESHOLD * .75) {
                         likelyMetThresholdDistance(segmentLocations);
                     }
                 }
