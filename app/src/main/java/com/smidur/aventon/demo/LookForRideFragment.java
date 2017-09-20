@@ -367,6 +367,8 @@ public class LookForRideFragment extends Fragment {
 
     }
 
+
+
     RideManager.DriverEventsListener driverEventsListener = new RideManager.DriverEventsListener() {
         @Override
         public void onRideAvailable(SyncPassenger passenger) {
@@ -665,7 +667,7 @@ public class LookForRideFragment extends Fragment {
 
         LatLngBounds bounds = LatLngBounds.builder().include(destLatLng).include(userLatLng).build();
         mDriverGoogleMap.animateCamera(
-                CameraUpdateFactory.newLatLngBounds(bounds, width,((int)(height*.70f)),500));
+                CameraUpdateFactory.newLatLngBounds(bounds, width,((int)(height*.85f)),150));
 
 //        mDriverGoogleMap.addGroundOverlay(options);
         if(destinationMarker==null) {

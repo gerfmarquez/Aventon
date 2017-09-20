@@ -21,6 +21,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import static com.smidur.aventon.managers.RideManager.FAST_LOCATION_UPDATE_RATE;
+import static com.smidur.aventon.utilities.FareUtil.BANDERAZO;
 import static com.smidur.aventon.utilities.FareUtil.MINIMUM_FARE;
 
 /**
@@ -62,7 +63,7 @@ public class TaxiMeterManager {
     int likelyDistanceSegment = 0;
 
     public void init() {
-        currentPrice = 0.0f;
+        currentPrice = BANDERAZO;
         segmentLocations = new ArrayList<>();
         checkPriceIncreaseTimer = new Timer();
         likelyDistanceSegment = 0;
@@ -206,6 +207,7 @@ public class TaxiMeterManager {
 
         new Thread() {
             public void run() {
+                if(!taxiMeterOn)return;
                 List<Location> copySnapRoadLocations = new ArrayList<>(snapRoadLocations);
 
 

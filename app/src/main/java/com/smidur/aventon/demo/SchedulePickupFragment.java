@@ -19,6 +19,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -80,6 +81,7 @@ public class SchedulePickupFragment extends Fragment implements PlaceSelectionLi
     TextView durationEstimate;
     TextView distanceEstimate;
 
+    LinearLayout footer;
     RelativeLayout routeEstimateFooter;
     RelativeLayout driverInfoFooter;
 
@@ -120,6 +122,7 @@ public class SchedulePickupFragment extends Fragment implements PlaceSelectionLi
                 fragmentManager.findFragmentById(R.id.autocomplete_fragment);
 
 
+        footer = (LinearLayout) mFragmentView.findViewById(R.id.footer);
         routeEstimateFooter = (RelativeLayout) mFragmentView.findViewById(R.id.map_footer);
         driverInfoFooter = (RelativeLayout) mFragmentView.findViewById(R.id.driver_info_footer);
 
@@ -326,6 +329,8 @@ public class SchedulePickupFragment extends Fragment implements PlaceSelectionLi
                     mSchedulePickupButton.setEnabled(false);
                     mSchedulePickupButton.setVisibility(View.INVISIBLE);
 
+
+                    footer.setVisibility(View.VISIBLE);
                     routeEstimateFooter.setVisibility(View.GONE);
                     driverInfoFooter.setVisibility(View.VISIBLE);
 
@@ -545,6 +550,7 @@ public class SchedulePickupFragment extends Fragment implements PlaceSelectionLi
             mSelectedDestination = syncDestination;
             mSchedulePickupButton.setEnabled(true);
             mSchedulePickupButton.setVisibility(View.VISIBLE);
+            footer.setVisibility(View.VISIBLE);
             routeEstimateFooter.setVisibility(View.VISIBLE);
 
             priceEstimate.setText(formattedPrice

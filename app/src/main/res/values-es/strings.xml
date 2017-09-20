@@ -85,7 +85,7 @@
     <string name="passenger_mode">Encuentra un Aventon</string>
     <string name="arrived_destination">Se llego al Destino</string>
     <string name="total_cost_label">"Costo total: "</string>
-    <string name="ride_summary">Actual Distancia Total: ddd Costo Actual: $fff</string>
+    <string name="ride_summary">Distancia: ddd Costo: $fff</string>
     <string name="ride_summary_title">Detalles del Recorrido</string>
     <string name="aventon">Aventon</string>
     <string name="incoming_ride_request">Nueva Solicitud de Recorrido</string>

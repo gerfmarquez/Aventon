@@ -16,18 +16,19 @@ public class FareUtil {
     private static final float KM = 1.80F;
 
     public static final float MINIMUM_FARE = 35.0F;
+    public static final float BANDERAZO = 7.0f;
 
     public static float calculateInitialFareMex(Context context, float distance, float duration) {
 
         float durationPrice = (duration/60) * MINUTE;
         float distancePrice = (distance/1000.0f) * KM;
 
-        float banderazo = 7.0f;
+
         float totalPrice = 0.0f;
         if(distancePrice > durationPrice) {
-            totalPrice = distancePrice+banderazo;
+            totalPrice = distancePrice+BANDERAZO;
         } else {
-            totalPrice =  durationPrice+banderazo;
+            totalPrice =  durationPrice+BANDERAZO;
         }
 
         Calendar time = Calendar.getInstance();
