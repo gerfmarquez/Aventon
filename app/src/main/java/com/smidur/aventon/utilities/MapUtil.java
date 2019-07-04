@@ -2,7 +2,7 @@ package com.smidur.aventon.utilities;
 
 import android.app.Activity;
 import android.location.Location;
-import android.support.annotation.MainThread;
+import androidx.annotation.MainThread;
 
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.PolylineOptions;

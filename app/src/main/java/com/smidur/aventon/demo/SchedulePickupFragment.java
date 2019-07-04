@@ -12,8 +12,6 @@ import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Vibrator;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.Fragment;
 import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -23,6 +21,9 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+
+import androidx.core.app.ActivityCompat;
+import androidx.fragment.app.Fragment;
 
 import com.crashlytics.android.Crashlytics;
 import com.google.android.gms.common.api.Status;

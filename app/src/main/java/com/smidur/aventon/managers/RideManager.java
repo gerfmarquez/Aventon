@@ -5,8 +5,8 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.annotation.MainThread;
-import android.support.annotation.WorkerThread;
+import androidx.annotation.MainThread;
+import androidx.annotation.WorkerThread;
 
 import com.crashlytics.android.Crashlytics;
 import com.google.gson.Gson;

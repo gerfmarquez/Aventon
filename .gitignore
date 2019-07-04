@@ -1,13 +1,11 @@
+*.iml
 .gradle
 /local.properties
 /.idea/*
 .DS_Store
 /build
 /app/build
-/gradle
-gradlew.bat
-gradle.properties
-/Aventon.iml
-*.iml
+/captures
 app/src/main/res/values/api_keys.xml
 app/fabric.properties
+.externalNativeBuild

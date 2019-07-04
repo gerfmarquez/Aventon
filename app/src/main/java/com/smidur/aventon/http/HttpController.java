@@ -3,7 +3,7 @@ package com.smidur.aventon.http;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.location.Location;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import android.util.Log;
 
 import com.amazonaws.mobile.AWSMobileClient;

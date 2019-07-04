@@ -1,8 +1,8 @@
 package com.smidur.aventon.demo;
 
 import android.app.Activity;
-import android.app.AlertDialog;
-import android.app.FragmentManager;
+
+
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -11,10 +11,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v7.widget.Toolbar;
 import android.text.Html;
 import android.view.Display;
 import android.view.Gravity;
@@ -30,11 +26,20 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.widget.SwitchCompat;
+import androidx.appcompat.widget.Toolbar;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
+
 import com.crashlytics.android.Crashlytics;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
@@ -77,11 +82,11 @@ public class LookForRideFragment extends Fragment {
     Button mPickedUpPassengerButton;
     Button mPickupDirectionsButton;
     Button mCancelRideButton;
-    Switch driverSwitch;
+    SwitchCompat driverSwitch;
 
     ProgressBar driverProgress;
 
-    MapFragment mapFragment;
+    SupportMapFragment mapFragment;
     GoogleMap mDriverGoogleMap;
     FragmentManager fragmentManager;
 
@@ -100,9 +105,9 @@ public class LookForRideFragment extends Fragment {
         // Inflate the layout for this fragment
         mFragmentView = inflater.inflate(R.layout.lookforride_fragment, container, false);
         activity = this.getActivity();
-        fragmentManager = activity.getFragmentManager();
+        fragmentManager = ((FragmentActivity) activity).getSupportFragmentManager();
 
-        mapFragment = (MapFragment) fragmentManager.findFragmentById(R.id.driver_map);
+        mapFragment = (SupportMapFragment) fragmentManager.findFragmentById(R.id.driver_map);
 
         driverProgress = (ProgressBar)mFragmentView.findViewById(R.id.driver_progress);
 
@@ -249,7 +254,7 @@ public class LookForRideFragment extends Fragment {
         }
 
         if(RideManager.i(activity).getDriverInfo() == null) {
-            android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(
+            AlertDialog.Builder builder = new AlertDialog.Builder(
                     activity);
 
             final AlertDialog platesMakeDialog = builder.setTitle(R.string.required_info)
@@ -299,7 +304,7 @@ public class LookForRideFragment extends Fragment {
                         }
                     })
                     .create();
-            platesMakeDialog.setView(getLayoutInflater(null)
+            platesMakeDialog.setView(getLayoutInflater()
                     .inflate(R.layout.view_input_plates_model,null));
             platesMakeDialog.show();
 //            platesMakeDialog.setContentView(,
@@ -334,7 +339,7 @@ public class LookForRideFragment extends Fragment {
 
         if(activity != null) {
             Toolbar toolbar = (Toolbar) activity.findViewById(R.id.toolbar);
-            driverSwitch = (Switch)getLayoutInflater(null).inflate(R.layout.driver_toolbar,null);
+            driverSwitch = (SwitchCompat)getLayoutInflater().inflate(R.layout.driver_toolbar,null);
             driverSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -359,7 +364,7 @@ public class LookForRideFragment extends Fragment {
             ((Toolbar)activity.findViewById(R.id.toolbar)).removeView(driverSwitch);
         }
         if(!getActivity().isDestroyed()) {
-            getActivity().getFragmentManager()
+            getActivity().getSupportFragmentManager()
                     .beginTransaction()
                     .remove(mapFragment)
                     .commit();
@@ -380,7 +385,7 @@ public class LookForRideFragment extends Fragment {
                 public void run() {
 
                     if(isActivityShowing) {
-                        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(
+                        AlertDialog.Builder builder = new AlertDialog.Builder(
                                 activity);
 
 
@@ -590,9 +595,9 @@ public class LookForRideFragment extends Fragment {
                                                     Fragment oldLookRideFragment = getFragmentManager().findFragmentByTag(
                                                             NavigationDrawer.Screen.DRIVER_LOOK_FOR_RIDE.name());
 
-                                                    final android.support.v4.app.FragmentManager fragMan = getFragmentManager();
+                                                    final FragmentManager fragMan = getFragmentManager();
 
-                                                    fragMan.beginTransaction()
+                                                    ((FragmentManager) fragMan).beginTransaction()
                                                             .remove(oldLookRideFragment)
                                                         .commit();
 
