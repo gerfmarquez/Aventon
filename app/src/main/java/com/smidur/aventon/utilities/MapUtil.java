@@ -18,8 +18,10 @@ import com.smidur.aventon.model.SyncLocation;
 import java.io.IOException;
 import java.util.ArrayList;
 
-/**
- * Created by marqueg on 7/9/17.
+/** This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright 2020, Gerardo Marquez.
  */
 
 public class MapUtil {
