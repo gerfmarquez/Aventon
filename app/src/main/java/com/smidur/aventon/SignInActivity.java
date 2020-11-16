@@ -16,6 +16,12 @@ import com.amazonaws.mobile.user.IdentityProvider;
 
 import com.amazonaws.mobile.user.signin.FacebookSignInProvider;
 
+/** This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright 2020, Gerardo Marquez.
+ */
+
 public class SignInActivity extends Activity {
     private static final String LOG_TAG = SignInActivity.class.getSimpleName();
     private SignInManager signInManager;
